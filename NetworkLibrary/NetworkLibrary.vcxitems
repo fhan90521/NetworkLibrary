@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{deeaf9c8-e3f1-4850-b9d2-03d66dbcaed0}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSerialBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Proxy.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Stub.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PKT_TYPE.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Proxy.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Session.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Stub.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)RPCcompiler.py" />
+  </ItemGroup>
+</Project>

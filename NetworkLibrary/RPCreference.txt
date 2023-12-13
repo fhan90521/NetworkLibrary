@@ -1,0 +1,4 @@
+RPC 10000
+{
+	Echo(long long testLL)
+}

@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSerialBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Proxy.cpp">
+      <Filter>RPC</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Stub.cpp">
+      <Filter>RPC</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PKT_TYPE.h">
+      <Filter>RPC</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Proxy.h">
+      <Filter>RPC</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Stub.h">
+      <Filter>RPC</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Log.h">
+      <Filter>Log</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Session.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CList.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Buffer">
+      <UniqueIdentifier>{d74587b8-e839-46cf-a946-f4fb38bedaf7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RPC">
+      <UniqueIdentifier>{0c5979c1-3836-41c5-941e-e013c11de6ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Log">
+      <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Container">
+      <UniqueIdentifier>{1f2edac6-c633-4d06-9e16-c509c107c608}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)RPCcompiler.py">
+      <Filter>RPC</Filter>
+    </None>
+  </ItemGroup>
+</Project>
