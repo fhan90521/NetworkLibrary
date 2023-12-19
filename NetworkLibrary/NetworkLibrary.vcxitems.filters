@@ -54,7 +54,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CommonMemoryPool.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForStd.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForSTL.h">
       <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ObjectPool.h">
@@ -81,8 +81,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceProfiler.h">
       <Filter>Profiler</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MemoryPool.h">
-      <Filter>Memory</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h">
+      <Filter>Container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

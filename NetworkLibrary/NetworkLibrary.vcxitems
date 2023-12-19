@@ -28,12 +28,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CommonMemoryPool.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForStd.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForSTL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)MemoryPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ObjectPool.h" />

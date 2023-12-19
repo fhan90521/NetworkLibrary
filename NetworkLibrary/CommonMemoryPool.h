@@ -10,7 +10,7 @@
 #include<vector>
 #include "GetPOOLID.h"
 #define COOKIE_VALUE (short)0xAAAA
-#define ATTACH_TAIL
+#define ADD_CHECK
 using namespace std;
 
 //#define CHECK_MINUS_INPUT
@@ -20,45 +20,49 @@ private:
 	struct chunkHeader
 	{
 		unsigned int chunkSize;
+		chunkHeader* pNext;
 	};
 	struct chunkTail
 	{
+#ifdef ADD_CHECK
 		short cookie;
-		unsigned short pool_id;
+		unsigned short id;
+#endif
 	};
 	class MemoryPool
 	{
 	private:
+		chunkHeader* _pFreeChunk=nullptr;
 		int _chunkSize;
 		int _chunkPerBlock;
-		unsigned short _pool_id;
-
-		std::vector<chunkHeader*> pMemoryChunkVector;
+		unsigned short _id;
 		std::vector<void*> pMemoryBlockBeginVector;
-		long long indexFreeChunk = -1;
 
 		void AllocBlock()
 		{
-
 			void* pMemoryBlockBegin = malloc(_chunkPerBlock * _chunkSize);
-			//std::cout << "pBegin: " << pMemoryBlockBegin << std::endl;
 			pMemoryBlockBeginVector.push_back(pMemoryBlockBegin);
-			pMemoryChunkVector.resize(pMemoryChunkVector.size() + _chunkPerBlock);
-
+			chunkHeader* pNewChunkHeader;
 			for (int i = 0; i < _chunkPerBlock; i++)
 			{
-				chunkHeader* pNewMemoryChunk = (chunkHeader*)((char*)pMemoryBlockBegin + (i * _chunkSize));
-				pNewMemoryChunk->chunkSize = _chunkSize;
-#ifdef ATTACH_TAIL
-				chunkTail* pChunkTail=(chunkTail*)((char*)pNewMemoryChunk +_chunkSize-sizeof(chunkTail));
+				pNewChunkHeader = (chunkHeader*)((char*)pMemoryBlockBegin + (i * _chunkSize));
+				pNewChunkHeader->chunkSize = _chunkSize;
+				if (i == _chunkPerBlock - 1)
+				{
+					pNewChunkHeader->pNext = nullptr;
+				}
+				else
+				{
+					pNewChunkHeader->pNext = pNewChunkHeader + 1;
+				}
+
+#ifdef ADD_CHECK
+				chunkTail* pChunkTail=(chunkTail*)((char*)pNewChunkHeader +_chunkSize-sizeof(chunkTail));
 				pChunkTail->cookie = COOKIE_VALUE;
-				pChunkTail->pool_id = _pool_id;
+				pChunkTail->id = _id;
 #endif
-				//std::cout << "pNewMemoryChunk : " << pNewMemoryChunk << std::endl;
-				pMemoryChunkVector[i] = pNewMemoryChunk;
-				//std::cout << *itFreeChunk << std::endl;
 			}
-			indexFreeChunk = _chunkPerBlock - 1;
+			_pFreeChunk = (chunkHeader*) pMemoryBlockBegin;
 		}
 		void Clear()
 		{
@@ -74,7 +78,7 @@ private:
 		}
 		MemoryPool(int chunkSize, int chunkPerBlock) : _chunkSize(chunkSize), _chunkPerBlock(chunkPerBlock)
 		{
-			_pool_id = GetPOOLID();
+			_id = GetPOOLID();
 		}
 		MemoryPool(const MemoryPool& other) = delete;
 		MemoryPool& operator=(const MemoryPool& other) = delete;
@@ -82,31 +86,32 @@ private:
 		void* Alloc()
 		{
 
-			if (indexFreeChunk == -1)
+			if (_pFreeChunk == nullptr)
 			{
 				AllocBlock();
 			}
-
-			//std::cout << "chunkSize: " << _dataSize << " blockNum: " << pMemoryBlockBeginList.size() << std::endl;
-			return ((char*)pMemoryChunkVector[indexFreeChunk--] + sizeof(chunkHeader));;
+			void* retP = _pFreeChunk;
+			_pFreeChunk = _pFreeChunk->pNext;
+			return retP;
 		}
 
-		void Free(void* pData)
+		void Free(chunkHeader* pChunkHeader)
 		{
-#ifdef ATTACH_TAIL
-			chunkTail* pChunkTail = (chunkTail*)((char*)pData-sizeof(chunkHeader) + _chunkSize - sizeof(chunkTail));
+			chunkTail* pChunkTail = (chunkTail*)((char*)pChunkHeader + _chunkSize - sizeof(chunkTail));
+#ifdef ADD_CHECK
 			if (pChunkTail->cookie != COOKIE_VALUE)
 			{
-				cout << "pool cookie modulation" << endl;
+				cout << "object pool cookie modulation" << endl;
 				DebugBreak();
 			}
-			else if (pChunkTail->pool_id != _pool_id)
+			else if (pChunkTail->id != _id)
 			{
 				cout << "pool id not match" << endl;
 				DebugBreak();
 			}
 #endif
-			pMemoryChunkVector[++indexFreeChunk] = (chunkHeader*)((char*)pData - sizeof(chunkHeader));
+			pChunkHeader->pNext = _pFreeChunk;
+			_pFreeChunk = pChunkHeader;
 		}
 	};
 
@@ -162,11 +167,8 @@ public:
 		}
 #endif
 
-#ifdef ATTACH_TAIL
+
 		int essentialSize = sizeof(chunkHeader) + required_size + sizeof(chunkTail);
-#else
-		int essentialSize = sizeof(chunkHeader) + required_size;
-#endif
 		if (essentialSize > UNIT_LIMIT)
 		{
 			chunkHeader* pChunkHeader = (chunkHeader*)malloc(essentialSize);
@@ -201,7 +203,7 @@ public:
 		}
 		else
 		{
-			pMemoryPoolArr[pChunkHeader->chunkSize/CHUNK_SIZE_UNIT -1]->Free(pData);
+			pMemoryPoolArr[pChunkHeader->chunkSize/CHUNK_SIZE_UNIT -1]->Free(pChunkHeader);
 		}
 		return ;
 	}

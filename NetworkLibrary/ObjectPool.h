@@ -4,45 +4,41 @@
 #include <Windows.h>
 #include "GetPOOLID.h"
 #include <utility>
-
-#define ATTATCH_TAIL
+using namespace std;
+#define ADD_CHECK
 #define COOKIE_VALUE (short)0xAAAA
 template <class Type, typename... Args>
 class ObjectPool
 {
 private:
-	struct NodeTail
-	{
-		short cookie;
-		unsigned short pool_id;
-	};
 	struct Node
 	{
 		Type data;
-#ifdef ATTATCH_TAIL
-		NodeTail nodeTail;
+#ifdef ADD_CHECK
+		short cookie;
+		unsigned short id;
 #endif
 		Node* next = nullptr;
 	};
 
 	Node* _pFreeNode = nullptr;
 
-	unsigned short _pool_id;
+	unsigned short _id;
 	int _nodePerBlock;
 	int _allocatingCnt = 0;
 	bool _allocPlacementNew;
 
-	std::list<Node*> pBlockBeginList;
+	std::list<void*> pBlockBeginList;
 
 	ObjectPool(const ObjectPool& src) = delete;
 	ObjectPool& operator=(const ObjectPool& rhs) = delete;
 
 	void AllocBlock()
 	{
-		Node* pBlockBegin = (Node*)malloc(_nodePerBlock * sizeof(Node));
+		void* pBlockBegin = (void*)malloc(_nodePerBlock * sizeof(Node));
 		pBlockBeginList.push_back(pBlockBegin);
 
-		Node* pNode = pBlockBegin;
+		Node* pNode = (Node*)pBlockBegin;
 		for (int i = 0; i < _nodePerBlock; i++)
 		{
 			if (_allocPlacementNew == false)
@@ -58,9 +54,9 @@ private:
 			{
 				pNode->next = pNode + 1;
 			}
-#ifdef ATTATCH_TAIL
-			(pNode->nodeTail).pool_id = _pool_id;
-			(pNode->nodeTail).cookie = COOKIE_VALUE;
+#ifdef ADD_CHECK
+			pNode->cookie = COOKIE_VALUE;
+			pNode->id = _id;
 #endif
 			pNode++;
 		}
@@ -90,7 +86,7 @@ public:
 	ObjectPool(int nodePerBlock, bool allocPlacementNew)
 		: _nodePerBlock(nodePerBlock), _allocPlacementNew(allocPlacementNew)
 	{
-		_pool_id = GetPOOLID();
+		_id = GetPOOLID();
 	}
 	virtual	~ObjectPool()
 	{
@@ -116,13 +112,13 @@ public:
 	void Free(Type* pData)
 	{
 		Node* pNode = (Node*)pData;
-#ifdef ATTATCH_TAIL
-		if ((pNode->nodeTail).cookie != COOKIE_VALUE)
+#ifdef ADD_CHECK
+		if (pNode->cookie != COOKIE_VALUE)
 		{
 			cout << "object pool cookie modulation" << endl;
 			DebugBreak();
 		}
-		else if ((pNode->nodeTail).pool_id != _pool_id)
+		else if (pNode->id !=_id)
 		{
 			cout << "pool id not match" << endl;
 			DebugBreak();

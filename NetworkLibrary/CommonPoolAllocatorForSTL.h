@@ -10,7 +10,7 @@
 //#include <typeinfo>
 using namespace std;
 template <class T>
-class CommonPoolAllocatorForStd
+class CommonPoolAllocatorForSTL
 {
 public:
 
