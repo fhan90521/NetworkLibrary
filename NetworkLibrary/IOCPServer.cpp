@@ -75,7 +75,7 @@ Session* IOCPServer::FindSession(SessionInfo sessionInfo)
 	InterlockedIncrement16(&pSession->sessionManageInfo.refCnt);
 	if (pSession->sessionManageInfo.bDeallocated == true)
 	{
-		//Release가 이미 되고 있다. 이미되고 할당 받는중인데 Release가 되는 문제 <-문제 a -> 받는중이라도 release 될 일 없다.
+		//Release가 이미 되고 있다. 이미되고 할당 받는중인데 Release가 되는 문제 <-문제 a -> 받는중이라도 bDeallocated==false일 수 없어서 release 될 일 없다.
 		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 		{
 			ReleaseSession(pSession);

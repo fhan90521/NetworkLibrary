@@ -27,10 +27,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonMemoryPool.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForSTL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockMemoryPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockPoolAllocatorForSTL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h" />

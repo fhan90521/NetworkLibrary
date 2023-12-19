@@ -1,13 +1,12 @@
 #include <new>
-#include <list>
 #include <iostream>
 #include <Windows.h>
 #include "GetPOOLID.h"
 #include <utility>
 using namespace std;
-//#define ADD_CHECK
+#define ADD_CHECK
 #define COOKIE_VALUE (short)0xAAAA
-template <class Type, typename... Args>
+template <class Type>
 class ObjectPool
 {
 private:
@@ -22,89 +21,54 @@ private:
 	};
 
 	Node* _pFreeNode = nullptr;
-
 	unsigned short _id;
-	int _nodePerBlock;
 	int _allocatingCnt = 0;
 	bool _allocPlacementNew;
-
-	std::list<void*> pBlockBeginList;
-
 	ObjectPool(const ObjectPool& src) = delete;
 	ObjectPool& operator=(const ObjectPool& rhs) = delete;
-
-	void AllocBlock()
-	{
-		void* pBlockBegin = (void*)malloc(_nodePerBlock * sizeof(Node));
-		pBlockBeginList.push_back(pBlockBegin);
-
-		Node* pNode = (Node*)pBlockBegin;
-		for (int i = 0; i < _nodePerBlock; i++)
-		{
-			if (_allocPlacementNew == false)
-			{
-				new (&(pNode->data)) Type;
-			}
-
-			if (i == _nodePerBlock - 1)
-			{
-				pNode->next = nullptr;
-			}
-			else
-			{
-				pNode->next = pNode + 1;
-			}
-#ifdef ADD_CHECK
-			pNode->cookie = COOKIE_VALUE;
-			pNode->id = _id;
-#endif
-			pNode++;
-		}
-		_pFreeNode = pBlockBegin;
-	}
-
-
-	void Clear()
-	{
-
-		for (Node* pBlockBegin : pBlockBeginList)
-		{
-			if (_allocPlacementNew == false)
-			{
-				Node* pNode = pBlockBegin;
-				for (int i = 0; i < _nodePerBlock; i++)
-				{
-					(pNode->data).~Type();
-					pNode++;
-				}
-			}
-			free(pBlockBegin);
-		}
-	}
 public:
 
-	ObjectPool(int nodePerBlock, bool allocPlacementNew)
-		: _nodePerBlock(nodePerBlock), _allocPlacementNew(allocPlacementNew)
+	ObjectPool(bool allocPlacementNew): _allocPlacementNew(allocPlacementNew)
 	{
 		_id = GetPOOLID();
 	}
 	virtual	~ObjectPool()
 	{
-		Clear();
+		
+		while (Node* pCurTop = _pFreeNode)
+		{
+			_pFreeNode = _pFreeNode->next;
+			if (_allocPlacementNew==false)
+			{
+				((Type*)pCurTop)->~Type();
+			}
+			free(pCurTop);
+		}
+		
 	}
 
+	template <typename... Args>
 	Type* Alloc(Args&& ...args)
 	{
-		if (_pFreeNode == nullptr)
-		{
-			AllocBlock();
-		}
 		Type* retP = (Type*)_pFreeNode;
-		_pFreeNode = _pFreeNode->next;
-		if (_allocPlacementNew)
+		if (retP != nullptr)
 		{
-			new (retP) Type(std::forward<Args>(args)...);
+			_pFreeNode = _pFreeNode->next;
+			if (_allocPlacementNew)
+			{
+				new (retP) Type(std::forward<Args>(args)...);
+			}
 		}
+		else
+		{
+			retP =(Type*)malloc(sizeof(Node));
+			new (retP) Type(std::forward<Args>(args)...);
+#ifdef ADD_CHECK
+			((Node*)retP)->cookie = COOKIE_VALUE;
+			((Node*)retP)->id = _id;
+#endif
+		}
+		
 		_allocatingCnt++;
 		return retP;
 	}
@@ -133,8 +97,6 @@ public:
 		}
 		_allocatingCnt--;
 	}
-
-	int		GetCapacityCnt() { return pBlockBeginList.size() * _nodePerBlock; }
 	int		GetAllocatingCnt() { return _allocatingCnt; }
 };
 

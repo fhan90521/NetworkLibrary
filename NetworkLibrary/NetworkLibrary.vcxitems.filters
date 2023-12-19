@@ -51,12 +51,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h">
       <Filter>Buffer</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonMemoryPool.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForSTL.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ObjectPool.h">
       <Filter>Memory</Filter>
     </ClInclude>
@@ -83,6 +77,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h">
       <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockMemoryPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockPoolAllocatorForSTL.h">
+      <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
