@@ -20,9 +20,10 @@ private:
 	
 	void RecvPost(Session* pSession);
 	void SendPost(Session* pSession);
+	void RequestSend(Session* pSession);
 	void RecvCompletionRoutine(Session* pSession);
 	void SendCompletionRoutine(Session* pSession);
-
+	void RequestSendCompletionRoutine(Session* pSession);
 	void AcceptWork();
 	static unsigned __stdcall AcceptThreadFunc(LPVOID arg);
 	void IOCPWork();
@@ -67,6 +68,7 @@ public:
 	void IOCPRun();
 	void ServerControl();
 	void Unicast(SessionInfo sessionInfo, CSerialBuffer* buf);
+	void UnicastPost(SessionInfo sessionInfo, CSerialBuffer* buf);
 	void DisConnect(SessionInfo sessionInfo);
 
 	bool _bShutdown=false;

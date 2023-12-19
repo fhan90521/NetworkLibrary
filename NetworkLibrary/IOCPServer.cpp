@@ -15,9 +15,9 @@
 using namespace rapidjson;
 using namespace std;
 #define MAX_SEND_BUF_CNT 500
-#define EXIT_TIMEOUT 5000
-#define SERVER_DOWN_KEY 200
-
+const long long EXIT_TIMEOUT = 5000;
+const long long SERVER_DOWN_KEY = 200;
+const long long REQUEST_SEND = 300;
 HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
 BOOL AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDLE hDevice, ULONG_PTR dwCompletionKey);
 HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
@@ -360,6 +360,32 @@ void IOCPServer::SendPost(Session* pSession)
 	}
 }
 
+void IOCPServer::RequestSend(Session* pSession)
+{
+	if (pSession->bConnecting == false)
+	{
+		return;
+	}
+
+	while (1)
+	{
+		if (pSession->sendBufQ.GetSize() == 0 || InterlockedExchange(&pSession->bSending, true) != false)
+		{
+			return;
+		}
+		if (pSession->sendBufQ.GetSize() > 0)
+		{
+			break;
+		}
+		else
+		{
+			pSession->bSending = false;
+		}
+	}
+	InterlockedIncrement16(&pSession->sessionManageInfo.refCnt);
+	PostQueuedCompletionStatus(_hcp, NULL, (ULONG_PTR)pSession, (LPOVERLAPPED)REQUEST_SEND);
+}
+
 void IOCPServer::Unicast(SessionInfo sessionInfo, CSerialBuffer* pBuf)
 {
 	_sendCnt++;
@@ -371,6 +397,32 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSerialBuffer* pBuf)
 
 	pBuf->IncrementRefCnt();
 	
+	bool retPush = pSession->sendBufQ.Push(pBuf);
+	if (retPush == false)
+	{
+		cout << "sendBufFULL" << endl;
+		pSession->bConnecting = false;
+	}
+
+	SendPost(pSession);
+	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+	{
+		ReleaseSession(pSession);
+	}
+	return;
+}
+
+void IOCPServer::UnicastPost(SessionInfo sessionInfo, CSerialBuffer* pBuf)
+{
+	_sendCnt++;
+	Session* pSession = FindSession(sessionInfo);
+	if (pSession == nullptr)
+	{
+		return;
+	}
+
+	pBuf->IncrementRefCnt();
+
 	bool retPush = pSession->sendBufQ.Push(pBuf);
 	if (retPush == false)
 	{
@@ -462,6 +514,17 @@ void IOCPServer::SendCompletionRoutine(Session* pSession)
 	}
 }
 
+void IOCPServer::RequestSendCompletionRoutine(Session* pSession)
+{
+	pSession->bSending = false;
+	SendPost(pSession);
+	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+	{
+		ReleaseSession(pSession);
+	}
+}
+
+
 void IOCPServer::IOCPWork()
 {
 	while (1)
@@ -506,14 +569,18 @@ void IOCPServer::IOCPWork()
 				continue;
 			}
 
-			if (&pSession->recvOverLapped == pOverlapped)
+			if (pOverlapped  == &pSession->recvOverLapped )
 			{
 				pSession->recvBuffer.MoveBack(cbTransferred);
 				RecvCompletionRoutine(pSession);
 			}
-			else if (&pSession->sendOverLapped == pOverlapped)
+			else if (pOverlapped  == &pSession->sendOverLapped )
 			{
 				SendCompletionRoutine(pSession);
+			}
+			else if (pOverlapped == (OVERLAPPED*)REQUEST_SEND)
+			{
+				RequestSendCompletionRoutine(pSession);
 			}
 		}
 

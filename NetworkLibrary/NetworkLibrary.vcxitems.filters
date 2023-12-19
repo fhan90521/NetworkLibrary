@@ -13,10 +13,17 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Stub.cpp">
       <Filter>RPC</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CacheTracer.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h">
       <Filter>Buffer</Filter>
     </ClInclude>
@@ -35,17 +42,47 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h">
       <Filter>Log</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Session.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h">
       <Filter>Container</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h">
       <Filter>Container</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h">
       <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonMemoryPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForStd.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ObjectPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Session.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceProfiler.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MemoryPool.h">
+      <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +100,12 @@
     </Filter>
     <Filter Include="Memory">
       <UniqueIdentifier>{f2e04799-5a71-49c1-a77c-48e76bbdaf39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Profiler">
+      <UniqueIdentifier>{52b4fc8a-bbf8-45bc-9bfc-1196b18c6181}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{98be2cd8-835f-4c16-b966-f223d15dd07e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

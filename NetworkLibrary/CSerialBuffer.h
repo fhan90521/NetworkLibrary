@@ -18,7 +18,7 @@ public:
 
 	enum en_CSerialBuffer
 	{
-		eBUFFER_DEFAULT = 1400, // 패킷의 기본 버퍼 사이즈.
+		eBUFFER_DEFAULT = 512, // 패킷의 기본 버퍼 사이즈.
 		eBUFFER_MAX_SIZE = 5000
 	};
 

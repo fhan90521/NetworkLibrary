@@ -14,21 +14,30 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CacheTracer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSerialBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Proxy.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Stub.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonMemoryPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPoolAllocatorForStd.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MemoryPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ObjectPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PKT_TYPE.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Proxy.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h" />
