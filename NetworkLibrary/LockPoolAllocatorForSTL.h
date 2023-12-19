@@ -1,16 +1,10 @@
 #pragma once
-
-//allocate 안에서 return (T*)(CommonMemoryPool::GetInstance()->Alloc(sizeof(T) * n)); 호출 할 때
-//long long-> int 형변환 발생 int 최대값보다 큰 메모리 할당을 할일이 없어서 무시
 #pragma warning(disable : 4267)
-
-
-
-#include "CommonMemoryPool.h"
+#include "LockMemoryPool.h"
 //#include <typeinfo>
 using namespace std;
 template <class T>
-class CommonPoolAllocatorForSTL
+class LockPoolAllocatorForSTL
 {
 public:
 
@@ -22,28 +16,28 @@ public:
 	typedef const T& const_reference;
 	typedef T value_type;
 
-	CommonPoolAllocatorForSTL() = default;
+	LockPoolAllocatorForSTL() = default;
 
 	template <class U>
 	struct rebind
 	{
-		typedef CommonPoolAllocatorForSTL<U> other;
+		typedef LockPoolAllocatorForSTL<U> other;
 	};
 	template<typename U>
-	CommonPoolAllocatorForSTL(const CommonPoolAllocatorForSTL<U>& other) {};
+	LockPoolAllocatorForSTL(const LockPoolAllocatorForSTL<U>& other) {};
 
 
 	pointer allocate(size_type n)
 	{
 		//std::cout << typeid(T).name() << std::endl;
 		//std::cout << sizeof(T)* n<<std::endl;
-		T* ret = (T*)(CommonMemoryPool::GetInstance()->Alloc(sizeof(T) * n));
+		T* ret = (T*)(LockMemoryPool::GetInstance()->Alloc(sizeof(T) * n));
 		return ret;
 	}
 
 	void deallocate(pointer p, size_type n)
 	{
-		CommonMemoryPool::GetInstance()->Free(p);
+		LockMemoryPool::GetInstance()->Free(p);
 	}
 
 	void construct(pointer p, const_reference val)
