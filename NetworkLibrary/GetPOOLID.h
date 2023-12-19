@@ -1,6 +1,6 @@
 #pragma once
-inline unsigned short GetPOOLID()
+inline short GetPOOLID()
 {
-	static unsigned short ObjectPoolNum = 1;
+	static short ObjectPoolNum = 1;
 	return ObjectPoolNum++;
 }

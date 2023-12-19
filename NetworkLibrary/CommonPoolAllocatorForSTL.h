@@ -22,15 +22,15 @@ public:
 	typedef const T& const_reference;
 	typedef T value_type;
 
-	CommonPoolAllocatorForStd() = default;
+	CommonPoolAllocatorForSTL() = default;
 
 	template <class U>
 	struct rebind
 	{
-		typedef CommonPoolAllocatorForStd<U> other;
+		typedef CommonPoolAllocatorForSTL<U> other;
 	};
 	template<typename U>
-	CommonPoolAllocatorForStd(const CommonPoolAllocatorForStd<U>& other) {};
+	CommonPoolAllocatorForSTL(const CommonPoolAllocatorForSTL<U>& other) {};
 
 
 	pointer allocate(size_type n)

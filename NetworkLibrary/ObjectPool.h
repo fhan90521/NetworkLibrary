@@ -5,7 +5,7 @@
 #include "GetPOOLID.h"
 #include <utility>
 using namespace std;
-#define ADD_CHECK
+//#define ADD_CHECK
 #define COOKIE_VALUE (short)0xAAAA
 template <class Type, typename... Args>
 class ObjectPool

@@ -10,7 +10,7 @@
 #include<vector>
 #include "GetPOOLID.h"
 #define COOKIE_VALUE (short)0xAAAA
-#define ADD_CHECK
+//#define ADD_CHECK
 using namespace std;
 
 //#define CHECK_MINUS_INPUT
@@ -53,7 +53,7 @@ private:
 				}
 				else
 				{
-					pNewChunkHeader->pNext = pNewChunkHeader + 1;
+					pNewChunkHeader->pNext = (chunkHeader*)((char*)pNewChunkHeader+_chunkSize);
 				}
 
 #ifdef ADD_CHECK
@@ -90,15 +90,16 @@ private:
 			{
 				AllocBlock();
 			}
-			void* retP = _pFreeChunk;
+			void* retP = ((char*)_pFreeChunk+sizeof(chunkHeader));
 			_pFreeChunk = _pFreeChunk->pNext;
 			return retP;
 		}
 
 		void Free(chunkHeader* pChunkHeader)
 		{
-			chunkTail* pChunkTail = (chunkTail*)((char*)pChunkHeader + _chunkSize - sizeof(chunkTail));
+			
 #ifdef ADD_CHECK
+			chunkTail* pChunkTail = (chunkTail*)((char*)pChunkHeader + _chunkSize - sizeof(chunkTail));
 			if (pChunkTail->cookie != COOKIE_VALUE)
 			{
 				cout << "object pool cookie modulation" << endl;
@@ -128,7 +129,7 @@ private:
 	inline static CommonMemoryPool* pInstance=nullptr;
 	CommonMemoryPool()
 	{
-		pMemoryPoolArr = new MemoryPool * [POOL_NUM];
+		pMemoryPoolArr = new MemoryPool*[POOL_NUM];
 		for (int i = 0; i < POOL_NUM; i++)
 		{
 			pMemoryPoolArr[i] = nullptr;
