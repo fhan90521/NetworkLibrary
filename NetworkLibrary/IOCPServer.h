@@ -2,7 +2,7 @@
 #pragma comment(lib,"ws2_32.lib")
 #pragma comment (lib,"Winmm.lib")
 #include "MyWindow.h"
-#include "CRingBuffer.h"
+#include "CMirrorBuffer.h"
 #include "CSerialBuffer.h"
 #include "Session.h"
 #include<list>
@@ -74,7 +74,7 @@ public:
 	virtual void OnConnect(SessionInfo sessionInfo)=0;
 	virtual void OnDisConnect(SessionInfo sessionInfo)=0;
 	virtual void OnSend(SessionInfo sessionInfo)=0;
-	virtual void OnRecv(SessionInfo sessionInfo, CRingBuffer& buf)=0;
+	virtual void OnRecv(SessionInfo sessionInfo, CMirrorBuffer& buf)=0;
 	//virtual void OnWorkerThreadBegin() = 0; 
 	//virtual void OnWorkerThreadEnd() = 0;          
 	//virtual void OnError(int errorcode, char* log) = 0;

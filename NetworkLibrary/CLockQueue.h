@@ -1,6 +1,7 @@
 #pragma once
 #include "CRingBuffer.h"
 #include "MyWindow.h"
+#define DEFAULT_QUEUE_SIZE 1024
 template <typename T>
 class CLockQueue
 {
@@ -8,7 +9,7 @@ private:
 	CRingBuffer _queue;
 	SRWLOCK _lock;
 public:
-	CLockQueue(int size) : _queue(size * sizeof(T)) 
+	CLockQueue(int size= DEFAULT_QUEUE_SIZE) : _queue(size * sizeof(T))
 	{
 		InitializeSRWLock(&_lock);
 	};

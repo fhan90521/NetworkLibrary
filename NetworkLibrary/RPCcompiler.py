@@ -183,7 +183,7 @@ fout= open("C:\\Users\ghkdd\Desktop\\Procademy\\NetworkLibrary\\NetworkLibrary\\
 fout.writelines('#pragma once'+'\n')
 #fout.writelines('#include "Proxy.h"\n')
 fout.writelines('#include "Session.h"\n')
-fout.writelines('#include "CRingBuffer.h"\n')
+fout.writelines('#include "CMirrorBuffer.h"\n')
 fout.writelines('#include "PKT_TYPE.h"\n')
 #fout.writelines('namespace ' +name_and_typenum[0]+'\n')
 #fout.writelines('{\n')
@@ -196,7 +196,7 @@ for i in range(0,len(every_func_name)):
     func_name=every_func_name[i]
     parameters_name=every_func_parameters_name[i]
     parameters_type=every_func_parameters_type[i]
-    packet_proc_declaration= "bool PacketProc"+func_name +'( SessionInfo sessionInfo, CRingBuffer& buf)'
+    packet_proc_declaration= "bool PacketProc"+func_name +'( SessionInfo sessionInfo, CMirrorBuffer& buf)'
     proc_declaration="virtual void Proc"+func_name+'( SessionInfo sessionInfo, '
     for j in range(0,len(parameters_name)):
         proc_declaration+=' '
@@ -210,7 +210,7 @@ for i in range(0,len(every_func_name)):
     proc_declaration+=' )'
     fout.writelines('\t'+packet_proc_declaration+';\n')
     fout.writelines('\t'+proc_declaration+'{}\n\n')
-fout.writelines('\tbool PacketProc(SessionInfo sessionInfo, PKT_TYPE packetType, CRingBuffer& buf);\n')
+fout.writelines('\tbool PacketProc(SessionInfo sessionInfo, PKT_TYPE packetType, CMirrorBuffer& buf);\n')
 #fout.writelines('\tvoid AttachProxy(Proxy* pProxy);\n')
 fout.writelines('};\n')
 #fout.writelines('}\n')
@@ -228,7 +228,7 @@ for i in range(0,len(every_func_name)):
     func_name=every_func_name[i]
     parameters_name=every_func_parameters_name[i]
     parameters_type=every_func_parameters_type[i]
-    packet_proc_declaration= "bool Stub::PacketProc"+ func_name +'(SessionInfo sessionInfo, CRingBuffer& buf)'
+    packet_proc_declaration= "bool Stub::PacketProc"+ func_name +'(SessionInfo sessionInfo, CMirrorBuffer& buf)'
     packet_proc_def='{\n'
     for j in range(0,len(parameters_name)):
        packet_proc_def+='\t'+parameters_type[j]+' '+parameters_name[j]+';\n'
@@ -257,7 +257,7 @@ for i in range(0,len(every_func_name)):
     fout.writelines(''+packet_proc_declaration+'\n')
     fout.writelines(packet_proc_def+'\n')
 fout.writelines('\n')
-fout.writelines('bool Stub::PacketProc(SessionInfo sessionInfo, PKT_TYPE packetType, CRingBuffer& buf)\n')
+fout.writelines('bool Stub::PacketProc(SessionInfo sessionInfo, PKT_TYPE packetType, CMirrorBuffer& buf)\n')
 fout.writelines('{\n')
 fout.writelines('\tswitch(packetType)\n')
 fout.writelines('\t{\n')

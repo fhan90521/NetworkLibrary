@@ -2,7 +2,7 @@
 #include "IOCPServer.h"
 #include <iostream>
 using namespace std;
-bool Stub::PacketProcEcho(SessionInfo sessionInfo, CRingBuffer& buf)
+bool Stub::PacketProcEcho(SessionInfo sessionInfo, CMirrorBuffer& buf)
 {
 	long long testLL;
 	try
@@ -18,7 +18,7 @@ bool Stub::PacketProcEcho(SessionInfo sessionInfo, CRingBuffer& buf)
 	return true;
 }
 
-bool Stub::PacketProc(SessionInfo sessionInfo, PKT_TYPE packetType, CRingBuffer& buf)
+bool Stub::PacketProc(SessionInfo sessionInfo, PKT_TYPE packetType, CMirrorBuffer& buf)
 {
 	switch(packetType)
 	{

@@ -23,6 +23,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />

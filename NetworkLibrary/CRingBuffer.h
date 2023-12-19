@@ -100,11 +100,4 @@ public:
 
 	int MoveBack(int iSize);
 	int MoveFront(int iSize);
-
-	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	CRingBuffer& operator >> (T& data) throw(int)
-	{
-		Dequeue((char*) & data, sizeof(T));
-		return *this;
-	}
 };

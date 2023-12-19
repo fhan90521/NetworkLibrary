@@ -10,7 +10,6 @@ void Proxy::Echo(SessionInfo sessionInfo, long long& testLL )
 	}
 	catch(int useSize)
 	{
-		int a = 10;
 	}
 	_pServer->Unicast(sessionInfo, pBuf);
 	pBuf->DecrementRefCnt();

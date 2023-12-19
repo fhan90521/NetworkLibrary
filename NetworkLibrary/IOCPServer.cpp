@@ -130,14 +130,12 @@ void IOCPServer::ReleaseSession(Session* pSession)
 	}
 	SessionInfo sessionInfo = pSession->sessionInfo;
 	closesocket(pSession->socket);
-	CSerialBuffer* pBufs[MAX_SEND_BUF_CNT];
-	int remainSize = pSession->sendBuffer.GetUseSize();
-	int remainBufCnt = remainSize / sizeof(NetHeader*);
-	pSession->sendBuffer.Dequeue((char*)pBufs, remainSize);
-	for (int i = 0; i < remainBufCnt; i++)
+	CSerialBuffer* pBuf;
+	while(pSession->sendBufQ.Pop(pBuf))
 	{
-		pBufs[i]->DecrementRefCnt();
+		pBuf->DecrementRefCnt();
 	}
+	pSession->recvBuffer.ClearBuffer();
 	AcquireSRWLockExclusive(&_stackLock);
 	_validIndexStack.push(pSession->sessionInfo.index.val);
 	ReleaseSRWLockExclusive(&_stackLock);
@@ -192,8 +190,6 @@ void IOCPServer::AcceptWork()
 		}
 
 		pSession->socket = clientSock;
-		pSession->sendBuffer.ClearBuffer();
-		pSession->recvBuffer.ClearBuffer();
 		pSession->bConnecting = true;
 		pSession->bSending = false;
 		strcpy_s(pSession->ip, INET_ADDRSTRLEN, ip);
@@ -301,11 +297,11 @@ void IOCPServer::SendPost(Session* pSession)
 
 	while (1)
 	{
-		if (pSession->sendBuffer.GetUseSize() == 0 || InterlockedExchange(&pSession->bSending, true) != false)
+		if (pSession->sendBufQ.GetSize() == 0 || InterlockedExchange(&pSession->bSending, true) != false)
 		{
 			return;
 		}
-		if (pSession->sendBuffer.GetUseSize() > 0)
+		if (pSession->sendBufQ.GetSize() > 0)
 		{
 			break;
 		}
@@ -318,9 +314,8 @@ void IOCPServer::SendPost(Session* pSession)
 	WSABUF wsaBufs[MAX_SEND_BUF_CNT];
 	CSerialBuffer* pBufs[MAX_SEND_BUF_CNT];
 	
-	int useSize = pSession->sendBuffer.GetUseSize();
-	pSession->sendBufCnt=min(useSize/sizeof(CSerialBuffer*), MAX_SEND_BUF_CNT);
-	pSession->sendBuffer.Peek((char*)pBufs, useSize);
+	int peekCnt = pSession->sendBufQ.NoLockPeek(pBufs,MAX_SEND_BUF_CNT);
+	pSession->sendBufCnt= peekCnt;
 	NetHeader* pNetHeader;
 	for(int i=0;i< pSession->sendBufCnt;i++)
 	{
@@ -375,14 +370,13 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSerialBuffer* pBuf)
 	}
 
 	pBuf->IncrementRefCnt();
-	AcquireSRWLockExclusive(&pSession->sessionLock);
-	int enqueue_len = pSession->sendBuffer.Enqueue((char*)&pBuf, sizeof(pBuf));
-	if (enqueue_len < sizeof(pBuf))
+	
+	bool retPush = pSession->sendBufQ.Push(pBuf);
+	if (retPush == false)
 	{
 		cout << "sendBufFULL" << endl;
 		pSession->bConnecting = false;
 	}
-	ReleaseSRWLockExclusive(&pSession->sessionLock);
 
 	SendPost(pSession);
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
@@ -445,7 +439,8 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 			break;
 		}
 		pSession->recvBuffer.MoveFront(sizeof(header));
-		OnRecv(pSession->sessionInfo, pSession->recvBuffer);
+		CMirrorBuffer buf(&pSession->recvBuffer, header.len);
+		OnRecv(pSession->sessionInfo, buf);
 		_recvCnt++;
 	}
 	RecvPost(pSession);
@@ -453,11 +448,11 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 
 void IOCPServer::SendCompletionRoutine(Session* pSession)
 {
-	CSerialBuffer* pBufs[MAX_SEND_BUF_CNT];
-	pSession->sendBuffer.Dequeue((char*)pBufs, pSession->sendBufCnt * sizeof(NetHeader*));
+	CSerialBuffer* pBuf;
 	for(int i=0;i< pSession->sendBufCnt;i++)
 	{
-		pBufs[i]->DecrementRefCnt();
+		pSession->sendBufQ.NoLockPop(pBuf);
+		pBuf->DecrementRefCnt();
 	}
 	pSession->bSending = false;
 	SendPost(pSession);

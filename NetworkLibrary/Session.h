@@ -1,6 +1,8 @@
 #pragma once
 #include "MyWindow.h"
 #include "CRingBuffer.h"
+#include "CLockQueue.h"
+#include "CSerialBuffer.h"
 union SessionInfo
 {
 	struct Index
@@ -26,13 +28,12 @@ struct Session
 	SOCKET socket;
 
 	OVERLAPPED sendOverLapped;
-	CRingBuffer sendBuffer;
+	CLockQueue<CSerialBuffer*> sendBufQ;
 	SHORT sendBufCnt=0;
 
 	OVERLAPPED recvOverLapped;
 	CRingBuffer recvBuffer;
 
-	SRWLOCK sessionLock;
 	LONG bSending;
 
 	SessionManageInfo sessionManageInfo;
@@ -40,8 +41,4 @@ struct Session
 	bool bConnecting;
 	char ip[INET_ADDRSTRLEN] = "\0";
 	USHORT port=0;
-	Session()
-	{
-		InitializeSRWLock(&sessionLock);
-	}
 };

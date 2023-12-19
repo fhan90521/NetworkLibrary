@@ -44,6 +44,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h">
       <Filter>Container</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Buffer">
