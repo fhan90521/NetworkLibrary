@@ -14,7 +14,6 @@
 //#include "Log.h"
 using namespace rapidjson;
 using namespace std;
-#define DDD 00
 #define MAX_SEND_BUF_CNT 500
 #define EXIT_TIMEOUT 5000
 #define SERVER_DOWN_KEY 200

@@ -41,6 +41,9 @@
       <Filter>Container</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h">
+      <Filter>Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Buffer">
@@ -54,6 +57,9 @@
     </Filter>
     <Filter Include="Container">
       <UniqueIdentifier>{1f2edac6-c633-4d06-9e16-c509c107c608}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{f2e04799-5a71-49c1-a77c-48e76bbdaf39}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
