@@ -210,10 +210,6 @@ Session* IOCPServer::AllocSession(SOCKET clientSock)
 	pSession->sessionInfo.index.val = index;
 	//여기까지 bDeallocated == true이다
 	pSession->sessionManageInfo.bDeallocated = false;
-	if (pSession->sendBufQ.Size() > 0)
-	{
-		int a = 10;
-	}
 	return pSession;
 }
 
@@ -245,6 +241,7 @@ void IOCPServer::ReleaseSession(Session* pSession)
 	}
 	for (int i = 0; i < pSession->sendBufCnt; i++)
 	{
+		//OnSend(pSession->sessionInfo, pSession->pSendedBufArr[i]->GetPayLoadSize());
 		(pSession->pSendedBufArr[i])->DecrementRefCnt();
 	}
 	pSession->sendBufCnt = 0;

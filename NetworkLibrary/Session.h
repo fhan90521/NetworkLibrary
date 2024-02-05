@@ -35,7 +35,7 @@ struct Session
 	LONG bSending;
 	SHORT sendBufCnt = 0;
 	OVERLAPPED sendOverLapped;
-	LockFreeQueueBasic<CSendBuffer*> sendBufQ;
+	CLockArrayQueue<CSendBuffer*> sendBufQ;
 	CSendBuffer** pSendedBufArr;
 
 	OVERLAPPED recvOverLapped;

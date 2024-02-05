@@ -92,10 +92,6 @@ public:
 		{
 			_bufferPool.Free(this);
 		}
-		else
-		{
-			cout << "afdsfadafasdf" << endl;
-		}
 	}
 	void Clear()
 	{
