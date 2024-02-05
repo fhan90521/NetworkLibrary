@@ -1,17 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)CSerialBuffer.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSendBuffer.cpp">
       <Filter>Buffer</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp">
       <Filter>Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Proxy.cpp">
-      <Filter>RPC</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Stub.cpp">
-      <Filter>RPC</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp">
       <Filter>Memory</Filter>
@@ -22,22 +16,22 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp">
       <Filter>Network</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)GetPOOLID.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CSerialBuffer.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h">
       <Filter>Buffer</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h">
       <Filter>Buffer</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)PKT_TYPE.h">
-      <Filter>RPC</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Proxy.h">
-      <Filter>RPC</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Stub.h">
-      <Filter>RPC</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h">
       <Filter>Log</Filter>
@@ -45,14 +39,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h">
       <Filter>Container</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CLockQueue.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CMirrorBuffer.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h">
       <Filter>Buffer</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ObjectPool.h">
-      <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h">
       <Filter>Memory</Filter>
@@ -78,12 +66,58 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h">
       <Filter>Container</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockMemoryPool.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)CLockArrayQueue.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueue.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeObjectPool.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockPoolAllocatorForSTL.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)TlsObjectPool.h">
       <Filter>Memory</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueueBasic.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeStack.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeMemoryPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Malloc.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MemoryHeader.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)TlsMemoryPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PoolAllocatorForSTL.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyNew.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Buffer">
@@ -106,6 +140,9 @@
     </Filter>
     <Filter Include="Network">
       <UniqueIdentifier>{98be2cd8-835f-4c16-b966-f223d15dd07e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{7cfbc6c0-8b9f-4b29-97f9-1c1cab9e8e66}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

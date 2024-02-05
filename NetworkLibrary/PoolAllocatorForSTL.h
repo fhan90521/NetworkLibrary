@@ -1,10 +1,10 @@
 #pragma once
 #pragma warning(disable : 4267)
-#include "LockMemoryPool.h"
+#include "Malloc.h"
 //#include <typeinfo>
 using namespace std;
 template <class T>
-class LockPoolAllocatorForSTL
+class PoolAllocatorForSTL
 {
 public:
 
@@ -16,28 +16,28 @@ public:
 	typedef const T& const_reference;
 	typedef T value_type;
 
-	LockPoolAllocatorForSTL() = default;
+	PoolAllocatorForSTL() = default;
 
 	template <class U>
 	struct rebind
 	{
-		typedef LockPoolAllocatorForSTL<U> other;
+		typedef PoolAllocatorForSTL<U> other;
 	};
 	template<typename U>
-	LockPoolAllocatorForSTL(const LockPoolAllocatorForSTL<U>& other) {};
+	PoolAllocatorForSTL(const PoolAllocatorForSTL<U>& other) {};
 
 
 	pointer allocate(size_type n)
 	{
 		//std::cout << typeid(T).name() << std::endl;
 		//std::cout << sizeof(T)* n<<std::endl;
-		T* ret = (T*)(LockMemoryPool::GetInstance()->Alloc(sizeof(T) * n));
+		T* ret = (T*)(Malloc(sizeof(T) * n));
 		return ret;
 	}
 
 	void deallocate(pointer p, size_type n)
 	{
-		LockMemoryPool::GetInstance()->Free(p);
+		Free(p);
 	}
 
 	void construct(pointer p, const_reference val)

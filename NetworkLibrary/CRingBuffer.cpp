@@ -1,7 +1,6 @@
 #include "CRingBuffer.h"
 #include "MemCopy.h"
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
-
 bool CRingBuffer::ReSize(int iSize)
 {
 	int new_totalSize = MAX(_totalSize + iSize, _totalSize + _totalSize / 2);
@@ -9,14 +8,15 @@ bool CRingBuffer::ReSize(int iSize)
 	{
 		return false;
 	}
+	int useSize = GetUseSize();
 	char* newBuf = new char[new_totalSize + 1];
-	Dequeue(newBuf, GetUseSize());
+	Dequeue(newBuf, useSize);
 	delete _buf;
 	_buf = newBuf;
 
 	_totalSize = new_totalSize;
 	_front = 0;
-	_back = 0;
+	_back = useSize;
 
 	return true;
 }

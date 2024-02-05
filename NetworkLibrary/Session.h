@@ -1,10 +1,14 @@
 #pragma once
 #include "MyWindow.h"
 #include "CRingBuffer.h"
-#include "CLockQueue.h"
-#include "CSerialBuffer.h"
+#include "CSendBuffer.h"
+#include "LockFreeQueue.h"
+#include "CLockArrayQueue.h"
+#include "LockFreeQueueBasic.h"
+#define MAX_SEND_BUF_CNT 512
 union SessionInfo
 {
+	typedef unsigned long long ID;
 	struct Index
 	{
 	private:
@@ -24,21 +28,27 @@ struct SessionManageInfo
 };
 struct Session
 {
+	SessionManageInfo sessionManageInfo;
 	SessionInfo sessionInfo;
 	SOCKET socket;
 
+	LONG bSending;
+	SHORT sendBufCnt = 0;
 	OVERLAPPED sendOverLapped;
-	CLockQueue<CSerialBuffer*> sendBufQ;
-	SHORT sendBufCnt=0;
+	LockFreeQueueBasic<CSendBuffer*> sendBufQ;
+	CSendBuffer** pSendedBufArr;
 
 	OVERLAPPED recvOverLapped;
 	CRingBuffer recvBuffer;
 
-	LONG bSending;
-
-	SessionManageInfo sessionManageInfo;
-
-	bool bConnecting;
 	char ip[INET_ADDRSTRLEN] = "\0";
-	USHORT port=0;
+	USHORT port = 0;
+	Session()
+	{
+		pSendedBufArr = new CSendBuffer*[MAX_SEND_BUF_CNT];
+	}
+	~Session()
+	{
+		delete pSendedBufArr;
+	}
 };

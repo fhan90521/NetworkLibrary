@@ -20,6 +20,7 @@ private:
 	int* cache_counter[CACHEINDEX];
 	map<string, int > nameMissMap;
 	map<TAG,int> tagMap;
+	bool trace(void* variable);
 public:
 	CacheTracer(int _way_num)
 	{
@@ -43,7 +44,6 @@ public:
 		miss = 0;
 		nameMissMap.clear();
 	}
-	bool trace(void* variable);
 	void trace(void* variable, string _name);
 	void show_hit_miss();
 	void show_miss_name();

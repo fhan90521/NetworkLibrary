@@ -3,17 +3,17 @@
 #include "MyWindow.h"
 #define DEFAULT_QUEUE_SIZE 1024
 template <typename T>
-class CLockQueue
+class CLockArrayQueue
 {
 private:
 	CRingBuffer _queue;
-	SRWLOCK _lock;
+	alignas(64) SRWLOCK _lock;
 public:
-	CLockQueue(int size= DEFAULT_QUEUE_SIZE) : _queue(size * sizeof(T))
+	CLockArrayQueue(int size= DEFAULT_QUEUE_SIZE) : _queue(size * sizeof(T))
 	{
 		InitializeSRWLock(&_lock);
 	};
-	bool Push(const T& inPar)
+	bool Enqueue(const T& inPar)
 	{
 		AcquireSRWLockExclusive(&_lock);
 		int enqueueSize = _queue.Enqueue((char*)&inPar, sizeof(T));
@@ -24,10 +24,10 @@ public:
 		}
 		return true;
 	}
-	bool Pop(T& outPar)
+	bool Dequeue(T* outPar)
 	{
 		AcquireSRWLockExclusive(&_lock);
-		int dequeueSize = _queue.Dequeue((char*)&outPar, sizeof(T));
+		int dequeueSize = _queue.Dequeue((char*)outPar, sizeof(T));
 		ReleaseSRWLockExclusive(&_lock);
 		if (dequeueSize != sizeof(T))
 		{
@@ -42,7 +42,7 @@ public:
 		ReleaseSRWLockShared(&_lock);
 		return peekSize / sizeof(T);
 	}
-	bool NoLockPush(const T& inPar)
+	bool NoLockEnqueue(const T& inPar)
 	{
 		int enqueueSize = _queue.Enqueue((char*)&inPar, sizeof(T));
 		if (enqueueSize != sizeof(T))
@@ -51,9 +51,9 @@ public:
 		}
 		return true;
 	}
-	bool NoLockPop(T& outPar)
+	bool NoLockDequeue(T* outPar)
 	{
-		int dequeueSize = _queue.Dequeue((char*)&outPar, sizeof(T));
+		int dequeueSize = _queue.Dequeue((char*)outPar, sizeof(T));
 		if (dequeueSize != sizeof(T))
 		{
 			return false;
@@ -65,7 +65,7 @@ public:
 		int peekSize = _queue.Peek((char*)buf, peekCnt * sizeof(T));
 		return peekSize / sizeof(T);
 	}
-	int GetSize()
+	int Size()
 	{
 		int useSize = _queue.GetUseSize();
 		return useSize / sizeof(T);

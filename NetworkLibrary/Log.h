@@ -1,24 +1,30 @@
 #pragma once
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
-#include<iostream>
-#include<stdio.h>
-#include "MyWindow.h"
-#define dfLOG_LEVEL_DEBUG 0
-#define dfLOG_LEVEL_ERROR 1
-#define dfLOG_LEVEL_SYSTEM 2
-
-int g_iLogLevel= dfLOG_LEVEL_DEBUG;
-char g_LogBuf[1024];
-
-
-#define _LOG(LogLevel, fmt, ...)\
-do{\
-	if(g_iLogLevel<=LogLevel)\
-	{\
-		sprintf_s(g_LogBuf,fmt,##__VA_ARGS__);\
-		std::cout<<g_LogBuf;\
-	}\
-}while(0)
+#define _CRT_SECURE_NO_WARNINGS 
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+class Log
+{
+private:
+    inline static int _logLevel = 0;
+public:
+    const inline static int DEBUG_LEVEL = 0;
+    const inline static int ERROR_LEVEL = 1;
+    const inline static int SYSTEM_LEVEL = 2;
+    static void SetLogLevel(const int logLevel)
+    {
+        _logLevel = logLevel;
+    }
+    static void Printf(const int logLevel, const char* fmt, ...)
+    {
+        if (_logLevel <= logLevel)
+        {
+            char buf[1024];
+            va_list ap;
+            va_start(ap, fmt);
+            vsprintf_s(buf, fmt, ap);
+            va_end(ap);
+            puts(buf);
+        }
+    }
+};
