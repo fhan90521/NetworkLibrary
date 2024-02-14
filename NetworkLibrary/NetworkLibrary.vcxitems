@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockArrayQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h" />

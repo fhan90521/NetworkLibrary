@@ -37,7 +37,7 @@
       <Filter>Buffer</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h">
-      <Filter>Log</Filter>
+      <Filter>Debug</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h">
       <Filter>Container</Filter>
@@ -124,6 +124,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceMonitor.h">
       <Filter>Profiler</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Buffer">
@@ -131,9 +134,6 @@
     </Filter>
     <Filter Include="RPC">
       <UniqueIdentifier>{0c5979c1-3836-41c5-941e-e013c11de6ce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Log">
-      <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Container">
       <UniqueIdentifier>{1f2edac6-c633-4d06-9e16-c509c107c608}</UniqueIdentifier>
@@ -149,6 +149,9 @@
     </Filter>
     <Filter Include="Utility">
       <UniqueIdentifier>{7cfbc6c0-8b9f-4b29-97f9-1c1cab9e8e66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
