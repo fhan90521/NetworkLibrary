@@ -180,15 +180,6 @@ for i in range(0,len(declaration_tails)):
     func_def+='\tcatch(int useSize)\n'
     func_def+='\t{\n'
     func_def+='\t}\n'
-    func_def+='\tif(_pServer->_bWan)\n'
-    func_def+='\t{\n'
-    func_def+='\t\tpBuf->SetWanHeader();\n'
-    func_def+='\t\tpBuf->Encode();\n'
-    func_def+='\t}\n'
-    func_def+='\telse\n'
-    func_def+='\t{\n'
-    func_def+='\t\tpBuf->SetLanHeader();\n'
-    func_def+='\t}\n'
     fout.writelines('void '+class_name+'Proxy::'+every_func_name[i]+'(SessionInfo sessionInfo'+declaration_tails[i]+'\n')
     fout.writelines(func_def)
     fout.writelines('\t_pServer->Unicast(sessionInfo, pBuf);\n')
@@ -261,6 +252,7 @@ fout= open(class_name+"Stub.cpp",'wt')
 fout.writelines("#include " +' "'+class_name+'Stub.h"\n ')
 fout.writelines('#include "IOCPServer.h"\n')
 fout.writelines('#include <iostream>\n')
+fout.writelines('#include "Log.h"\n')
 fout.writelines('using namespace std;\n')
 #fout.writelines('namespace ' +name_and_typenum[0]+'\n')
 #fout.writelines('{\n')
@@ -289,7 +281,7 @@ for i in range(0,len(every_func_name)):
     packet_proc_def+='\t}\n'
     packet_proc_def+='\tcatch(int useSize)\n'
     packet_proc_def+='\t{\n'
-    packet_proc_def+='\t\t cout<<" PacketProc'+func_name+' error"<<endl;\n'
+    packet_proc_def+='\t\t Log::LogOnFile(Log::SYSTEM_LEVEL, "PacketProc'+func_name+' error\\n");\n'
     packet_proc_def+='\t\t return false;\n'
     packet_proc_def+='\t}\n'
     packet_proc_def+='\tProc'+func_name+'( sessionInfo '
@@ -309,7 +301,14 @@ fout.writelines('\n')
 fout.writelines('bool '+class_name+'Stub::PacketProc(SessionInfo sessionInfo, CRecvBuffer& buf)\n')
 fout.writelines('{\n')
 fout.writelines('\tshort packetType;\n')
-fout.writelines('\tbuf>>packetType;\n')
+fout.writelines('\ttry\n')
+fout.writelines('\t{\n')
+fout.writelines('\t\tbuf>>packetType;\n')
+fout.writelines('\t}\n')
+fout.writelines('\tcatch(int remainSize)\n')
+fout.writelines('\t{\n')
+fout.writelines('\t\t return false;\n')
+fout.writelines('\t}\n')
 fout.writelines('\tswitch(packetType)\n')
 fout.writelines('\t{\n')
 for i in range(0,len(every_func_name)):
@@ -322,7 +321,7 @@ for i in range(0,len(every_func_name)):
 
 fout.writelines('\tdefault:\n')
 fout.writelines('\t{\n')
-fout.writelines('\t\tcout<<"Packet Type not exist error"<<endl;\n')
+fout.writelines('\t\tLog::LogOnFile(Log::SYSTEM_LEVEL,"Packet Type not exist error\\n");\n')
 fout.writelines('\t\treturn false;\n')
 fout.writelines('\t\tbreak;\n')
 fout.writelines('\t}\n')

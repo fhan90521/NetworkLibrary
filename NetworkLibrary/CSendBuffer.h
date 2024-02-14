@@ -10,7 +10,7 @@
 using namespace std;
 class CSendBuffer
 {
-protected:
+private:
 	friend class IOCPServer;
 	enum enCSendBuffer
 	{
@@ -21,9 +21,10 @@ protected:
 	friend class BufferPool;
 	char* _buf;
 	int	_bufferSize;
-	int _front = sizeof(NetHeader);
-	int _back = sizeof(NetHeader);
+	int _front = sizeof(WanHeader);
+	int _back = sizeof(WanHeader);
 	LONG _refCnt = 0;
+	bool _bSetHeader = false;
 	static BufferPool _bufferPool;
 	CSendBuffer(int iBufferSize = eBUFFER_DEFAULT) :_bufferSize(iBufferSize)
 	{
@@ -34,48 +35,62 @@ protected:
 		delete[] _buf;
 	}
 	bool Resize(int iSize);
+	void Encode()
+	{
+		WanHeader* pWanHeader = (WanHeader*)_buf;
+		pWanHeader->randKey = rand();
+		BYTE* payLoad = (BYTE*)&_buf[_front];
+		BYTE P = pWanHeader->EncodeCheckSum();
+		P = payLoad[0] ^ (P + (pWanHeader->randKey) + 2);
+		payLoad[0] = P ^ (pWanHeader->checkSum + (pWanHeader->constKey) + 2);
+		for (int i = 1; i < pWanHeader->len; i++)
+		{
+			P = payLoad[i] ^ (P + (pWanHeader->randKey) + i + 2);
+			payLoad[i] = P ^ (payLoad[i - 1] + (pWanHeader->constKey) + i + 2);
+		}
+	}
+	void SetLanHeader()
+	{
+		if (_bSetHeader == true)
+		{
+			return;
+		}
+		_bSetHeader = true;
+		LanHeader* pLanHeader = GetLanHeader();
+		pLanHeader->len = GetPayLoadSize();
+	}
+	void SetWanHeader()
+	{
+		if (_bSetHeader == true)
+		{
+			return;
+		}
+		_bSetHeader = true;
+		WanHeader* pWanHeader = (WanHeader*)_buf;
+		BYTE checkSum = 0;
+		pWanHeader->code = WanHeader::NetCode;
+		pWanHeader->len = GetPayLoadSize();
+		BYTE* payLoad = (BYTE*)&_buf[_front];
+		for (int i = 0; i < pWanHeader->len; i++)
+		{
+			checkSum += payLoad[i];
+		}
+		pWanHeader->checkSum = checkSum;
+		Encode();
+	}
+	WanHeader* GetWanHeader()
+	{
+		return (WanHeader*)_buf;
+	}
+	LanHeader* GetLanHeader()
+	{
+		return (LanHeader*)(_buf + sizeof(WanHeader) - sizeof(LanHeader));
+	}
 public:
 	static LONG GetAllocCnt()
 	{
 		return _bufferPool.GetAllocCnt();
 	}
-	NetHeader* GetNetHeader()
-	{
-		return (NetHeader*)_buf;
-	}
-	void SetLanHeader()
-	{
-		NetHeader* pNetHeader = (NetHeader*)_buf;
-		pNetHeader->len = GetPayLoadSize();
-	}
-	void SetWanHeader()
-	{
-		/*NetHeader* pNetHeader = (NetHeader*)_buf;
-		BYTE checkSum = 0;
-		pNetHeader->code = NetHeader::NetCode;
-		pNetHeader->len = GetPayLoadSize();
-		BYTE* payLoad = (BYTE*)GetReadPtr();
-		for (int i = 0; i < pNetHeader->len; i++)
-		{
-			checkSum += payLoad[i];
-		}
-		pNetHeader->checkSum = checkSum;*/
-	}
-	void Encode()
-	{
-		/*NetHeader* pNetHeader = (NetHeader*)_buf;
-		pNetHeader->randKey = rand();
-		BYTE* payLoad = (BYTE*)GetReadPtr();
-		BYTE P = pNetHeader->EncodeCheckSum();
-		P = payLoad[0] ^ (P + (pNetHeader->randKey) + 2);
-		payLoad[0] = P ^ (pNetHeader->checkSum + (pNetHeader->constKey) + 2);
-		for (int i = 1; i < pNetHeader->len; i++)
-		{
-			P = payLoad[i] ^ (P + (pNetHeader->randKey) + i + 2);
-			payLoad[i] = P ^ (payLoad[i - 1] + (pNetHeader->constKey) + i + 2);
-		}*/
-	}
-
 	static CSendBuffer* Alloc()
 	{
 		CSendBuffer* pBuf = _bufferPool.Alloc();
@@ -95,15 +110,14 @@ public:
 	}
 	void Clear()
 	{
-		_front = sizeof(NetHeader);
-		_back = sizeof(NetHeader);
+		_front = sizeof(WanHeader);
+		_back = sizeof(WanHeader);
+		_bSetHeader = false;
 	}
 
 	int GetBufferSize() { return _bufferSize; }
 	int GetPayLoadSize() { return _back - _front; }
-	int GetPacketSize() { return _back; }
 	int GetFreeSize() { return _bufferSize - _back; }
-	char* GetReadPtr() { return &_buf[_front]; }
 	char* GetWritePtr() { return &_buf[_back]; }
 
 	CSendBuffer(const CSendBuffer& src) = delete;

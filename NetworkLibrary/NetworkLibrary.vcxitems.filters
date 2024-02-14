@@ -25,6 +25,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h">
@@ -108,9 +111,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)PoolAllocatorForSTL.h">
       <Filter>Container</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)MyNew.h">
       <Filter>Memory</Filter>
     </ClInclude>
@@ -118,6 +118,12 @@
       <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceMonitor.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Buffer">

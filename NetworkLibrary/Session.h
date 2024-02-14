@@ -31,11 +31,12 @@ struct Session
 	SessionManageInfo sessionManageInfo;
 	SessionInfo sessionInfo;
 	SOCKET socket;
-
+	
+	LONG onConnecting=true;
 	LONG bSending;
 	SHORT sendBufCnt = 0;
 	OVERLAPPED sendOverLapped;
-	CLockArrayQueue<CSendBuffer*> sendBufQ;
+	LockFreeQueue<CSendBuffer*> sendBufQ;
 	CSendBuffer** pSendedBufArr;
 
 	OVERLAPPED recvOverLapped;
@@ -43,6 +44,7 @@ struct Session
 
 	char ip[INET_ADDRSTRLEN] = "\0";
 	USHORT port = 0;
+
 	Session()
 	{
 		pSendedBufArr = new CSendBuffer*[MAX_SEND_BUF_CNT];

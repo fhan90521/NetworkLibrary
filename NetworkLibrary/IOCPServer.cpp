@@ -31,17 +31,18 @@ BOOL IOCPServer::AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDL
 	return (hcp == hCompletionPort);
 }
 
-void ShowCurrentTime()
+void IOCPServer::DropIoPending(SessionInfo sessionInfo)
 {
-	__time64_t now = time(0);
-	tm* timeinfo = _localtime64(&now);
-	cout << "현재 시간: ";
-	cout << (timeinfo->tm_year + 1900) << '-'
-		<< (timeinfo->tm_mon + 1) << '-'
-		<< timeinfo->tm_mday << ' '
-		<< timeinfo->tm_hour << ':'
-		<< timeinfo->tm_min << ':'
-		<< timeinfo->tm_sec << '\n';
+	Session* pSession = FindSession(sessionInfo);
+	if (pSession == nullptr)
+	{
+		return;
+	}
+	CancelIo((HANDLE)pSession->socket);
+	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+	{
+		ReleaseSession(pSession);
+	}
 }
 
 void IOCPServer::GetSeverSetValues()
@@ -49,8 +50,7 @@ void IOCPServer::GetSeverSetValues()
 	ifstream fin(_settingFileName);
 	if (!fin)
 	{
-		Log::Printf(Log::SYSTEM_LEVEL, _settingFileName.data());
-		Sleep(10000);
+		Log::LogOnFile(Log::SYSTEM_LEVEL,"there is no %s\n", _settingFileName.data());
 		DebugBreak();
 	}
 	string json((istreambuf_iterator<char>(fin)), (istreambuf_iterator<char>()));
@@ -77,7 +77,6 @@ void IOCPServer::GetSeverSetValues()
 	PACKET_KEY = d["PACKET_KEY"].GetInt();
 	
 	LOG_LEVEL = d["LOG_LEVEL"].GetInt();
-
 	return;
 }
 
@@ -93,7 +92,7 @@ void IOCPServer::ServerSetting()
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
 		int error = WSAGetLastError();
-		cout << "WSAStartup() error : " << error << '\n';
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "WSAStartup() error : %d\n", error);
 		DebugBreak();
 	}
 
@@ -101,7 +100,7 @@ void IOCPServer::ServerSetting()
 	if (_listenSock == INVALID_SOCKET)
 	{
 		int error = WSAGetLastError();
-		cout << "socket() error : " << error << '\n';
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "socket() error : %d\n", error);
 		DebugBreak();
 
 	}
@@ -115,7 +114,7 @@ void IOCPServer::ServerSetting()
 	if (ret_bind == SOCKET_ERROR)
 	{
 		int error = WSAGetLastError();
-		cout << "bind() error : " << error << '\n';
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "bind() error : %d\n", error);
 		DebugBreak();
 	}
 
@@ -145,9 +144,11 @@ void IOCPServer::ServerSetting()
 	{
 		_validIndexStack.Push(i);
 	}
-
-	NetHeader::SetConstKey(PACKET_KEY);
-	NetHeader::SetNetCode(PACKET_CODE);
+	if (_bWan)
+	{
+		WanHeader::SetConstKey(PACKET_KEY);
+		WanHeader::SetNetCode(PACKET_CODE);
+	}
 	Log::SetLogLevel(LOG_LEVEL);
 
 	_hcp = CreateNewCompletionPort(CONCURRENT_THREAD_NUM);
@@ -196,6 +197,7 @@ Session* IOCPServer::AllocSession(SOCKET clientSock)
 	bool retPop = _validIndexStack.Pop(&index);
 	if (retPop == false)
 	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL,"_validIndexStack Pop error\n");
 		DebugBreak();
 	}
 
@@ -205,19 +207,11 @@ Session* IOCPServer::AllocSession(SOCKET clientSock)
 	InterlockedIncrement16(&pSession->sessionManageInfo.refCnt);
 
 	//문제 b에 의해 먼저 id를 할당하고 bDeallocated 변수를 바꾼다.
-
 	pSession->sessionInfo.id = _newSessionID++;
 	pSession->sessionInfo.index.val = index;
 	//여기까지 bDeallocated == true이다
 	pSession->sessionManageInfo.bDeallocated = false;
 	return pSession;
-}
-
-void IOCPServer::DisConnect(Session* pSession)
-{
-	SOCKET socket = pSession->socket;
-	pSession->socket = INVALID_SOCKET;
-	closesocket(socket);
 }
 
 void IOCPServer::ReleaseSession(Session* pSession)
@@ -245,9 +239,11 @@ void IOCPServer::ReleaseSession(Session* pSession)
 		(pSession->pSendedBufArr[i])->DecrementRefCnt();
 	}
 	pSession->sendBufCnt = 0;
+	pSession->bSending = false;
 	pSession->recvBuffer.ClearBuffer();
+	InterlockedExchange(&pSession->onConnecting, true);
 	_validIndexStack.Push(pSession->sessionInfo.index.val);
-	OnDisConnect(sessionInfo);
+	OnDisconnect(sessionInfo);
 }
 
 void IOCPServer::AcceptWork()
@@ -261,17 +257,21 @@ void IOCPServer::AcceptWork()
 	while (1)
 	{
 		clientSock = accept(_listenSock, (struct sockaddr*)&clientaddr, &addrlen);
-		//Log용
-		_acceptCnt++;
+		
 		
 		if (clientSock == INVALID_SOCKET)
 		{
 			int error = WSAGetLastError();
 			if (error != WSAEINTR)
 			{
-				Log::Printf(Log::SYSTEM_LEVEL, "accept error : %d\n", error);
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "accept error : %d\n", error);
 			}
-			break;
+			continue;
+		}
+		else
+		{
+			//Log용
+			_acceptCnt++;
 		}
 		if (_validIndexStack.Size()<=0)
 		{
@@ -293,16 +293,14 @@ void IOCPServer::AcceptWork()
 		bool ret = AssociateDeviceWithCompletionPort(_hcp, (HANDLE)clientSock, (ULONG_PTR)pSession);
 		if (ret == false)
 		{
-			Log::Printf(Log::SYSTEM_LEVEL, "AssociateDeviceWithCompletionPort error : %d\n", WSAGetLastError());
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "AssociateDeviceWithCompletionPort error : %d\n", WSAGetLastError());
 			DebugBreak();
 		}
 
 		pSession->socket = clientSock;
-		pSession->bSending = false;
 		strcpy_s(pSession->ip, INET_ADDRSTRLEN, ip);
 		pSession->port = port;
 		OnConnect(pSession->sessionInfo);
-
 		RecvPost(pSession);
 	}
 	return;
@@ -326,7 +324,7 @@ void IOCPServer::CloseServer()
 		DWORD retWait = WaitForSingleObject(hThread, EXIT_TIMEOUT);
 		if (retWait == WAIT_OBJECT_0)
 		{
-			Log::Printf(Log::SYSTEM_LEVEL, "%d 스레드 종료\n", GetThreadId(hThread));
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "%d 스레드 종료\n", GetThreadId(hThread));
 		}
 		else
 		{
@@ -341,6 +339,14 @@ void IOCPServer::CloseServer()
 
 void IOCPServer::RecvPost(Session* pSession)
 {
+	if (pSession->onConnecting == false)
+	{
+		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+		{
+			ReleaseSession(pSession);
+		}
+		return;
+	}
 	WSABUF wsaBufs[2];
 	DWORD bufCnt;
 	DWORD flags = 0;
@@ -362,6 +368,9 @@ void IOCPServer::RecvPost(Session* pSession)
 		wsaBufs[0].len = directEnqueueSize;
 		bufCnt = 1;
 	}
+
+	SessionInfo sessionInfo = pSession->sessionInfo;
+
 	int retval = WSARecv(pSession->socket, wsaBufs, bufCnt, NULL, &flags, &pSession->recvOverLapped, NULL);
 	if (retval == SOCKET_ERROR)
 	{
@@ -371,12 +380,18 @@ void IOCPServer::RecvPost(Session* pSession)
 			if (error != WSAECONNRESET && error != WSAECONNABORTED
 				&& error != WSAENOTSOCK && error != WSAESHUTDOWN)
 			{
-				Log::Printf(Log::SYSTEM_LEVEL,"WSARecv() error: %d\n", error);
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "WSARecv() error: %d\n", error);
 			}
-			//DisConnect(pSession);
 			if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 			{
 				ReleaseSession(pSession);
+			}
+		}
+		else
+		{
+			if (pSession->onConnecting == false)
+			{
+				DropIoPending(sessionInfo);
 			}
 		}
 	}
@@ -410,8 +425,16 @@ void IOCPServer::SendPost(Session* pSession)
 		if (pSession->sendBufQ.Size()>0)
 		{
 			pSession->sendBufQ.Dequeue(&(pSession->pSendedBufArr[i]));
-			wsaBufs[i].buf = (pSession->pSendedBufArr[i])->_buf;
-			wsaBufs[i].len = (pSession->pSendedBufArr[i])->GetPacketSize();
+			if (_bWan)
+			{
+				wsaBufs[i].buf = (char*)(pSession->pSendedBufArr[i])->GetWanHeader();
+				wsaBufs[i].len = (pSession->pSendedBufArr[i])->GetPayLoadSize()+sizeof(WanHeader);
+			}
+			else
+			{
+				wsaBufs[i].buf = (char*)(pSession->pSendedBufArr[i])->GetLanHeader();
+				wsaBufs[i].len = (pSession->pSendedBufArr[i])->GetPayLoadSize() + sizeof(LanHeader);
+			}
 			pSession->sendBufCnt++;
 		}
 		else
@@ -419,10 +442,7 @@ void IOCPServer::SendPost(Session* pSession)
 			break;
 		}
 	}
-
-
 	memset(&pSession->sendOverLapped, 0, sizeof(pSession->sendOverLapped));
-	
 	InterlockedIncrement16(&pSession->sessionManageInfo.refCnt);
 	int retval = WSASend(pSession->socket, wsaBufs, pSession->sendBufCnt, NULL, 0, &pSession->sendOverLapped, NULL);
 	if (retval == SOCKET_ERROR)
@@ -433,9 +453,9 @@ void IOCPServer::SendPost(Session* pSession)
 			if (error != WSAECONNRESET && error != WSAECONNABORTED
 				&& error != WSAENOTSOCK&&error!= WSAESHUTDOWN)
 			{
-				Log::Printf(Log::SYSTEM_LEVEL, "WSASend() error: %d\n", error);
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "WSASend() error: %d\n", error);
 			}
-			//DisConnect(pSession);
+			//Disconnect(pSession);
 			if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 			{
 				ReleaseSession(pSession);
@@ -450,12 +470,13 @@ void IOCPServer::RequestSend(Session* pSession)
 	bool retPQCS =PostQueuedCompletionStatus(_hcp, REQUEST_SEND, (ULONG_PTR)pSession, (LPOVERLAPPED)REQUEST_SEND);
 	if (retPQCS==false)
 	{
-		Log::Printf(Log::SYSTEM_LEVEL, "RequestSend error: %d\n", WSAGetLastError());
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestSend error: %d\n", WSAGetLastError());
 	}
 }
 
 void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
 {
+
 	Session* pSession = FindSession(sessionInfo);
 	if (pSession == nullptr)
 	{
@@ -464,13 +485,21 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
 
 	if (pSession->sendBufQ.Size() < SENDQ_MAX_LEN)
 	{
+		if (_bWan)
+		{
+			pBuf->SetWanHeader();
+		}
+		else
+		{
+			pBuf->SetLanHeader();
+		}
 		pBuf->IncrementRefCnt();
 		pSession->sendBufQ.Enqueue(pBuf);
 	}
 	else
 	{
-		pBuf->DecrementRefCnt();
-		DisConnect(pSession);
+		InterlockedExchange(&pSession->onConnecting, false);
+		CancelIo((HANDLE)pSession->socket);
 	}
 
 	if (GetSendAuthority(pSession) == true)
@@ -484,16 +513,15 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
 	return;
 }
 
-void IOCPServer::DisConnect(SessionInfo sessionInfo)
+void IOCPServer::Disconnect(SessionInfo sessionInfo)
 {
 	Session* pSession = FindSession(sessionInfo);
 	if (pSession == nullptr)
 	{
 		return ;
 	}
-	SOCKET socket=pSession->socket;
-	pSession->socket = INVALID_SOCKET;
-	closesocket(socket);
+	InterlockedExchange(&pSession->onConnecting, false);
+	CancelIo((HANDLE)pSession->socket);
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession(pSession);
@@ -519,12 +547,13 @@ void IOCPServer::RegisterThread(_beginthreadex_proc_type pFunction)
 	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, pFunction, this, 0, NULL);
 	if (hThread == NULL)
 	{
-		Log::Printf(Log::SYSTEM_LEVEL, "_beginthreadex error: %d\n", WSAGetLastError());
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "_beginthreadex error: %d\n", WSAGetLastError());
 		DebugBreak();
 	}
 	_hThreadList.push_back(hThread);
 }
 
+template<typename NetHeader>
 void IOCPServer::RecvCompletionRoutine(Session* pSession)
 {
 	LONG recvCnt = 0;
@@ -536,24 +565,38 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 		{
 			break;
 		}
-
 		NetHeader netHeader;
-
 		int peekSize = pSession->recvBuffer.Peek((char*)&netHeader, sizeof(netHeader));
 		if (peekSize != sizeof(netHeader))
 		{
 			DebugBreak();
 		}
-
+		if constexpr (is_same<NetHeader, WanHeader>::value)
+		{
+			if (netHeader.code != WanHeader::NetCode)
+			{
+				InterlockedExchange(&pSession->onConnecting, false);
+				break;
+			}
+		}
+		if (netHeader.len > PAYLOAD_MAX_LEN)
+		{
+			InterlockedExchange(&pSession->onConnecting, false);
+			break;
+		}
 		if (useSize < sizeof(NetHeader) + netHeader.len)
 		{
 			break;
 		}
 		pSession->recvBuffer.MoveFront(sizeof(netHeader));
 		CRecvBuffer buf(&pSession->recvBuffer, netHeader.len);
-		if (_bWan)
+		if constexpr( is_same<NetHeader,WanHeader>::value)
 		{
-			buf.Decode(&netHeader);
+			if (buf.Decode(&netHeader) == false)
+			{
+				InterlockedExchange(&pSession->onConnecting, false);
+				break;
+			}
 		}
 		OnRecv(pSession->sessionInfo, buf);
 		recvCnt++;
@@ -596,6 +639,7 @@ void IOCPServer::IOCPWork()
 	{
 		DWORD cbTransferred = 0;
 		Session* pSession = nullptr;
+		int error;
 
 		OVERLAPPED* pOverlapped = nullptr;
 		int retval = GetQueuedCompletionStatus(_hcp, &cbTransferred, (PULONG_PTR)&pSession, &pOverlapped, INFINITE);
@@ -603,11 +647,8 @@ void IOCPServer::IOCPWork()
 		{
 			if ((ULONG_PTR)pSession != SERVER_DOWN_KEY)
 			{
-				Log::Printf(Log::SYSTEM_LEVEL, "gqcs error: %d\n", WSAGetLastError());
-			}
-			else
-			{
-				break;
+				error =WSAGetLastError();
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "gqcs error: %d\n", error);
 			}
 			DebugBreak();
 		}
@@ -615,18 +656,16 @@ void IOCPServer::IOCPWork()
 		{
 			if (retval == false || cbTransferred == 0)
 			{
-				int error;
 				if (retval == false)
 				{
 					error = WSAGetLastError();
 					if (error != ERROR_CONNECTION_ABORTED && error != ERROR_NETNAME_DELETED
 						&& error != WSA_OPERATION_ABORTED)
 					{
-						ShowCurrentTime();
-						Log::Printf(Log::SYSTEM_LEVEL, "gqcs ret false error: %d\n", error);
+						Log::LogOnFile(Log::SYSTEM_LEVEL, "gqcs ret falseerror: %d\n", error);
 					}
 				}
-				//DisConnect(pSession);
+				//Disconnect(pSession);
 				if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 				{
 					ReleaseSession(pSession);
@@ -637,7 +676,14 @@ void IOCPServer::IOCPWork()
 			if (pOverlapped  == &pSession->recvOverLapped )
 			{
 				pSession->recvBuffer.MoveBack(cbTransferred);
-				RecvCompletionRoutine(pSession);
+				if (_bWan)
+				{
+					RecvCompletionRoutine<WanHeader>(pSession);
+				}
+				else
+				{
+					RecvCompletionRoutine<LanHeader>(pSession);
+				}
 			}
 			else if (pOverlapped  == &pSession->sendOverLapped )
 			{
@@ -711,4 +757,15 @@ int IOCPServer::GetSendCnt()
 	int ret = _sendCnt;
 	InterlockedExchange(&_sendCnt, 0);
 	return ret;
+}
+
+int IOCPServer::GetConnectingSessionCnt()
+{
+	return SESSION_MAX-_validIndexStack.Size();
+}
+
+void IOCPServer::SetMaxPayloadLen(int len)
+{
+	PAYLOAD_MAX_LEN = len;
+	return;
 }

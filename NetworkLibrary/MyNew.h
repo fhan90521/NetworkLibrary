@@ -1,19 +1,42 @@
 #pragma once
 #include "Malloc.h"
 #include <utility>
-
 using namespace std;
-template<typename T, typename ...Args>
-T* New(Args &&... args)
+template <typename T>
+class GlobalObjectPool
 {
-	T* retP =(T*)Malloc(sizeof(T));
-	new (retP) T(forward<Args>(args)...);
+private:
+	inline static LONG allocatingCnt = 0;
+public:
+
+	template<typename Type, typename ...Args>
+	friend Type* New(Args &&... args);
+	
+	template<typename Type>
+	friend void Delete(Type* ptr);
+	
+	template<typename Type>
+	friend int GetAllocatingCnt();
+};
+template<typename Type, typename ...Args>
+Type* New(Args &&... args)
+{
+	Type* retP = (Type*)Malloc(sizeof(Type));
+	new (retP) Type(forward<Args>(args)...);
+	GlobalObjectPool<Type>::allocatingCnt += 1;
 	return retP;
 }
 
-template<typename T>
-void Delete(T* ptr)
+template<typename Type>
+void Delete(Type* ptr)
 {
-	ptr->~T();
+	GlobalObjectPool<Type>::allocatingCnt -= 1;
+	ptr->~Type();
 	Free(ptr);
+}
+
+template<typename Type>
+inline int GetAllocatingCnt()
+{
+	return GlobalObjectPool<Type>::allocatingCnt;
 }

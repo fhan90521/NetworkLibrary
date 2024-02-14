@@ -15,6 +15,6 @@ using UniquePtr = unique_ptr<T, CustomDeleter<T>>;
 template <typename T, typename... Args>
 UniquePtr<T> MakeUnique(Args&&... args)
 {
-	UniquePtr <T> ptr(New<T>(forward<Args>(args)...));
-	return ptr;
+    UniquePtr <T> ptr(New<T>(forward<Args>(args)...));
+    return ptr;
 }

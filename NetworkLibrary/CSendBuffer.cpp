@@ -9,16 +9,12 @@ bool CSendBuffer::Resize(int iSize)
 		return false;
 	}
 	char* newBuf = new char[new_bufferSize];
-	memcpy(newBuf, &_buf[0], GetPacketSize());
+	memcpy(newBuf, &_buf[0], _back);
 
 	delete _buf;
 	_buf = newBuf;
 	
 	_bufferSize = new_bufferSize;
-	_back = GetPacketSize();
-	_front = 0;
-
-
 	return true;
 }
 

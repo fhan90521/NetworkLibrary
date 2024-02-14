@@ -18,7 +18,7 @@ private:
 	{
 		SENDQ_MAX_LEN = 1000,
 	};
-	//void ServerInitial();
+	void DropIoPending(SessionInfo sessionInfo);
 	void GetSeverSetValues();
 	void ServerSetting();
 	void CloseServer();
@@ -26,10 +26,14 @@ private:
 	BOOL AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDLE hDevice, ULONG_PTR dwCompletionKey);
 
 	void RecvPost(Session* pSession);
+
 	bool GetSendAuthority(Session* pSession);
 	void SendPost(Session* pSession);
 	void RequestSend(Session* pSession);
+	
+	template<typename NetHeader>
 	void RecvCompletionRoutine(Session* pSession);
+	
 	void SendCompletionRoutine(Session* pSession);
 	void RequestSendCompletionRoutine(Session* pSession);
 	
@@ -42,18 +46,20 @@ private:
 	
 	Session* FindSession(SessionInfo sessionInfo);
 	Session* AllocSession(SOCKET clientSock);
-	void DisConnect(Session* pSession);
 	void ReleaseSession(Session* pSession);
 private:
 	string _settingFileName;
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
-	String BIND_IP;
 	int BIND_PORT = 0;
 	int SESSION_MAX = 0;
 	int PACKET_CODE = 0;
 	int PACKET_KEY = 0;
 	int LOG_LEVEL = 0;
+	int PAYLOAD_MAX_LEN = 300;
+	bool _bWan;
+protected:
+	string BIND_IP;
 private:
 	SOCKET _listenSock=INVALID_SOCKET;
 	DWORD _newSessionID = 0;
@@ -61,38 +67,40 @@ private:
 	list<HANDLE> _hThreadList;
 	Session* _sessionArray;
 	LockFreeStack<USHORT> _validIndexStack;
+	LONG _acceptCnt = 0;
+	LONG _sendCnt = 0;
+	LONG _recvCnt = 0;
 public:
 	IOCPServer(bool bWan=true, string settingFileName = "ServerSetting.json") : _bWan(bWan), _settingFileName(settingFileName)
 	{
 		ServerSetting();
 	}
-	~IOCPServer()
+	virtual ~IOCPServer()
 	{
 		CloseServer();
-
 	}
-	void IOCPRun();
+	
+	bool _bShutdown = false;
 	void ServerControl();
 	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf);
-	void DisConnect(SessionInfo sessionInfo);
+	void Disconnect(SessionInfo sessionInfo);
 
-	bool _bShutdown=false;
+protected:
+	void IOCPRun();
 	virtual bool OnConnectRequest(const char* ip,USHORT port)=0;
 	virtual void OnConnect(SessionInfo sessionInfo)=0;
-	virtual void OnDisConnect(SessionInfo sessionInfo)=0;
+	virtual void OnDisconnect(SessionInfo sessionInfo)=0;
 	//virtual void OnSend(SessionInfo sessionInfo, int sendSize)=0;
 	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf)=0;
 	virtual void Run() = 0;
 	//virtual void OnWorkerThreadBegin() = 0; 
 	//virtual void OnWorkerThreadEnd() = 0;          
 	//virtual void OnError(int errorcode, char* log) = 0;
-	LONG _acceptCnt=0;
-	LONG _sendCnt=0;
-	LONG _recvCnt=0;
 public:
-	bool _bWan;
 	int GetAcceptCnt();
 	int GetRecvCnt();
 	int GetSendCnt();
+	int GetConnectingSessionCnt();
+	void SetMaxPayloadLen(int len);
 };
 

@@ -22,6 +22,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
@@ -49,6 +50,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MyNew.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceMonitor.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PoolAllocatorForSTL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h" />

@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctime>
+#include <fstream>
 class Log
 {
 private:
@@ -15,16 +17,44 @@ public:
     {
         _logLevel = logLevel;
     }
-    static void Printf(const int logLevel, const char* fmt, ...)
+    static void LogOnConsole(const int logLevel, const char* fmt, ...)
     {
         if (_logLevel <= logLevel)
         {
-            char buf[1024];
+            char buf[512];
             va_list ap;
             va_start(ap, fmt);
             vsprintf_s(buf, fmt, ap);
             va_end(ap);
             puts(buf);
+        }
+    }
+    static void LogOnFile(const int logLevel, const char* fmt, ...)
+    {
+      
+        if (_logLevel <= logLevel)
+        {
+            time_t now = time(0);
+            tm localTime;
+            errno_t error = localtime_s(&localTime,&now);
+           
+
+            // 날짜 정보 추출
+            int year = 1900 + localTime.tm_year;
+            int month = 1 + localTime.tm_mon;
+            int day = localTime.tm_mday;
+
+            // 파일 이름 생성 (예: "2024-02-13.txt")
+            string filename = to_string(year) + "-" + to_string(month) + "-" + to_string(day) + "-log.txt";
+
+            // 파일 출력 객체 생성
+            ofstream fout(filename,ios::app);
+            char buf[512];
+            va_list ap;
+            va_start(ap, fmt);
+            vsprintf_s(buf, fmt, ap);
+            va_end(ap);
+            fout << buf;
         }
     }
 };

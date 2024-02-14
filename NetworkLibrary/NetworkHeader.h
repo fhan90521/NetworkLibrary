@@ -1,12 +1,12 @@
 #pragma once
 #include "MyWindow.h"
 #pragma pack(1)
-struct NetHeader
+struct WanHeader
 {
-	//BYTE code;
+	BYTE code;
 	USHORT len;
-	//BYTE randKey;
-	//BYTE checkSum;
+	BYTE randKey;
+	BYTE checkSum;
 	inline static BYTE constKey = 0;
 	inline static BYTE NetCode = 0;
 	static void SetConstKey(BYTE key)
@@ -17,7 +17,7 @@ struct NetHeader
 	{
 		NetCode = code;
 	}
-	/*BYTE DecodeCheckSum()
+	BYTE DecodeCheckSum()
 	{
 		BYTE P = checkSum ^ (constKey + 1);
 		checkSum = P ^ (randKey + 1);
@@ -28,7 +28,10 @@ struct NetHeader
 		BYTE P = checkSum ^ (randKey + 1);
 		checkSum = P ^ (constKey + 1);
 		return P;
-	}*/
-
+	}
+};
+struct LanHeader
+{
+	USHORT len;
 };
 #pragma pack()
