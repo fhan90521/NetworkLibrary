@@ -85,7 +85,7 @@ public:
 	}
 	
 	bool _bShutdown = false;
-	void ServerControl();
+	bool ServerControl();
 	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf);
 	void Disconnect(SessionInfo sessionInfo);
 
@@ -109,9 +109,8 @@ public:
 
 private:
 	friend class Room;
-	int SERVER_FLAME=50;
-	int AVG_JOB_PER_THREAD = 64;
-	int MS_PER_FRAME = 20;
+	DWORD AVG_JOB_PER_THREAD = 64;
+	DWORD MS_PER_ROOM_FRAME =-1;
 	DWORD _clock;
 	LockFreeQueue<Room*> _readyRoomQueue;
 	MpscQueue<Room*> _newRoomQueue;

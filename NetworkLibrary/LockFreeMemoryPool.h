@@ -4,6 +4,7 @@
 #include "GetPOOLID.h"
 #include "LockFreeStack.h"
 #include"MemoryHeader.h"
+#include "Log.h"
 class LockFreeMemoryPool
 {
 private:
@@ -114,12 +115,12 @@ public:
 		MemoryTail* pChunkTail = (MemoryTail*)((char*)pChunkHeader + _chunkSize - sizeof(ChunkTail));
 		if (pChunkTail->cookie != COOKIE_VALUE)
 		{
-			cout << "object pool cookie modulation" << endl;
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "object pool cookie modulation\n");
 			DebugBreak();
 		}
 		else if (pChunkTail->id != _id)
 		{
-			cout << "pool id not match" << endl;
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "pool id not match\n");
 			DebugBreak();
 		}
 #endif

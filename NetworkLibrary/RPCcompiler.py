@@ -95,6 +95,7 @@ while True:
     every_func_parameters_type.append(one_func_parameters_type)
     every_func_parameters_name.append(one_func_parameters_name)
 fin.close()
+
 #PKT_TYPE.h 작성
 name_and_typenum[1]=int(name_and_typenum[1])
 fout= open(class_name+"PKT_TYPE.h",'wt')
@@ -113,6 +114,7 @@ for i in range(0,len(every_func_name)):
     fout.writelines(pkt_type_def)    
 #fout.writelines('}\n')
 fout.close()
+
 #Proxy.h 작성
 declaration_tails=[]
 fout= open(class_name+"Proxy.h",'wt')
@@ -203,6 +205,7 @@ for i in range(0,len(every_func_name)):
     for j in range(0,len(parameters_name)):
         if parameters_type[j] in registered_classes:
             parameters_name[j]=parameters_name[j]+"Ptr"
+
 #Stub.h 작성
 fout= open(class_name+"Stub.h",'wt')
 fout.writelines('#pragma once'+'\n')

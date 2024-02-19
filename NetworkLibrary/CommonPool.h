@@ -12,7 +12,7 @@
 #include "TlsMemoryPool.h"
 #include "MemoryHeader.h"
 
-//#define CHECK_MINUS_INPUT
+//#define CHECK_IMPOSSIBLE_INPUT
 class CommonPool
 {
 	typedef TlsMemoryPool MemoryPool;
@@ -85,10 +85,10 @@ public:
 public:
 	void* Alloc(int size)
 	{
-#ifdef CHECK_MINUS_INPUT
+#ifdef CHECK_IMPOSSIBLE_INPUT
 		if (size <= 0)
 		{
-			std::cout << "Alloc size lower than 0" << std::endl;
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "Alloc size lower than 0\n");
 			DebugBreak();
 			return nullptr;
 		}

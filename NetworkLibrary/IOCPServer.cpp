@@ -254,10 +254,12 @@ void IOCPServer::AcceptWork()
 	while (1)
 	{
 		clientSock = accept(_listenSock, (struct sockaddr*)&clientaddr, &addrlen);
-		
-		
 		if (clientSock == INVALID_SOCKET)
 		{
+			if (_bShutdown == true)
+			{
+				break;
+			}
 			int error = WSAGetLastError();
 			if (error != WSAEINTR)
 			{
@@ -315,6 +317,7 @@ void IOCPServer::CloseServer()
 	{
 		PostQueuedCompletionStatus(_hcp, SERVER_DOWN, SERVER_DOWN,(LPOVERLAPPED)SERVER_DOWN);
 	}
+
 	int i = 0;
 	for (HANDLE hThread : _hThreadList)
 	{
@@ -325,7 +328,7 @@ void IOCPServer::CloseServer()
 		}
 		else
 		{
-			DebugBreak();
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "%d 스레드 종료 TimeOut\n", GetThreadId(hThread));
 		}
 		CloseHandle(hThread);
 	}
@@ -566,6 +569,7 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 		int peekSize = pSession->recvBuffer.Peek((char*)&netHeader, sizeof(netHeader));
 		if (peekSize != sizeof(netHeader))
 		{
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "recvBuffer Peek Size error 종료\n");
 			DebugBreak();
 		}
 		if constexpr (std::is_same<NetHeader, WanHeader>::value)
@@ -649,6 +653,7 @@ void IOCPServer::IOCPWork()
 		int retval = GetQueuedCompletionStatus(_hcp, &cbTransferred, (PULONG_PTR)&pSession, &pOverlapped, INFINITE);
 		if (pOverlapped == nullptr)
 		{
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "GQCS pOverlapped null error: %d\n",WSAGetLastError());
 			DebugBreak();
 		}
 		else
@@ -725,7 +730,7 @@ void IOCPServer::IOCPRun()
 	RegisterThread(IOCPServer::RoomManageThreadFunc);
 	return;
 }
-void IOCPServer::ServerControl()
+bool IOCPServer::ServerControl()
 {
 	static bool bControlMode = false;
 	if (_kbhit())
@@ -749,6 +754,7 @@ void IOCPServer::ServerControl()
 			_bShutdown = true;
 		}
 	}
+	return bControlMode;
 }
 int IOCPServer::GetAcceptCnt()
 {
@@ -782,9 +788,17 @@ void IOCPServer::SetMaxPayloadLen(int len)
 
 void IOCPServer::RoomManageWork()
 {
+	if (MS_PER_ROOM_FRAME == INFINITE)
+	{
+		return;
+	}
 	_clock = timeGetTime();
 	while (1)
 	{
+		if (_bShutdown)
+		{
+			break;
+		}
 		DWORD currentTime;
 		if (_newRoomQueue.Size() > 0)
 		{
@@ -802,11 +816,11 @@ void IOCPServer::RoomManageWork()
 		if (_pRooms.empty())
 		{
 			currentTime = timeGetTime();
-			if (MS_PER_FRAME - (currentTime - _clock))
+			if (MS_PER_ROOM_FRAME - (currentTime - _clock))
 			{
-				Sleep(MS_PER_FRAME - (currentTime - _clock));
+				Sleep(MS_PER_ROOM_FRAME - (currentTime - _clock));
 			}
-			_clock += MS_PER_FRAME;
+			_clock += MS_PER_ROOM_FRAME;
 			continue;
 		}
 
@@ -830,11 +844,11 @@ void IOCPServer::RoomManageWork()
 			}
 			else
 			{
-				if (currentTime - pRoom->_clock > MS_PER_FRAME)
+				if (currentTime - pRoom->_clock > MS_PER_ROOM_FRAME)
 				{
 					if (pRoom->_jobQueue.Size() > 0 && pRoom->_bProcessing == false)
 					{
-						pRoom->_clock += MS_PER_FRAME;	
+						pRoom->_clock += MS_PER_ROOM_FRAME;
 						pRoom->_bProcessing = true;
 						roomProcessCnt++;
 						jobProcessCnt += pRoom->_jobQueue.Size();
@@ -855,7 +869,7 @@ void IOCPServer::RoomManageWork()
 						else
 						{
 							//jobQ SIZE ==0
-							pRoom->_clock += MS_PER_FRAME;
+							pRoom->_clock += MS_PER_ROOM_FRAME;
 						}
 					}
 				}
@@ -875,11 +889,11 @@ void IOCPServer::RoomManageWork()
 		else
 		{
 			currentTime = timeGetTime();
-			if (MS_PER_FRAME - (currentTime - _clock)>0)
+			if (MS_PER_ROOM_FRAME - (currentTime - _clock)>0)
 			{
-				Sleep(MS_PER_FRAME - (currentTime - _clock));
+				Sleep(MS_PER_ROOM_FRAME - (currentTime - _clock));
 			}
-			_clock += MS_PER_FRAME;
+			_clock += MS_PER_ROOM_FRAME;
 		}
 	}
 }

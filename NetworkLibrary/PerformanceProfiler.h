@@ -5,6 +5,7 @@
 #include <iomanip>
 #include "MyWindow.h"
 #include "GetMyThreadID.h"
+#include "Log.h"
 class PerformanceProfiler
 {
 private:
@@ -20,7 +21,7 @@ private:
 		_int64 Min[2]{ INT_MAX,INT_MAX };
 		_int64 Max[2]{};
 		_int64 callCnt = 0;
-		string name;
+		std::string name;
 		bool bUsed = false;
 		void Initial()
 		{
@@ -65,7 +66,7 @@ public:
 	{
 		return &_instance;
 	}
-	void SetName(int index, string name)
+	void SetName(int index, std::string name)
 	{
 		sampleArr[GetMyThreadID()][index].name = name;
 
@@ -82,7 +83,7 @@ public:
 		PROFILE_SAMPLE& sample = sampleArr[GetMyThreadID()][index];
 		if (sample.start_time.QuadPart != 0 || sample.name.empty())
 		{
-			cout << "end호출안하거나 name설정 안함" << endl;
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "end호출안하거나 name설정 안함\n");
 			DebugBreak();
 		}
 		if (sample.bUsed == false)
@@ -96,7 +97,7 @@ public:
 		PROFILE_SAMPLE& sample = sampleArr[GetMyThreadID()][index];
 		if (sample.start_time.QuadPart == 0)
 		{
-			cout << "start호출안함" << endl;
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "Profile Start 호출 안함\n");
 			DebugBreak();
 		}
 		LARGE_INTEGER end_time;
@@ -108,16 +109,16 @@ public:
 		sample.SetMin(time_diff);
 		sample.start_time.QuadPart = 0;
 	}
-	void ProfileDataOutText(const string file_name)
+	void ProfileDataOutText(const std::string file_name)
 	{
-		ofstream fout(file_name);
+		std::ofstream fout(file_name);
 		if (!fout)
 		{
-			cout << "프로파일러 파일 출력 에러" << endl;
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "프로파일러 파일 출력 에러\n");
 			DebugBreak();
 		}
-		fout << setw(20) << "Tag" << " | " << setw(20) << "Average" << " | " << setw(20) << "Min" << " | " << setw(20) << "Max" << " | " << setw(20) << "Call" << " | " << endl;
-		fout << "----------------------------------------------------------------------------------------------------------------------------------" << endl;
+		fout << std::setw(20) << "Tag" << " | " << std::setw(20) << "Average" << " | " << std::setw(20) << "Min" << " | " << std::setw(20) << "Max" << " | " << std::setw(20) << "Call" << " | " << std::endl;
+		fout << "----------------------------------------------------------------------------------------------------------------------------------" << std::endl;
 		LARGE_INTEGER frequency;
 		QueryPerformanceFrequency(&frequency);
 
@@ -143,11 +144,11 @@ public:
 			{
 				double total_micro = totalSample.totalTime / (double)frequency.QuadPart * 1000000;
 				fout.precision(4);
-				fout << fixed << setw(20) << totalSample.name << " | "
-					<< setw(20) << total_micro / (totalSample.callCnt - 4) << " | "
-					<< setw(20) << totalSample.Min[0] / (double)frequency.QuadPart * 1000000 << " | "
-					<< setw(20) << totalSample.Max[0] / (double)frequency.QuadPart * 1000000 << " | "
-					<< setw(20) << totalSample.callCnt << " | " << endl;
+				fout << std::fixed << std::setw(20) << totalSample.name << " | "
+					<< std::setw(20) << total_micro / (totalSample.callCnt - 4) << " | "
+					<< std::setw(20) << totalSample.Min[0] / (double)frequency.QuadPart * 1000000 << " | "
+					<< std::setw(20) << totalSample.Max[0] / (double)frequency.QuadPart * 1000000 << " | "
+					<<std::setw(20) << totalSample.callCnt << " | " << std::endl;
 			}
 		}
 	}

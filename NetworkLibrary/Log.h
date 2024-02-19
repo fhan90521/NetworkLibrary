@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctime>
 #include <fstream>
+#include <string>
 class Log
 {
 private:
