@@ -5,7 +5,6 @@
 #include <utility>
 #include <new.h>
 #include <iostream>
-using namespace std;
 template <typename T, bool _bPlacementNew>
 class TlsObjectPool
 {

@@ -7,7 +7,6 @@
 #include "MyWindow.h"
 #include "MyStlContainer.h"
 #include <iostream>
-using namespace std;
 class CSendBuffer
 {
 private:
@@ -134,7 +133,7 @@ public:
 		return iSize;
 	}
 	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	CSendBuffer& operator << (T data) throw(int)
+	CSendBuffer& operator << (T data) 
 	{
 		if (GetFreeSize() < sizeof(T))
 		{
@@ -149,7 +148,7 @@ public:
 	}
 
 	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	CSendBuffer& operator << (const Vector<T>& vec) throw(int)
+	CSendBuffer& operator << (const Vector<T>& vec) 
 	{
 		USHORT vecSize = vec.size();
 		if (GetFreeSize() < sizeof(vecSize) + vecSize*sizeof(T))
@@ -168,7 +167,7 @@ public:
 	}
 
 	template <typename T, typename size_t Size, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	CSendBuffer& operator << (const Array<T, Size>& arr) throw(int)
+	CSendBuffer& operator << (const Array<T, Size>& arr) 
 	{
 		USHORT arrLen= Size * sizeof(T);
 		if (GetFreeSize() < arrLen)

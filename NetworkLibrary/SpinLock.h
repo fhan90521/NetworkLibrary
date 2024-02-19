@@ -16,6 +16,7 @@ public:
 					break;
 				}
 			}
+			YieldProcessor();
 		}
 	}
 	void Release()

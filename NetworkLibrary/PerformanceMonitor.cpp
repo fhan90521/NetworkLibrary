@@ -1,7 +1,6 @@
 ﻿#include"PerformanceMonitor.h"
 #include <iostream>
 #include <format>
-using namespace std;
 
 PerformanceMonitor::PerformanceMonitor(HANDLE hProcess)
 {
@@ -164,7 +163,7 @@ void PerformanceMonitor::UpdateMonitorData(void)
 void PerformanceMonitor::PrintMonitorData()
 {
 	UpdateMonitorData();
-	cout <<  format(R"(
+	std::cout <<  std::format(R"(
 SytemCpuTotal: {:.2f}%
 ProcessCpuTotal: {:.2f}%
 ProcessUserMemory: {:.2f}MB
@@ -176,7 +175,7 @@ InDataSize: {:.2f}KB
 )",GetSystemCpuTotal(),GetProcessCpuTotal(),GetProcessUserMemoryByMB(),GetProcessNonPagedByMB(),GetSystemAvailMemoryByGB(),GetSystemNonPagedByMB(),GetOutDataSizeByKB(),GetInDataSizeByKB());
 }
 
-void PerformanceMonitor::AddInterface(string interfaceIp)
+void PerformanceMonitor::AddInterface(std::string interfaceIp)
 {
 	//if (interfaceIp == "127.0.0.1")
 	//{
@@ -214,7 +213,6 @@ void PerformanceMonitor::AddInterface(string interfaceIp)
 				if (strcmp(pAdapter->IpAddressList.IpAddress.String,"0.0.0.0")!=0)
 				{
 					_interfaceIndexSet.insert(pAdapter->Index);
-					cout << pAdapter->IpAddressList.IpAddress.String << endl;
 				}
 			}
 			else
@@ -222,7 +220,6 @@ void PerformanceMonitor::AddInterface(string interfaceIp)
 				if (strcmp(pAdapter->IpAddressList.IpAddress.String, interfaceIp.data()) == 0)
 				{
 					_interfaceIndexSet.insert(pAdapter->Index);
-					cout << pAdapter->IpAddressList.IpAddress.String << endl;
 					break;
 				}
 			}

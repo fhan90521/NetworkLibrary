@@ -23,10 +23,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CJob.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CLockArrayQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h" />
@@ -40,10 +42,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueueBasic.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeStack.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MpscQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Malloc.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MemoryHeader.h" />
@@ -55,7 +59,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)PoolAllocatorForSTL.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Room.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Session.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SpinLock.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TlsMemoryPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)TlsObjectPool.h" />
   </ItemGroup>

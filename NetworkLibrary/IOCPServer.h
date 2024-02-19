@@ -6,18 +6,14 @@
 #include "CSendBuffer.h"
 #include "LockFreeStack.h"
 #include "Session.h"
-#include<list>
+#include "Room.h"
+#include "MyStlContainer.h"
 #include<process.h>
-#include<vector>
-#include<stack>
-using namespace std;
+#include "LockQueue.h"
+#include <type_traits>
 class IOCPServer
 {
 private:
-	enum
-	{
-		SENDQ_MAX_LEN = 1000,
-	};
 	void DropIoPending(SessionInfo sessionInfo);
 	void GetSeverSetValues();
 	void ServerSetting();
@@ -41,14 +37,21 @@ private:
 	static unsigned __stdcall AcceptThreadFunc(LPVOID arg);
 	void IOCPWork();
 	static unsigned __stdcall IOCPWorkThreadFunc(LPVOID arg);
-	
 	void RegisterThread(_beginthreadex_proc_type pFunction);
 	
 	Session* FindSession(SessionInfo sessionInfo);
 	Session* AllocSession(SOCKET clientSock);
 	void ReleaseSession(Session* pSession);
 private:
-	string _settingFileName;
+	const long long EXIT_TIMEOUT = 5000;
+	const long long SENDQ_MAX_LEN = 512;
+	enum IOCP_KEY
+	{
+		SERVER_DOWN = 100,
+		REQUEST_SEND,
+		ROOM_PROCESS
+	};
+	std::string _settingFileName;
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
 	int BIND_PORT = 0;
@@ -59,19 +62,20 @@ private:
 	int PAYLOAD_MAX_LEN = 300;
 	bool _bWan;
 protected:
-	string BIND_IP;
+	std::string BIND_IP;
 private:
 	SOCKET _listenSock=INVALID_SOCKET;
 	DWORD _newSessionID = 0;
 	HANDLE _hcp=INVALID_HANDLE_VALUE;
-	list<HANDLE> _hThreadList;
+	List<HANDLE> _hThreadList;
 	Session* _sessionArray;
 	LockFreeStack<USHORT> _validIndexStack;
+private:
 	LONG _acceptCnt = 0;
 	LONG _sendCnt = 0;
 	LONG _recvCnt = 0;
 public:
-	IOCPServer(bool bWan=true, string settingFileName = "ServerSetting.json") : _bWan(bWan), _settingFileName(settingFileName)
+	IOCPServer(bool bWan=true, std::string settingFileName = "ServerSetting.json") : _bWan(bWan), _settingFileName(settingFileName)
 	{
 		ServerSetting();
 	}
@@ -101,6 +105,34 @@ public:
 	int GetRecvCnt();
 	int GetSendCnt();
 	int GetConnectingSessionCnt();
-	void SetMaxPayloadLen(int len);
+	void	 SetMaxPayloadLen(int len);
+
+private:
+	friend class Room;
+	int SERVER_FLAME=50;
+	int AVG_JOB_PER_THREAD = 64;
+	int MS_PER_FRAME = 20;
+	DWORD _clock;
+	LockFreeQueue<Room*> _readyRoomQueue;
+	MpscQueue<Room*> _newRoomQueue;
+	List<Room*> _pRooms;
+	alignas(64) SRWLOCK _roomListLock;
+	LONG _newRoomId = 0;
+
+	void RoomManageWork();
+	static unsigned __stdcall RoomManageThreadFunc(LPVOID arg);
+	void RoomProcess(int processCnt);
+	void ReleaseRoom(Room* ptr);
+public:
+	template<typename T, typename ...Args, typename = std::enable_if_t<std::is_base_of_v<Room, T>>>
+	T* CreateRoom(Args &&... args)
+	{
+		T* pRoom = (T*)Malloc(sizeof(T));
+		new (pRoom) T(forward<Args>(args)...);
+		_newRoomQueue.Enqueue(pRoom);
+		return pRoom;
+	}
+	void CloseRoom(Room* ptr);
+	
 };
 

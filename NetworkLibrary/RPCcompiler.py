@@ -122,7 +122,7 @@ fout.writelines('#include ' +'"IOCPServer.h"'+'\n')
 fout.writelines('#include ' +'"MyStlContainer.h"'+'\n')
 for registered_class in registered_classes:
     fout.writelines('#include "'+registered_class+'.h"\n')
-fout.writelines('using namespace std;\n')
+#fout.writelines('using namespace std;\n')
 #fout.writelines('namespace ' +name_and_typenum[0]+'\n')
 #fout.writelines('{\n')
 fout.writelines('class '+class_name+'Proxy\n')
@@ -137,9 +137,7 @@ for i in range(0,len(every_func_name)):
     tail=''
     for j in range(0,len(parameters_name)):
         tail+=', '
-        tail+=parameters_type[j]
-        if "Vector" in parameters_type[j]:
-            print('a')    
+        tail+=parameters_type[j]    
         if parameters_type[j] in registered_classes or "Array" in parameters_type[j] or "Vector" in parameters_type[j]:
             tail+='&'        
         tail+=' '
@@ -264,7 +262,6 @@ for i in range(0,len(every_func_name)):
     packet_proc_def='{\n'
     for j in range(0,len(parameters_name)):
         if parameters_type[j] in registered_classes:
-            print(parameters_type[j])
             packet_proc_def+='\t'+"UniquePtr<"+parameters_type[j]+'> '+parameters_name[j]+"= MakeUnique<"+parameters_type[j]+">();\n"
         else:
             packet_proc_def+='\t'+parameters_type[j]+' '+parameters_name[j]+';\n'
@@ -281,7 +278,7 @@ for i in range(0,len(every_func_name)):
     packet_proc_def+='\t}\n'
     packet_proc_def+='\tcatch(int useSize)\n'
     packet_proc_def+='\t{\n'
-    packet_proc_def+='\t\t Log::LogOnFile(Log::SYSTEM_LEVEL, "PacketProc'+func_name+' error\\n");\n'
+    packet_proc_def+='\t\t Log::LogOnFile(Log::DEBUG_LEVEL, "PacketProc'+func_name+' error\\n");\n'
     packet_proc_def+='\t\t return false;\n'
     packet_proc_def+='\t}\n'
     packet_proc_def+='\tProc'+func_name+'( sessionInfo '
@@ -321,7 +318,7 @@ for i in range(0,len(every_func_name)):
 
 fout.writelines('\tdefault:\n')
 fout.writelines('\t{\n')
-fout.writelines('\t\tLog::LogOnFile(Log::SYSTEM_LEVEL,"Packet Type not exist error\\n");\n')
+fout.writelines('\t\tLog::LogOnFile(Log::DEBUG_LEVEL,"Packet Type not exist error\\n");\n')
 fout.writelines('\t\treturn false;\n')
 fout.writelines('\t\tbreak;\n')
 fout.writelines('\t}\n')

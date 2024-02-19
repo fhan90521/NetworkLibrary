@@ -6,7 +6,6 @@
 #include <iostream>
 #include <map>
 #include <set>
-using namespace std;
 class CacheTracer
 {
 
@@ -18,8 +17,8 @@ private:
 	int traceCnt = 0;
 	TAG* cache[CACHEINDEX];
 	int* cache_counter[CACHEINDEX];
-	map<string, int > nameMissMap;
-	map<TAG,int> tagMap;
+	std::map<std::string, int > nameMissMap;
+	std::map<TAG,int> tagMap;
 	bool trace(void* variable);
 public:
 	CacheTracer(int _way_num)
@@ -44,7 +43,7 @@ public:
 		miss = 0;
 		nameMissMap.clear();
 	}
-	void trace(void* variable, string _name);
+	void trace(void* variable, std::string _name);
 	void show_hit_miss();
 	void show_miss_name();
 	void ShowTagNumTraceNum();

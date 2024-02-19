@@ -4,7 +4,6 @@
 #include "GetPOOLID.h"
 #include "LockFreeStack.h"
 #include"MemoryHeader.h"
-using namespace std;
 class LockFreeMemoryPool
 {
 private:

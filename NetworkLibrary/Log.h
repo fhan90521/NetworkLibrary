@@ -45,10 +45,10 @@ public:
             int day = localTime.tm_mday;
 
             // 파일 이름 생성 (예: "2024-02-13.txt")
-            string filename = to_string(year) + "-" + to_string(month) + "-" + to_string(day) + "-log.txt";
+            std::string filename = std::to_string(year) + "-" + std::to_string(month) + "-" + std::to_string(day) + "-log.txt";
 
             // 파일 출력 객체 생성
-            ofstream fout(filename,ios::app);
+            std::ofstream fout(filename,std::ios::app);
             char buf[512];
             va_list ap;
             va_start(ap, fmt);

@@ -28,6 +28,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp">
       <Filter>Profiler</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp">
+      <Filter>Room</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h">
@@ -114,10 +117,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)MyNew.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h">
       <Filter>Memory</Filter>
     </ClInclude>
@@ -126,6 +125,27 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h">
       <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MpscQueue.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)SpinLock.h">
+      <Filter>Lock</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h">
+      <Filter>Lock</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CJob.h">
+      <Filter>Room</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Room.h">
+      <Filter>Room</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h">
+      <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -152,6 +172,12 @@
     </Filter>
     <Filter Include="Debug">
       <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lock">
+      <UniqueIdentifier>{7fc7e48e-446c-4d62-b1d9-df38f50a71ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Room">
+      <UniqueIdentifier>{ac670b13-2fd6-4292-aaa1-ef7f32885ba0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

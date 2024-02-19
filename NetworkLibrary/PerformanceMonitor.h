@@ -6,7 +6,6 @@
 #include <string>
 #include <iphlpapi.h>
 #include <stdlib.h>
-using namespace std;
 class PerformanceMonitor
 {
 public:
@@ -30,7 +29,7 @@ public:
 
 	float GetOutDataSizeByKB() { return (float)(_outDataOct - _prevOut)/ 1000; }
 	float GetInDataSizeByKB() { return (float)(_inDataOct - _prevIn) / 1000; }
-	void AddInterface(string interfaceIp);
+	void AddInterface(std::string interfaceIp);
 
 	void PrintMonitorData();
 private:
@@ -60,7 +59,7 @@ private:
 	PROCESS_MEMORY_COUNTERS_EX _pmc;
 
 	//네트워크 사용량
-	set<int> _interfaceIndexSet;
+	std::set<int> _interfaceIndexSet;
 
 	ULONG64 _inDataOct=0;
 	ULONG64 _outDataOct=0;

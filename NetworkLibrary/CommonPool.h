@@ -11,7 +11,6 @@
 #include "LockFreeMemoryPool.h"
 #include "TlsMemoryPool.h"
 #include "MemoryHeader.h"
-using namespace std;
 
 //#define CHECK_MINUS_INPUT
 class CommonPool
@@ -22,7 +21,7 @@ class CommonPool
 		MAX_CHUNK_SIZE = 4096,
 		POOL_CNT = (512 / 16) + (512 / 32) + (1024 / 64) + (2048 / 128)
 	};
-	vector<MemoryPool*> _pMemoryPoolVec;
+	std::vector<MemoryPool*> _pMemoryPoolVec;
 	MemoryPool* _pPoolTable[MAX_CHUNK_SIZE + 1];
 	int _chunkPerBlock;
 public:

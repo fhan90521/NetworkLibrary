@@ -1,7 +1,6 @@
 #pragma once
 #include "TlsObjectPool.h"
 #include "MyWindow.h"
-using namespace std;
 
 template<typename T>
 class LockFreeStack

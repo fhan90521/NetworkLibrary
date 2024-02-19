@@ -4,7 +4,6 @@
 #include "MyStlContainer.h"
 #include "Log.h"
 #include <iostream>
-using namespace std;
 class CRecvBuffer
 {
 private:
@@ -17,7 +16,7 @@ public:
 	
 
 	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	CRecvBuffer& operator >> (T& data) throw(int)
+	CRecvBuffer& operator >> (T& data) 
 	{
 		if (_remainSize < sizeof(T))
 		{
@@ -27,7 +26,7 @@ public:
 		int dequeueSize= _pBuf->Dequeue((char*)&data, sizeof(T));
 		if (dequeueSize != sizeof(T))
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "CRecvBuffer dequeue Error\n");
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
 			throw(dequeueSize);
 		}
 		_remainSize -= dequeueSize;
@@ -35,7 +34,7 @@ public:
 	}
 
 	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	CRecvBuffer& operator >> (Vector<T>& vec) throw(int)
+	CRecvBuffer& operator >> (Vector<T>& vec)
 	{
 		USHORT vecSize;
 		int dequeueSize;
@@ -43,21 +42,21 @@ public:
 		
 		if (_remainSize < sizeof(vecSize))
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "CRecvBuffer remainSize Error\n");
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
 			throw(_remainSize);
 		}
 
 		dequeueSize = _pBuf->Dequeue((char*)&vecSize, sizeof(vecSize));
 		if (dequeueSize != sizeof(vecSize))
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "CRecvBuffer dequeue Error\n");
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
 			throw(dequeueSize);
 		}
 		_remainSize -= dequeueSize;
 		
 		if (_remainSize < vecSize)
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "CRecvBuffer remainSize Error\n");
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
 			throw(_remainSize);
 		}
 
@@ -70,7 +69,7 @@ public:
 		dequeueSize=_pBuf->Dequeue((char*)vec.data(), vecSize * sizeof(T));
 		if (dequeueSize != vecSize * sizeof(T))
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "CRecvBuffer dequeue Error\n");
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
 			throw(dequeueSize);
 		}
 		_remainSize -= dequeueSize;
@@ -79,18 +78,18 @@ public:
 	}
 
 	template <typename T, typename size_t Size, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	CRecvBuffer& operator >> (Array<T,Size>& arr) throw(int)
+	CRecvBuffer& operator >> (Array<T,Size>& arr) 
 	{
 		if (_remainSize < Size * sizeof(T))
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "CRecvBuffer remainSize Error\n");
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
 			throw(_remainSize);
 		}
 		int dequeueSize;
 		dequeueSize = _pBuf->Dequeue((char*)arr.data(), Size * sizeof(T));
 		if (dequeueSize != Size * sizeof(T))
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "CRecvBuffer dequeue Error\n");
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
 			throw(dequeueSize);
 		}
 		_remainSize -= dequeueSize;

@@ -10,8 +10,7 @@ struct CustomDeleter {
     }
 };
 template<typename T>
-using UniquePtr = unique_ptr<T, CustomDeleter<T>>;
-
+using UniquePtr = std::unique_ptr<T, CustomDeleter<T>>;
 template <typename T, typename... Args>
 UniquePtr<T> MakeUnique(Args&&... args)
 {

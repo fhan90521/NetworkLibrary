@@ -42,9 +42,8 @@ bool CacheTracer::trace(void* variable)
 
 	return isHit;
 }
-void CacheTracer::trace(void* variable, string name)
+void CacheTracer::trace(void* variable, std::string name)
 {
-	
 	if (trace(variable) == false)
 	{
 		nameMissMap[name]++;
@@ -53,16 +52,16 @@ void CacheTracer::trace(void* variable, string name)
 
 void CacheTracer::show_hit_miss()
 {
-	cout << "hit: " << hit << " " << "miss: " << miss << endl;
+	std::cout << "hit: " << hit << " " << "miss: " << miss << std::endl;
 }
 void CacheTracer::show_miss_name()
 {
 	for (auto& pairNameMiss : nameMissMap)
 	{
-		cout << "이름 : " << pairNameMiss.first << "miss 횟수 : " << pairNameMiss.second << '\n';
+		std::cout << "이름 : " << pairNameMiss.first << "miss 횟수 : " << pairNameMiss.second << '\n';
 	}
 }
 void CacheTracer::ShowTagNumTraceNum()
 {
-	cout << "할당 받은 tag수 : " << tagMap.size() << " 할당 받은 횟수: " << traceCnt << '\n';
+	std::cout << "할당 받은 tag수 : " << tagMap.size() << " 할당 받은 횟수: " << traceCnt << '\n';
 }

@@ -12,13 +12,9 @@
 #include<memory.h>
 #include "NetworkHeader.h"
 #include "Log.h"
+#include "MyNew.h"
 //#include "Log.h"
 using namespace rapidjson;
-using namespace std;
-const long long EXIT_TIMEOUT = 5000;
-const long long SERVER_DOWN_KEY = 200;
-const long long REQUEST_SEND = 300;
-
 
 HANDLE IOCPServer::CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
 {
@@ -47,18 +43,18 @@ void IOCPServer::DropIoPending(SessionInfo sessionInfo)
 
 void IOCPServer::GetSeverSetValues()
 {
-	ifstream fin(_settingFileName);
+	std::ifstream fin(_settingFileName);
 	if (!fin)
 	{
 		Log::LogOnFile(Log::SYSTEM_LEVEL,"there is no %s\n", _settingFileName.data());
 		DebugBreak();
 	}
-	string json((istreambuf_iterator<char>(fin)), (istreambuf_iterator<char>()));
+	std::string json((std::istreambuf_iterator<char>(fin)), (std::istreambuf_iterator<char>()));
 	fin.close();
 	Document d;
 	rapidjson::ParseResult parseResult = d.Parse(json.data());
 	if (!parseResult) {
-		fprintf(stderr, "JSON parse error: %s (%u)",GetParseError_En(parseResult.Code()), parseResult.Offset());
+		fprintf(stderr, "JSON parse error: %s (%d)",GetParseError_En(parseResult.Code()), parseResult.Offset());
 		exit(EXIT_FAILURE);
 	}
 
@@ -86,7 +82,6 @@ void IOCPServer::ServerSetting()
 	
 	timeBeginPeriod(1);
 	int ret_bind;
-	int ret_ioctl;
 	WSADATA wsa;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -135,7 +130,7 @@ void IOCPServer::ServerSetting()
 	if (ret_linger == SOCKET_ERROR)
 	{
 		int error = WSAGetLastError();
-		cout << "linger error : " << error << endl;
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "linger error : %d", error);
 		DebugBreak();
 	}
 
@@ -155,13 +150,15 @@ void IOCPServer::ServerSetting()
 	if (_hcp == NULL)
 	{
 		int error = WSAGetLastError();
-		cout << "CreateNewCompletionPort error : " << error << endl;
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "CreateNewCompletionPort error : %d", error);
 		DebugBreak();
 	};
 	for (int i = 0; i < IOCP_THREAD_NUM; i++)
 	{
 		RegisterThread(IOCPServer::IOCPWorkThreadFunc);
 	}
+
+	InitializeSRWLock(&_roomListLock);
 }
 
 Session* IOCPServer::FindSession(SessionInfo sessionInfo)
@@ -316,7 +313,7 @@ void IOCPServer::CloseServer()
 	closesocket(_listenSock);
 	for (int i = 0; i < IOCP_THREAD_NUM; i++)
 	{
-		PostQueuedCompletionStatus(_hcp, 0, SERVER_DOWN_KEY, 0);
+		PostQueuedCompletionStatus(_hcp, SERVER_DOWN, SERVER_DOWN,(LPOVERLAPPED)SERVER_DOWN);
 	}
 	int i = 0;
 	for (HANDLE hThread : _hThreadList)
@@ -571,7 +568,7 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 		{
 			DebugBreak();
 		}
-		if constexpr (is_same<NetHeader, WanHeader>::value)
+		if constexpr (std::is_same<NetHeader, WanHeader>::value)
 		{
 			if (netHeader.code != WanHeader::NetCode)
 			{
@@ -590,7 +587,7 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 		}
 		pSession->recvBuffer.MoveFront(sizeof(netHeader));
 		CRecvBuffer buf(&pSession->recvBuffer, netHeader.len);
-		if constexpr( is_same<NetHeader,WanHeader>::value)
+		if constexpr( std::is_same<NetHeader,WanHeader>::value)
 		{
 			if (buf.Decode(&netHeader) == false)
 			{
@@ -604,6 +601,13 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 	InterlockedAdd(&_recvCnt, recvCnt);
 	RecvPost(pSession);
 }
+
+
+
+
+
+
+
 
 void IOCPServer::SendCompletionRoutine(Session* pSession)
 {
@@ -645,11 +649,6 @@ void IOCPServer::IOCPWork()
 		int retval = GetQueuedCompletionStatus(_hcp, &cbTransferred, (PULONG_PTR)&pSession, &pOverlapped, INFINITE);
 		if (pOverlapped == nullptr)
 		{
-			if ((ULONG_PTR)pSession != SERVER_DOWN_KEY)
-			{
-				error =WSAGetLastError();
-				Log::LogOnFile(Log::SYSTEM_LEVEL, "gqcs error: %d\n", error);
-			}
 			DebugBreak();
 		}
 		else
@@ -689,12 +688,22 @@ void IOCPServer::IOCPWork()
 			{
 				SendCompletionRoutine(pSession);
 			}
-			else if (pOverlapped == (OVERLAPPED*)REQUEST_SEND)
+			else if (pOverlapped == (LPOVERLAPPED)REQUEST_SEND)
 			{
 				RequestSendCompletionRoutine(pSession);
 			}
+			else if (pOverlapped == (LPOVERLAPPED)ROOM_PROCESS)
+			{
+				RoomProcess(cbTransferred);
+			}
+			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
+			{
+				break;
+			}
 			else
 			{
+				error = WSAGetLastError();
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "pOverlapped  error: %d\n", error);
 				DebugBreak();
 			}
 		}
@@ -709,10 +718,11 @@ void IOCPServer::IOCPRun()
 	if (ret_listen == SOCKET_ERROR)
 	{
 		int error = WSAGetLastError();
-		cout << "listen() error : " << error << endl;
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "listen() error : %d", error);
 		DebugBreak();
 	}
 	RegisterThread(IOCPServer::AcceptThreadFunc);
+	RegisterThread(IOCPServer::RoomManageThreadFunc);
 	return;
 }
 void IOCPServer::ServerControl()
@@ -769,3 +779,142 @@ void IOCPServer::SetMaxPayloadLen(int len)
 	PAYLOAD_MAX_LEN = len;
 	return;
 }
+
+void IOCPServer::RoomManageWork()
+{
+	_clock = timeGetTime();
+	while (1)
+	{
+		DWORD currentTime;
+		if (_newRoomQueue.Size() > 0)
+		{
+			AcquireSRWLockExclusive(&_roomListLock);
+			Room* pNewRoom;
+			while (_newRoomQueue.Dequeue(&pNewRoom))
+			{
+				pNewRoom->_clock = _clock;
+				_pRooms.push_back(pNewRoom);
+			}
+			ReleaseSRWLockExclusive(&_roomListLock);
+		}
+
+
+		if (_pRooms.empty())
+		{
+			currentTime = timeGetTime();
+			if (MS_PER_FRAME - (currentTime - _clock))
+			{
+				Sleep(MS_PER_FRAME - (currentTime - _clock));
+			}
+			_clock += MS_PER_FRAME;
+			continue;
+		}
+
+		AcquireSRWLockExclusive(&_roomListLock);
+		currentTime= timeGetTime();
+		int roomProcessCnt = 0;
+		int jobProcessCnt = 0;
+		bool bExistFrameDropRoom = false;
+
+		Room* pRoom;
+		for (auto iter = _pRooms.begin();iter!= _pRooms.end();)
+		{
+			pRoom = *iter;
+			if (pRoom->_bReleased == true)
+			{
+				if (pRoom->_bProcessing == false)
+				{
+					iter = _pRooms.erase(iter);
+					ReleaseRoom(pRoom);
+				}
+			}
+			else
+			{
+				if (currentTime - pRoom->_clock > MS_PER_FRAME)
+				{
+					if (pRoom->_jobQueue.Size() > 0 && pRoom->_bProcessing == false)
+					{
+						pRoom->_clock += MS_PER_FRAME;	
+						pRoom->_bProcessing = true;
+						roomProcessCnt++;
+						jobProcessCnt += pRoom->_jobQueue.Size();
+						_readyRoomQueue.Enqueue(pRoom);
+						if (jobProcessCnt > AVG_JOB_PER_THREAD)
+						{
+							PostQueuedCompletionStatus(_hcp, roomProcessCnt, ROOM_PROCESS, (LPOVERLAPPED)ROOM_PROCESS);
+							roomProcessCnt = 0;
+							jobProcessCnt = 0;
+						}
+					}
+					else
+					{
+						if (pRoom->_bProcessing == false)
+						{
+							bExistFrameDropRoom = true;
+						}
+						else
+						{
+							//jobQ SIZE ==0
+							pRoom->_clock += MS_PER_FRAME;
+						}
+					}
+				}
+				iter++;
+			}
+		}
+		ReleaseSRWLockExclusive(&_roomListLock);
+
+		if (roomProcessCnt >0)
+		{
+			PostQueuedCompletionStatus(_hcp, roomProcessCnt, ROOM_PROCESS, (LPOVERLAPPED)ROOM_PROCESS);
+		}
+		if (bExistFrameDropRoom == true)
+		{
+			Sleep(0);
+		}
+		else
+		{
+			currentTime = timeGetTime();
+			if (MS_PER_FRAME - (currentTime - _clock)>0)
+			{
+				Sleep(MS_PER_FRAME - (currentTime - _clock));
+			}
+			_clock += MS_PER_FRAME;
+		}
+	}
+}
+
+unsigned __stdcall IOCPServer::RoomManageThreadFunc(LPVOID arg)
+{
+	IOCPServer* pServer = (IOCPServer*)arg;
+	pServer->RoomManageWork();
+	return 0;
+}
+
+void IOCPServer::RoomProcess(int processCnt)
+{
+	Room* pRoom;
+	for (int i=0;i<processCnt;i++)
+	{
+		bool dequeueRet =_readyRoomQueue.Dequeue(&pRoom);
+		if (dequeueRet == false)
+		{
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "_readyRoomQ dequeue error");
+		}
+		pRoom->ProcessJob();
+	}
+}
+
+void IOCPServer::CloseRoom(Room* pRoom)
+{
+	pRoom->_bReleased = true;
+}
+
+void IOCPServer::ReleaseRoom(Room* pRoom)
+{
+	pRoom->~Room();
+	Free(pRoom);
+}
+
+
+

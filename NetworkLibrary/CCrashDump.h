@@ -5,7 +5,6 @@
 #include <Windows.h>
 #include <dbghelp.h>
 #include <Psapi.h>
-using namespace std;
 class CCrashDump
 {
 public:

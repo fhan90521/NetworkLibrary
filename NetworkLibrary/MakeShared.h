@@ -2,13 +2,11 @@
 #include <utility>
 #include <memory>
 #include "MyNew.h"
-
-template<typename T>
-using  SharedPtr = SharedPtr<T>;
+#include "MyStlContainer.h"
 
 template <typename T, typename... Args>
-shared_ptr<T> MakeShared(Args&&... args)
+SharedPtr<T> MakeShared(Args&&... args)
 {
-	shared_ptr<T> ptr = { New<T>(forward<Args>(args)...), Delete<T> };
+	SharedPtr<T> ptr = { New<T>(forward<Args>(args)...), Delete<T> };
 	return ptr;
 }

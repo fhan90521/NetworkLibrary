@@ -5,7 +5,6 @@
 #include <iomanip>
 #include "MyWindow.h"
 #include "GetMyThreadID.h"
-using namespace std;
 class PerformanceProfiler
 {
 private:

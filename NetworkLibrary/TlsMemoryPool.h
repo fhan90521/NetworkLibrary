@@ -5,7 +5,6 @@
 #include "GetPOOLID.h"
 #include "MemoryHeader.h"
 #include "MyWindow.h"
-using namespace std;
 class TlsMemoryPool
 {
 private:

@@ -1,7 +1,8 @@
 #pragma once
 #include "Malloc.h"
+#include "MyWindow.h"
 #include <utility>
-using namespace std;
+#include "Room.h"
 template <typename T>
 class GlobalObjectPool
 {
@@ -18,19 +19,22 @@ public:
 	template<typename Type>
 	friend int GetAllocatingCnt();
 };
-template<typename Type, typename ...Args>
+
+template<typename Type,typename ...Args>
 Type* New(Args &&... args)
 {
+	static_assert(!std::is_base_of<Room, Type>::value, "Type must not inherit from Room class.");
 	Type* retP = (Type*)Malloc(sizeof(Type));
 	new (retP) Type(forward<Args>(args)...);
-	GlobalObjectPool<Type>::allocatingCnt += 1;
+	InterlockedIncrement(&GlobalObjectPool<Type>::allocatingCnt);
 	return retP;
 }
 
 template<typename Type>
 void Delete(Type* ptr)
 {
-	GlobalObjectPool<Type>::allocatingCnt -= 1;
+	static_assert(!std::is_base_of<Room, Type>::value, "Type must not inherit from Room class.");
+	InterlockedDecrement(&GlobalObjectPool<Type>::allocatingCnt);
 	ptr->~Type();
 	Free(ptr);
 }
