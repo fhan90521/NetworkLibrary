@@ -110,10 +110,9 @@ public:
 private:
 	friend class Room;
 	DWORD AVG_JOB_PER_THREAD = 64;
-	DWORD MS_PER_ROOM_FRAME =-1;
-	DWORD _clock;
+	DWORD MAX_FRAME = 0;
+	DWORD MS_PER_FRAME =-1;
 	LockFreeQueue<Room*> _readyRoomQueue;
-	MpscQueue<Room*> _newRoomQueue;
 	List<Room*> _pRooms;
 	alignas(64) SRWLOCK _roomListLock;
 	LONG _newRoomId = 0;

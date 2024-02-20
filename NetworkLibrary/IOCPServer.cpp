@@ -788,48 +788,25 @@ void IOCPServer::SetMaxPayloadLen(int len)
 
 void IOCPServer::RoomManageWork()
 {
-	if (MS_PER_ROOM_FRAME == INFINITE)
+	if (MS_PER_FRAME == -1)
 	{
 		return;
 	}
-	_clock = timeGetTime();
 	while (1)
 	{
 		if (_bShutdown)
 		{
 			break;
 		}
-		DWORD currentTime;
-		if (_newRoomQueue.Size() > 0)
-		{
-			AcquireSRWLockExclusive(&_roomListLock);
-			Room* pNewRoom;
-			while (_newRoomQueue.Dequeue(&pNewRoom))
-			{
-				pNewRoom->_clock = _clock;
-				_pRooms.push_back(pNewRoom);
-			}
-			ReleaseSRWLockExclusive(&_roomListLock);
-		}
-
-
 		if (_pRooms.empty())
 		{
-			currentTime = timeGetTime();
-			if (MS_PER_ROOM_FRAME - (currentTime - _clock))
-			{
-				Sleep(MS_PER_ROOM_FRAME - (currentTime - _clock));
-			}
-			_clock += MS_PER_ROOM_FRAME;
+			Sleep(MS_PER_FRAME);
 			continue;
 		}
-
-		AcquireSRWLockExclusive(&_roomListLock);
-		currentTime= timeGetTime();
+		DWORD prevTime = timeGetTime();
 		int roomProcessCnt = 0;
 		int jobProcessCnt = 0;
-		bool bExistFrameDropRoom = false;
-
+		AcquireSRWLockExclusive(&_roomListLock);
 		Room* pRoom;
 		for (auto iter = _pRooms.begin();iter!= _pRooms.end();)
 		{
@@ -844,33 +821,17 @@ void IOCPServer::RoomManageWork()
 			}
 			else
 			{
-				if (currentTime - pRoom->_clock > MS_PER_ROOM_FRAME)
+				if (pRoom->_jobQueue.Size() > 0 && pRoom->_bProcessing == false)
 				{
-					if (pRoom->_jobQueue.Size() > 0 && pRoom->_bProcessing == false)
+					pRoom->_bProcessing = true;
+					roomProcessCnt++;
+					jobProcessCnt += pRoom->_jobQueue.Size();
+					_readyRoomQueue.Enqueue(pRoom);
+					if (jobProcessCnt > AVG_JOB_PER_THREAD)
 					{
-						pRoom->_clock += MS_PER_ROOM_FRAME;
-						pRoom->_bProcessing = true;
-						roomProcessCnt++;
-						jobProcessCnt += pRoom->_jobQueue.Size();
-						_readyRoomQueue.Enqueue(pRoom);
-						if (jobProcessCnt > AVG_JOB_PER_THREAD)
-						{
-							PostQueuedCompletionStatus(_hcp, roomProcessCnt, ROOM_PROCESS, (LPOVERLAPPED)ROOM_PROCESS);
-							roomProcessCnt = 0;
-							jobProcessCnt = 0;
-						}
-					}
-					else
-					{
-						if (pRoom->_bProcessing == false)
-						{
-							bExistFrameDropRoom = true;
-						}
-						else
-						{
-							//jobQ SIZE ==0
-							pRoom->_clock += MS_PER_ROOM_FRAME;
-						}
+						PostQueuedCompletionStatus(_hcp, roomProcessCnt, ROOM_PROCESS, (LPOVERLAPPED)ROOM_PROCESS);
+						roomProcessCnt = 0;
+						jobProcessCnt = 0;
 					}
 				}
 				iter++;
@@ -878,22 +839,15 @@ void IOCPServer::RoomManageWork()
 		}
 		ReleaseSRWLockExclusive(&_roomListLock);
 
-		if (roomProcessCnt >0)
+		if (roomProcessCnt > 0)
 		{
 			PostQueuedCompletionStatus(_hcp, roomProcessCnt, ROOM_PROCESS, (LPOVERLAPPED)ROOM_PROCESS);
 		}
-		if (bExistFrameDropRoom == true)
+
+		DWORD currentTime = timeGetTime();
+		if (MS_PER_FRAME - (currentTime - prevTime)>0)
 		{
-			Sleep(0);
-		}
-		else
-		{
-			currentTime = timeGetTime();
-			if (MS_PER_ROOM_FRAME - (currentTime - _clock)>0)
-			{
-				Sleep(MS_PER_ROOM_FRAME - (currentTime - _clock));
-			}
-			_clock += MS_PER_ROOM_FRAME;
+			Sleep(MS_PER_FRAME - (currentTime - prevTime));
 		}
 	}
 }

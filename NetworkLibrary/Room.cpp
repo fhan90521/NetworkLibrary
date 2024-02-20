@@ -3,32 +3,35 @@
 void Room::ProcessJob()
 {
 	int qSize = _jobQueue.Size();
-	CJob* pJob;
+	DWORD currentTime = timeGetTime();
+	_deltaTime = (double)(currentTime - _lastProcessTime) / 1000;
+	WorkerJob* pJob;
 	for (int i = 0; i < qSize; i++)
 	{
 		_jobQueue.Dequeue(&pJob);
 		pJob->Execute();
-		Delete<CJob>(pJob);
+		Delete<WorkerJob>(pJob);
 	}
+	_lastProcessTime = timeGetTime();
 	InterlockedExchange8(&_bProcessing, false);
 	return;
 }
 
-void Room::DoAsync(CallbackType&& callback)
+void Room::MakeWorkerJob(CallbackType&& callback)
 {
-	_jobQueue.Enqueue(New<CJob>(std::move(callback)));
+	_jobQueue.Enqueue(New<WorkerJob>(std::move(callback)));
 }
 
 template<typename T, typename Ret, typename... Args>
-void Room::DoAsync(Ret(T::* memFunc)(Args...), Args... args)
+void Room::MakeWorkerJob(Ret(T::* memFunc)(Args...), Args... args)
 {
 	_jobQueue.Enqueue(New<CJob>(this, memFunc, std::forward<Args>(args)...));
 }
 Room::~Room()
 {
-	CJob* pJob;
+	WorkerJob* pJob;
 	while (_jobQueue.Dequeue(&pJob))
 	{
-		Delete<CJob>(pJob);
+		Delete<WorkerJob>(pJob);
 	}
 }
