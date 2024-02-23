@@ -88,11 +88,13 @@ public:
 	bool ServerControl();
 	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf);
 	void Disconnect(SessionInfo sessionInfo);
+	void ReserveDisconnect(SessionInfo sessionInfo);
+	bool GetClientIp(SessionInfo sessionInfo, String outPar);
 
 protected:
 	void IOCPRun();
-	virtual bool OnConnectRequest(const char* ip,USHORT port)=0;
-	virtual void OnConnect(SessionInfo sessionInfo)=0;
+	virtual bool OnAcceptRequest(const char* ip,USHORT port)=0;
+	virtual void OnAccept(SessionInfo sessionInfo)=0;
 	virtual void OnDisconnect(SessionInfo sessionInfo)=0;
 	//virtual void OnSend(SessionInfo sessionInfo, int sendSize)=0;
 	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf)=0;
@@ -109,28 +111,20 @@ public:
 
 private:
 	friend class Room;
-	DWORD AVG_JOB_PER_THREAD = 64;
-	DWORD MAX_FRAME = 0;
-	DWORD MS_PER_FRAME =-1;
-	LockFreeQueue<Room*> _readyRoomQueue;
-	List<Room*> _pRooms;
-	alignas(64) SRWLOCK _roomListLock;
-	LONG _newRoomId = 0;
-
+	UINT MAX_ROOM_CNT = 1024;
+	UINT MAX_ROOM_FRAME = 0;
+	UINT MS_PER_ROOM_FRAME =-1;
+	Room** _pRooms;
+	Room** _pUpdateRooms;
+	Set<Room*> _pRoomSet;
+	List<Room*> _pCloseRooms;
+	alignas(64) SRWLOCK _pRoomsLock;
+	void PqcsProcessRoom(Room* pRoom);
 	void RoomManageWork();
-	static unsigned __stdcall RoomManageThreadFunc(LPVOID arg);
-	void RoomProcess(int processCnt);
-	void ReleaseRoom(Room* ptr);
-public:
-	template<typename T, typename ...Args, typename = std::enable_if_t<std::is_base_of_v<Room, T>>>
-	T* CreateRoom(Args &&... args)
-	{
-		T* pRoom = (T*)Malloc(sizeof(T));
-		new (pRoom) T(forward<Args>(args)...);
-		_newRoomQueue.Enqueue(pRoom);
-		return pRoom;
-	}
-	void CloseRoom(Room* ptr);
 	
+	static unsigned __stdcall RoomManageThreadFunc(LPVOID arg);
+public:
+	bool RegisterRoom(Room* pRoom);
+	bool DeregisterRoom(Room* pRoom);
 };
 

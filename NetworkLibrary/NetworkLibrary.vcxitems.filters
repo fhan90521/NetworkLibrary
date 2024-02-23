@@ -135,7 +135,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h">
       <Filter>Lock</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CJob.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)WorkerJob.h">
       <Filter>Room</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Room.h">

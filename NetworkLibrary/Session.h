@@ -28,12 +28,13 @@ struct SessionManageInfo
 };
 struct Session
 {
-	SessionManageInfo sessionManageInfo;
-	SessionInfo sessionInfo;
 	SOCKET socket;
-	
-	LONG onConnecting=true;
-	LONG bSending;
+	SessionInfo sessionInfo;
+	SessionManageInfo sessionManageInfo;
+
+	CHAR bReservedDisconnect = false;
+	CHAR onConnecting=true;
+	CHAR bSending;
 	SHORT sendBufCnt = 0;
 	OVERLAPPED sendOverLapped;
 	LockFreeQueue<CSendBuffer*> sendBufQ;

@@ -2,14 +2,14 @@
 #include <memory>
 #include <functional>
 using CallbackType = std::function<void()>;
-class WorkerJob
+class RoomJob
 {
 public:
-	WorkerJob(CallbackType&& callback) : _callback(std::move(callback))
+	RoomJob(CallbackType&& callback) : _callback(std::move(callback))
 	{
 	}
 	template<typename T, typename Ret, typename... Args>
-	WorkerJob(T* owner, Ret(T::* memFunc)(Args...), Args&&... args)
+	RoomJob(T* owner, Ret(T::* memFunc)(Args...), Args&&... args)
 	{
 		_callback = [owner, memFunc, args...]()
 		{

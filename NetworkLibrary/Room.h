@@ -1,5 +1,5 @@
 #pragma once
-#include "WorkerJob.h"
+#include "RoomJob.h"
 #include "MpscQueue.h"
 #include <memory>
 #include "MyWindow.h"
@@ -8,22 +8,23 @@ class Room
 {
 private:
 	friend class IOCPServer;
-	MpscQueue<WorkerJob*> _jobQueue;
-	DWORD _lastProcessTime;
-	bool _bReleased = false;
-	char  _bProcessing = false;
+	MpscQueue<RoomJob*> _jobQueue;
+	alignas(64) char _bProcessing = false;
+	alignas(64) char  _isUpdateTime = false;
+	IOCPServer* _pServer=nullptr;
+	ULONG64 _lastProcessTime=0;
 	void ProcessJob();
+	void	ProcessRoom();
 protected:
-	double _deltaTime;
-	virtual ~Room();
-	Room() { _lastProcessTime = timeGetTime(); };
+	virtual void Update(float deltaTime) = 0;
 	void operator delete (void* p)
 	{
 		free(p);
 	}
 public:
-	void MakeWorkerJob(CallbackType&& callback);
-
+	virtual ~Room();
+	Room(){};
+	void MakeRoomJob(CallbackType&& callback);
 	template<typename T, typename Ret, typename... Args>
-	void MakeWorkerJob(Ret(T::* memFunc)(Args...), Args... args);
+	void MakeRoomJob(Ret(T::* memFunc)(Args...), Args... args);
 };

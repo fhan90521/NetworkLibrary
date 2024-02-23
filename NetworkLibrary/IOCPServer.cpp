@@ -113,14 +113,14 @@ void IOCPServer::ServerSetting()
 		DebugBreak();
 	}
 
-	/*int sendBufSize = 0;
-	int ret_set = setsockopt(g_listenSock, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize));
+	int sendBufSize = 0;
+	int ret_set = setsockopt(_listenSock, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize));
 	if (ret_set == SOCKET_ERROR)
 	{
 		int error = WSAGetLastError();
-		cout << "sendBuf 0 error : " << error << '\n';
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "sendbuf 0 error : %d\n", error);
 		DebugBreak();
-	}*/
+	}
 
 	struct linger _linger;
 	_linger.l_onoff = 1;
@@ -158,7 +158,9 @@ void IOCPServer::ServerSetting()
 		RegisterThread(IOCPServer::IOCPWorkThreadFunc);
 	}
 
-	InitializeSRWLock(&_roomListLock);
+	InitializeSRWLock(&_pRoomsLock);
+	_pUpdateRooms = new Room*[MAX_ROOM_CNT];
+	_pRooms = new Room * [MAX_ROOM_CNT];
 }
 
 Session* IOCPServer::FindSession(SessionInfo sessionInfo)
@@ -237,8 +239,9 @@ void IOCPServer::ReleaseSession(Session* pSession)
 	}
 	pSession->sendBufCnt = 0;
 	pSession->bSending = false;
+	pSession->bReservedDisconnect = false;
 	pSession->recvBuffer.ClearBuffer();
-	InterlockedExchange(&pSession->onConnecting, true);
+	InterlockedExchange8(&pSession->onConnecting, true);
 	_validIndexStack.Push(pSession->sessionInfo.index.val);
 	OnDisconnect(sessionInfo);
 }
@@ -281,7 +284,7 @@ void IOCPServer::AcceptWork()
 
 		inet_ntop(AF_INET, &clientaddr.sin_addr, ip, sizeof(ip));
 		port = ntohs(clientaddr.sin_port);
-		if (OnConnectRequest(ip, port) == false)
+		if (OnAcceptRequest(ip, port) == false)
 		{
 			continue;
 		}
@@ -299,7 +302,7 @@ void IOCPServer::AcceptWork()
 		pSession->socket = clientSock;
 		strcpy_s(pSession->ip, INET_ADDRSTRLEN, ip);
 		pSession->port = port;
-		OnConnect(pSession->sessionInfo);
+		OnAccept(pSession->sessionInfo);
 		RecvPost(pSession);
 	}
 	return;
@@ -335,6 +338,8 @@ void IOCPServer::CloseServer()
 	CloseHandle(_hcp);
 	WSACleanup();
 	delete[] _sessionArray;
+	delete[] _pUpdateRooms;
+	delete[] _pRooms;
 }
 
 void IOCPServer::RecvPost(Session* pSession)
@@ -402,7 +407,7 @@ bool IOCPServer::GetSendAuthority(Session* pSession)
 {
 	while (1)
 	{
-		if (pSession->sendBufQ.Size() == 0 || InterlockedExchange(&pSession->bSending, true) != false)
+		if (pSession->sendBufQ.Size() == 0 || InterlockedExchange8(&pSession->bSending, true) != false)
 		{
 			return false;
 		}
@@ -420,26 +425,19 @@ bool IOCPServer::GetSendAuthority(Session* pSession)
 void IOCPServer::SendPost(Session* pSession)
 {
 	WSABUF wsaBufs[MAX_SEND_BUF_CNT];
-	for (int i = 0; i < MAX_SEND_BUF_CNT; i++)
+	pSession->sendBufCnt = min(MAX_SEND_BUF_CNT, pSession->sendBufQ.Size());
+	for (int i = 0; i < pSession->sendBufCnt; i++)
 	{
-		if (pSession->sendBufQ.Size()>0)
+		pSession->sendBufQ.Dequeue(&(pSession->pSendedBufArr[i]));
+		if (_bWan)
 		{
-			pSession->sendBufQ.Dequeue(&(pSession->pSendedBufArr[i]));
-			if (_bWan)
-			{
-				wsaBufs[i].buf = (char*)(pSession->pSendedBufArr[i])->GetWanHeader();
-				wsaBufs[i].len = (pSession->pSendedBufArr[i])->GetPayLoadSize()+sizeof(WanHeader);
-			}
-			else
-			{
-				wsaBufs[i].buf = (char*)(pSession->pSendedBufArr[i])->GetLanHeader();
-				wsaBufs[i].len = (pSession->pSendedBufArr[i])->GetPayLoadSize() + sizeof(LanHeader);
-			}
-			pSession->sendBufCnt++;
+			wsaBufs[i].buf = (char*)(pSession->pSendedBufArr[i])->GetWanHeader();
+			wsaBufs[i].len = (pSession->pSendedBufArr[i])->GetPayLoadSize()+sizeof(WanHeader);
 		}
 		else
 		{
-			break;
+			wsaBufs[i].buf = (char*)(pSession->pSendedBufArr[i])->GetLanHeader();
+			wsaBufs[i].len = (pSession->pSendedBufArr[i])->GetPayLoadSize() + sizeof(LanHeader);
 		}
 	}
 	memset(&pSession->sendOverLapped, 0, sizeof(pSession->sendOverLapped));
@@ -476,10 +474,17 @@ void IOCPServer::RequestSend(Session* pSession)
 
 void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
 {
-
 	Session* pSession = FindSession(sessionInfo);
 	if (pSession == nullptr)
 	{
+		return;
+	}
+	if (pSession->bReservedDisconnect == true)
+	{
+		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+		{
+			ReleaseSession(pSession);
+		}
 		return;
 	}
 
@@ -498,7 +503,7 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
 	}
 	else
 	{
-		InterlockedExchange(&pSession->onConnecting, false);
+		InterlockedExchange8(&pSession->onConnecting, false);
 		CancelIo((HANDLE)pSession->socket);
 	}
 
@@ -520,12 +525,41 @@ void IOCPServer::Disconnect(SessionInfo sessionInfo)
 	{
 		return ;
 	}
-	InterlockedExchange(&pSession->onConnecting, false);
+	InterlockedExchange8(&pSession->onConnecting, false);
 	CancelIo((HANDLE)pSession->socket);
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession(pSession);
 	}
+}
+
+void IOCPServer::ReserveDisconnect(SessionInfo sessionInfo)
+{
+	Session* pSession = FindSession(sessionInfo);
+	if (pSession == nullptr)
+	{
+		return;
+	}
+	InterlockedExchange8(&pSession->bReservedDisconnect, true);
+	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+	{
+		ReleaseSession(pSession);
+	}
+}
+
+bool IOCPServer::GetClientIp(SessionInfo sessionInfo,String outPar)
+{
+	Session* pSession = FindSession(sessionInfo);
+	if (pSession == nullptr)
+	{
+		return false;
+	}
+	outPar = pSession->ip;
+	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+	{
+		ReleaseSession(pSession);
+	}
+	return true;
 }
 
 unsigned __stdcall IOCPServer::AcceptThreadFunc(LPVOID arg)
@@ -576,13 +610,13 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 		{
 			if (netHeader.code != WanHeader::NetCode)
 			{
-				InterlockedExchange(&pSession->onConnecting, false);
+				InterlockedExchange8(&pSession->onConnecting, false);
 				break;
 			}
 		}
 		if (netHeader.len > PAYLOAD_MAX_LEN)
 		{
-			InterlockedExchange(&pSession->onConnecting, false);
+			InterlockedExchange8(&pSession->onConnecting, false);
 			break;
 		}
 		if (useSize < sizeof(NetHeader) + netHeader.len)
@@ -595,7 +629,7 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 		{
 			if (buf.Decode(&netHeader) == false)
 			{
-				InterlockedExchange(&pSession->onConnecting, false);
+				InterlockedExchange8(&pSession->onConnecting, false);
 				break;
 			}
 		}
@@ -623,9 +657,27 @@ void IOCPServer::SendCompletionRoutine(Session* pSession)
 	}
 	pSession->sendBufCnt = 0;
 	pSession->bSending = false;
-	if (GetSendAuthority(pSession) == true)
+	if (pSession->bReservedDisconnect == true)
 	{
-		SendPost(pSession);
+		if (pSession->sendBufQ.Size() > 0)
+		{
+			if (GetSendAuthority(pSession) == true)
+			{
+				SendPost(pSession);
+			}
+		}
+		else
+		{
+			InterlockedExchange8(&pSession->onConnecting, false);
+			CancelIo((HANDLE)pSession->socket);
+		}
+	}
+	else
+	{
+		if (GetSendAuthority(pSession) == true)
+		{
+			SendPost(pSession);
+		}
 	}
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
@@ -699,7 +751,7 @@ void IOCPServer::IOCPWork()
 			}
 			else if (pOverlapped == (LPOVERLAPPED)ROOM_PROCESS)
 			{
-				RoomProcess(cbTransferred);
+				((Room*)(pSession))->ProcessRoom();
 			}
 			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
 			{
@@ -786,69 +838,61 @@ void IOCPServer::SetMaxPayloadLen(int len)
 	return;
 }
 
+void IOCPServer::PqcsProcessRoom(Room* pRoom)
+{
+	PostQueuedCompletionStatus(_hcp, ROOM_PROCESS, (ULONG_PTR)pRoom, (LPOVERLAPPED)ROOM_PROCESS);
+}
+
 void IOCPServer::RoomManageWork()
 {
-	if (MS_PER_FRAME == -1)
+	if (MS_PER_ROOM_FRAME == -1)
 	{
 		return;
 	}
+	int startIndex = 0;
+	ULONG64 currentTime;
+	int updateRoomCnt;
 	while (1)
 	{
 		if (_bShutdown)
 		{
 			break;
 		}
-		if (_pRooms.empty())
+		/*if (_pRooms.empty())
 		{
-			Sleep(MS_PER_FRAME);
+			Sleep(MS_PER_ROOM_FRAME);
 			continue;
-		}
-		DWORD prevTime = timeGetTime();
-		int roomProcessCnt = 0;
-		int jobProcessCnt = 0;
-		AcquireSRWLockExclusive(&_roomListLock);
-		Room* pRoom;
-		for (auto iter = _pRooms.begin();iter!= _pRooms.end();)
+		}*/
+		AcquireSRWLockExclusive(&_pRoomsLock);
+		updateRoomCnt = 0;
+		startIndex = (startIndex + 1) % _pRoomSet.size();
+		currentTime = GetTickCount64();
+		for (int i = startIndex; i< _pRoomSet.size(); i++)
 		{
-			pRoom = *iter;
-			if (pRoom->_bReleased == true)
+			if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime==false)
 			{
-				if (pRoom->_bProcessing == false)
-				{
-					iter = _pRooms.erase(iter);
-					ReleaseRoom(pRoom);
-				}
-			}
-			else
-			{
-				if (pRoom->_jobQueue.Size() > 0 && pRoom->_bProcessing == false)
-				{
-					pRoom->_bProcessing = true;
-					roomProcessCnt++;
-					jobProcessCnt += pRoom->_jobQueue.Size();
-					_readyRoomQueue.Enqueue(pRoom);
-					if (jobProcessCnt > AVG_JOB_PER_THREAD)
-					{
-						PostQueuedCompletionStatus(_hcp, roomProcessCnt, ROOM_PROCESS, (LPOVERLAPPED)ROOM_PROCESS);
-						roomProcessCnt = 0;
-						jobProcessCnt = 0;
-					}
-				}
-				iter++;
+				_pRooms[i]->_isUpdateTime=true;
+				_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
 			}
 		}
-		ReleaseSRWLockExclusive(&_roomListLock);
-
-		if (roomProcessCnt > 0)
+		for (int i = 0; i < startIndex; i++)
 		{
-			PostQueuedCompletionStatus(_hcp, roomProcessCnt, ROOM_PROCESS, (LPOVERLAPPED)ROOM_PROCESS);
+			if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime == false)
+			{
+				_pRooms[i]->_isUpdateTime = true;
+				_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
+			}
 		}
-
-		DWORD currentTime = timeGetTime();
-		if (MS_PER_FRAME - (currentTime - prevTime)>0)
+		ReleaseSRWLockExclusive(&_pRoomsLock);
+		MemoryBarrier();
+		for (int i =0; i < updateRoomCnt; i++)
 		{
-			Sleep(MS_PER_FRAME - (currentTime - prevTime));
+			if (_pUpdateRooms[i]->_bProcessing == false)
+			{
+				PqcsProcessRoom(_pUpdateRooms[i]);
+			}
 		}
+		Sleep(MS_PER_ROOM_FRAME);
 	}
 }
 
@@ -859,29 +903,39 @@ unsigned __stdcall IOCPServer::RoomManageThreadFunc(LPVOID arg)
 	return 0;
 }
 
-void IOCPServer::RoomProcess(int processCnt)
+bool IOCPServer::RegisterRoom(Room* pRoom)
 {
-	Room* pRoom;
-	for (int i=0;i<processCnt;i++)
+	bool ret = false;
+	AcquireSRWLockExclusive(&_pRoomsLock);
+	if (_pRoomSet.size() < MAX_ROOM_CNT)
 	{
-		bool dequeueRet =_readyRoomQueue.Dequeue(&pRoom);
-		if (dequeueRet == false)
+		auto retInsert = _pRoomSet.insert(pRoom);
+		if (retInsert.second == true)
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "_readyRoomQ dequeue error");
+			_pRooms[_pRoomSet.size()-1]=pRoom;
 		}
-		pRoom->ProcessJob();
+		ret = retInsert.second;
 	}
+	ReleaseSRWLockExclusive(&_pRoomsLock);
+	return ret;
 }
 
-void IOCPServer::CloseRoom(Room* pRoom)
+bool IOCPServer::DeregisterRoom(Room* pRoom)
 {
-	pRoom->_bReleased = true;
-}
-
-void IOCPServer::ReleaseRoom(Room* pRoom)
-{
-	pRoom->~Room();
-	Free(pRoom);
+	AcquireSRWLockExclusive(&_pRoomsLock);
+	size_t retErase = _pRoomSet.erase(pRoom);
+	if (retErase == 1)
+	{
+		for (int i = 0; i <=_pRoomSet.size(); i++)
+		{
+			if (_pRooms[i] == pRoom)
+			{
+				_pRooms[i] = _pRooms[_pRoomSet.size()];
+			}
+		}
+	}
+	ReleaseSRWLockExclusive(&_pRoomsLock);
+	return retErase;
 }
 
 

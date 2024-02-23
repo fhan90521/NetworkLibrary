@@ -7,9 +7,9 @@ class MpscQueue
 {
 private:
 	Queue<T> _queue[2];
+	std::atomic<int> _size = 0;
 	char _enqueueIndex = 0;
 	char _dequeueIndex = 1;
-	std::atomic<int> _size = 0;
 	USE_MUTEX;
 	void Flip()
 	{
