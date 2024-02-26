@@ -72,7 +72,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h">
       <Filter>Container</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CLockArrayQueue.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h">
       <Filter>Container</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueue.h">

@@ -159,6 +159,7 @@ void IOCPServer::ServerSetting()
 	}
 
 	InitializeSRWLock(&_pRoomsLock);
+
 	_pUpdateRooms = new Room*[MAX_ROOM_CNT];
 	_pRooms = new Room * [MAX_ROOM_CNT];
 }
@@ -640,13 +641,6 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 	RecvPost(pSession);
 }
 
-
-
-
-
-
-
-
 void IOCPServer::SendCompletionRoutine(Session* pSession)
 {
 	InterlockedAdd(&_sendCnt, pSession->sendBufCnt);
@@ -863,36 +857,94 @@ void IOCPServer::RoomManageWork()
 			Sleep(MS_PER_ROOM_FRAME);
 			continue;
 		}*/
-		AcquireSRWLockExclusive(&_pRoomsLock);
-		updateRoomCnt = 0;
-		startIndex = (startIndex + 1) % _pRoomSet.size();
-		currentTime = GetTickCount64();
-		for (int i = startIndex; i< _pRoomSet.size(); i++)
+		
+		if (_newRoomCnt > 0)
 		{
-			if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime==false)
+			AcquireSRWLockExclusive(&_pRoomsLock);
+			for (Room* pNewRoom : _pNewRooms)
 			{
-				_pRooms[i]->_isUpdateTime=true;
-				_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
+				_pRooms[_registeredRoomCnt++] = pNewRoom;
+			}
+			_pNewRooms.clear();
+			ReleaseSRWLockExclusive(&_pRoomsLock);
+		}
+		
+		if (_closeRoomCnt > 0)
+		{
+			AcquireSRWLockExclusive(&_pRoomsLock);
+			for (auto iter = _pCloseRooms.begin(); iter != _pCloseRooms.end();)
+			{
+				Room* pCloseRoom = *iter;
+				bool bCanFree = false;
+				for (int i = 0; i < _registeredRoomCnt; i++)
+				{
+					if (_pRooms[i] == pCloseRoom && _pRooms[i]->_bProcessing == false)
+					{
+						bCanFree = true;
+						_pRooms[i] = _pRooms[--_registeredRoomCnt];
+						break;
+					}
+				}
+				if (bCanFree)
+				{
+					pCloseRoom->~Room();
+					Free(pCloseRoom);
+					iter = _pCloseRooms.erase(iter);
+				}
+				else
+				{
+					iter++;
+				}
+			}
+			ReleaseSRWLockExclusive(&_pRoomsLock);
+		}
+
+		updateRoomCnt = 0;
+		startIndex = (startIndex + 1) % _registeredRoomCnt;
+		currentTime = GetTickCount64();
+		for (int i = startIndex; i< _registeredRoomCnt; i++)
+		{
+			if (_pRooms[i]->_bProcessing == false)
+			{
+				if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime == false)
+				{
+					_pRooms[i]->_bProcessing = true;
+					_pRooms[i]->_isUpdateTime = true;
+					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
+					continue;
+				}
+				
+				if (_pRooms[i]->_jobQueue.Size() > 0)
+				{
+					_pRooms[i]->_bProcessing = true;
+					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
+				}
 			}
 		}
 		for (int i = 0; i < startIndex; i++)
 		{
-			if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime == false)
+			if (_pRooms[i]->_bProcessing == false)
 			{
-				_pRooms[i]->_isUpdateTime = true;
-				_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
+				if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime == false)
+				{
+					_pRooms[i]->_bProcessing = true;
+					_pRooms[i]->_isUpdateTime = true;
+					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
+					continue;
+				}
+				if (_pRooms[i]->_jobQueue.Size() > 0)
+				{
+					_pRooms[i]->_bProcessing = true;
+					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
+				}
 			}
 		}
-		ReleaseSRWLockExclusive(&_pRoomsLock);
 		MemoryBarrier();
 		for (int i =0; i < updateRoomCnt; i++)
 		{
-			if (_pUpdateRooms[i]->_bProcessing == false)
-			{
-				PqcsProcessRoom(_pUpdateRooms[i]);
-			}
+			PqcsProcessRoom(_pUpdateRooms[i]);
 		}
-		Sleep(MS_PER_ROOM_FRAME);
+		Sleep(1);
 	}
 }
 
@@ -912,7 +964,8 @@ bool IOCPServer::RegisterRoom(Room* pRoom)
 		auto retInsert = _pRoomSet.insert(pRoom);
 		if (retInsert.second == true)
 		{
-			_pRooms[_pRoomSet.size()-1]=pRoom;
+			_pNewRooms.push_back(pRoom);
+			_newRoomCnt++;
 		}
 		ret = retInsert.second;
 	}
@@ -926,13 +979,8 @@ bool IOCPServer::DeregisterRoom(Room* pRoom)
 	size_t retErase = _pRoomSet.erase(pRoom);
 	if (retErase == 1)
 	{
-		for (int i = 0; i <=_pRoomSet.size(); i++)
-		{
-			if (_pRooms[i] == pRoom)
-			{
-				_pRooms[i] = _pRooms[_pRoomSet.size()];
-			}
-		}
+		_pCloseRooms.push_back(pRoom);
+		_closeRoomCnt++;
 	}
 	ReleaseSRWLockExclusive(&_pRoomsLock);
 	return retErase;

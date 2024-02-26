@@ -3,9 +3,9 @@
 #include "CRingBuffer.h"
 #include "CSendBuffer.h"
 #include "LockFreeQueue.h"
-#include "CLockArrayQueue.h"
 #include "LockFreeQueueBasic.h"
 #define MAX_SEND_BUF_CNT 512
+
 union SessionInfo
 {
 	typedef unsigned long long ID;
@@ -21,6 +21,7 @@ union SessionInfo
 	Index index;
 	unsigned long long id;
 };
+
 struct SessionManageInfo
 {
 	SHORT bDeallocated = true;

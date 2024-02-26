@@ -114,17 +114,37 @@ private:
 	UINT MAX_ROOM_CNT = 1024;
 	UINT MAX_ROOM_FRAME = 0;
 	UINT MS_PER_ROOM_FRAME =-1;
+	UINT _registeredRoomCnt = 0;
 	Room** _pRooms;
-	Room** _pUpdateRooms;
-	Set<Room*> _pRoomSet;
-	List<Room*> _pCloseRooms;
+	Room**_pUpdateRooms;
 	alignas(64) SRWLOCK _pRoomsLock;
+	LONG _newRoomCnt = 0;
+	LONG _closeRoomCnt = 0;
+	List<Room*> _pNewRooms;
+	List<Room*> _pCloseRooms;
+	Set<Room*> _pRoomSet;
 	void PqcsProcessRoom(Room* pRoom);
 	void RoomManageWork();
-	
-	static unsigned __stdcall RoomManageThreadFunc(LPVOID arg);
-public:
 	bool RegisterRoom(Room* pRoom);
 	bool DeregisterRoom(Room* pRoom);
+	static unsigned __stdcall RoomManageThreadFunc(LPVOID arg);
+public:
+	template<typename T, typename ...Args, typename = std::enable_if_t<std::is_base_of_v<Room, T>>>
+	T* CreateStaticRoom(Args &&... args)
+	{
+		T* pRoom = (T*)Malloc(sizeof(T));
+		((Room*)(pRoom))->_pServer = this;
+		new (pRoom) T(forward<Args>(args)...);
+		RegisterRoom(pRoom);
+		return pRoom;
+	}
+	bool CloseRoom(Room* pRoom)
+	{
+		if (DeregisterRoom(pRoom) == false)
+		{
+			return false;
+		}
+		return true;
+	}
 };
 
