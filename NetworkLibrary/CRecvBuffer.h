@@ -15,7 +15,7 @@ public:
 	CRecvBuffer(CRingBuffer* pBuf, int size): _pBuf(pBuf), _remainSize(size) {};
 	
 
-	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, wchar_t>>>
 	CRecvBuffer& operator >> (T& data) 
 	{
 		if (_remainSize < sizeof(T))
@@ -33,7 +33,7 @@ public:
 		return *this;
 	}
 
-	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, wchar_t>>>
 	CRecvBuffer& operator >> (Vector<T>& vec)
 	{
 		USHORT vecSize;
@@ -77,7 +77,7 @@ public:
 		return *this;
 	}
 
-	template <typename T, typename size_t Size, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+	template <typename T, typename size_t Size, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, wchar_t>>>
 	CRecvBuffer& operator >> (Array<T,Size>& arr) 
 	{
 		if (_remainSize < Size * sizeof(T))

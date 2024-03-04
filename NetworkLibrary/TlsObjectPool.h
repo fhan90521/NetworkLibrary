@@ -24,9 +24,10 @@ private:
 	{
 	private:
 		void* allocPtr = nullptr;
+		int _nodePerBlock;
 	public:
 		Node* pTopNode = nullptr;
-		NodeBlock(int nodePerBlock)
+		NodeBlock(int nodePerBlock): _nodePerBlock(nodePerBlock)
 		{
 			void* pBlock = malloc(nodePerBlock * sizeof(Node));
 			Node* pNode = nullptr;
@@ -53,12 +54,10 @@ private:
 		{
 			if constexpr (_bPlacementNew == false)
 			{
-				Node* pNode = pTopNode;
-				while (pNode)
+				Node* nodeBlock = (Node*)allocPtr;
+				for (int i = 0; i < _nodePerBlock; i++)
 				{
-					T* pData = (T*)pNode;
-					pData->~T();
-					pNode = pNode->pNext;
+					nodeBlock[i].data.~T();
 				}
 			}
 			free(allocPtr);
@@ -105,32 +104,12 @@ public:
 	}
 	~TlsObjectPool()
 	{
-
-		Node* pNode;
 		NodeBlock* pBlock;
-		T* pData;
-		for (int i = 0; i < THREADCNT; i++)
+		while (pBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockListHead))
 		{
-			PoolState& poolState = _poolStateArr[i];
-			if constexpr (_bPlacementNew == false)
-			{
-				pNode = poolState.pTopNode;
-				while (pNode)
-				{
-					pData = (T*)pNode;
-					pData->~T();
-					pNode = pNode->pNext;
-				}
-			}
-
-			while (pBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockListHead))
-			{
-				pBlock->pTopNode = nullptr;
-				_blockPool.Free(pBlock);
-			}
+			pBlock->pTopNode = nullptr;
+			_blockPool.Free(pBlock);
 		}
-
-
 	}
 	template<typename... Args>
 	T* Alloc(Args&&... args)

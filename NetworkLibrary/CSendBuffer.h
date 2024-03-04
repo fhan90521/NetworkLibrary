@@ -132,7 +132,7 @@ public:
 		_back += iSize;
 		return iSize;
 	}
-	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, wchar_t>>>
 	CSendBuffer& operator << (T data) 
 	{
 		if (GetFreeSize() < sizeof(T))
@@ -147,7 +147,7 @@ public:
 		return *this;
 	}
 
-	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, wchar_t>>>
 	CSendBuffer& operator << (const Vector<T>& vec) 
 	{
 		USHORT vecSize = vec.size();
@@ -166,7 +166,7 @@ public:
 		return *this;
 	}
 
-	template <typename T, typename size_t Size, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+	template <typename T, typename size_t Size, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T,wchar_t>>>
 	CSendBuffer& operator << (const Array<T, Size>& arr) 
 	{
 		USHORT arrLen= Size * sizeof(T);

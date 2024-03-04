@@ -113,14 +113,14 @@ void IOCPServer::ServerSetting()
 		DebugBreak();
 	}
 
-	int sendBufSize = 0;
+	/*int sendBufSize = 0;
 	int ret_set = setsockopt(_listenSock, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize));
 	if (ret_set == SOCKET_ERROR)
 	{
 		int error = WSAGetLastError();
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "sendbuf 0 error : %d\n", error);
 		DebugBreak();
-	}
+	}*/
 
 	struct linger _linger;
 	_linger.l_onoff = 1;
@@ -153,15 +153,10 @@ void IOCPServer::ServerSetting()
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "CreateNewCompletionPort error : %d", error);
 		DebugBreak();
 	};
-	for (int i = 0; i < IOCP_THREAD_NUM; i++)
-	{
-		RegisterThread(IOCPServer::IOCPWorkThreadFunc);
-	}
-
 	InitializeSRWLock(&_pRoomsLock);
-
-	_pUpdateRooms = new Room*[MAX_ROOM_CNT];
-	_pRooms = new Room * [MAX_ROOM_CNT];
+	_pRooms = new Room*[MAX_ROOM_CNT];
+	_hReserveDisconnectEvent=CreateEvent(NULL, false, false, NULL);
+	_hShutDownEvent = CreateEvent(NULL, false, false, NULL);
 }
 
 Session* IOCPServer::FindSession(SessionInfo sessionInfo)
@@ -257,13 +252,13 @@ void IOCPServer::AcceptWork()
 
 	while (1)
 	{
+		if (_bShutdown)
+		{
+			break;
+		}
 		clientSock = accept(_listenSock, (struct sockaddr*)&clientaddr, &addrlen);
 		if (clientSock == INVALID_SOCKET)
 		{
-			if (_bShutdown == true)
-			{
-				break;
-			}
 			int error = WSAGetLastError();
 			if (error != WSAEINTR)
 			{
@@ -311,11 +306,6 @@ void IOCPServer::AcceptWork()
 
 void IOCPServer::CloseServer()
 {
-	for (int i = 0; i <SESSION_MAX; i++)
-	{
-		Session* pSession = &_sessionArray[i];
-		closesocket(pSession->socket);
-	}
 	closesocket(_listenSock);
 	for (int i = 0; i < IOCP_THREAD_NUM; i++)
 	{
@@ -336,10 +326,16 @@ void IOCPServer::CloseServer()
 		}
 		CloseHandle(hThread);
 	}
+
+	for (int i = 0; i < SESSION_MAX; i++)
+	{
+		closesocket(_sessionArray[i].socket);
+	}
 	CloseHandle(_hcp);
+	CloseHandle(_hReserveDisconnectEvent);
+	CloseHandle(_hShutDownEvent);
 	WSACleanup();
 	delete[] _sessionArray;
-	delete[] _pUpdateRooms;
 	delete[] _pRooms;
 }
 
@@ -473,13 +469,14 @@ void IOCPServer::RequestSend(Session* pSession)
 	}
 }
 
-void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
+void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisconnectAfterSend)
 {
 	Session* pSession = FindSession(sessionInfo);
 	if (pSession == nullptr)
 	{
 		return;
 	}
+
 	if (pSession->bReservedDisconnect == true)
 	{
 		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
@@ -488,6 +485,7 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
 		}
 		return;
 	}
+
 
 	if (pSession->sendBufQ.Size() < SENDQ_MAX_LEN)
 	{
@@ -508,10 +506,16 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf)
 		CancelIo((HANDLE)pSession->socket);
 	}
 
+	if (bDisconnectAfterSend)
+	{
+		InterlockedExchange8(&pSession->bReservedDisconnect, true);
+	}
+
 	if (GetSendAuthority(pSession) == true)
 	{
 		RequestSend(pSession);
 	}
+
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession(pSession);
@@ -527,28 +531,16 @@ void IOCPServer::Disconnect(SessionInfo sessionInfo)
 		return ;
 	}
 	InterlockedExchange8(&pSession->onConnecting, false);
-	CancelIo((HANDLE)pSession->socket);
+	CancelIoEx((HANDLE)pSession->socket,NULL);
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession(pSession);
 	}
 }
 
-void IOCPServer::ReserveDisconnect(SessionInfo sessionInfo)
-{
-	Session* pSession = FindSession(sessionInfo);
-	if (pSession == nullptr)
-	{
-		return;
-	}
-	InterlockedExchange8(&pSession->bReservedDisconnect, true);
-	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
-	{
-		ReleaseSession(pSession);
-	}
-}
 
-bool IOCPServer::GetClientIp(SessionInfo sessionInfo,String outPar)
+
+bool IOCPServer::GetClientIp(SessionInfo sessionInfo,String& outPar)
 {
 	Session* pSession = FindSession(sessionInfo);
 	if (pSession == nullptr)
@@ -662,8 +654,12 @@ void IOCPServer::SendCompletionRoutine(Session* pSession)
 		}
 		else
 		{
-			InterlockedExchange8(&pSession->onConnecting, false);
-			CancelIo((HANDLE)pSession->socket);
+			ULONG64 currentTime = GetTickCount64();
+			ReserveInfo reserveInfo;
+			reserveInfo.reserveTime = currentTime + RESERVE_DISCONNECT_MS;
+			reserveInfo.sessionInfo = pSession->sessionInfo;
+			_reserveDisconnectQ.Enqueue(reserveInfo);
+			SetEvent(_hReserveDisconnectEvent);
 		}
 	}
 	else
@@ -673,6 +669,7 @@ void IOCPServer::SendCompletionRoutine(Session* pSession)
 			SendPost(pSession);
 		}
 	}
+
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession(pSession);
@@ -743,10 +740,6 @@ void IOCPServer::IOCPWork()
 			{
 				RequestSendCompletionRoutine(pSession);
 			}
-			else if (pOverlapped == (LPOVERLAPPED)ROOM_PROCESS)
-			{
-				((Room*)(pSession))->ProcessRoom();
-			}
 			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
 			{
 				break;
@@ -772,8 +765,16 @@ void IOCPServer::IOCPRun()
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "listen() error : %d", error);
 		DebugBreak();
 	}
+	for (int i = 0; i < IOCP_THREAD_NUM; i++)
+	{
+		RegisterThread(IOCPServer::IOCPWorkThreadFunc);
+	}
+	for (int i = 0; i < ROOM_WORK_THREAD_CNT; i++)
+	{
+		RegisterThread(IOCPServer::RoomWorkThreadFunc);
+	}
 	RegisterThread(IOCPServer::AcceptThreadFunc);
-	RegisterThread(IOCPServer::RoomManageThreadFunc);
+	RegisterThread(IOCPServer::ReserveDisconnectManageThreadFunc);
 	return;
 }
 bool IOCPServer::ServerControl()
@@ -798,6 +799,7 @@ bool IOCPServer::ServerControl()
 		if (bControlMode && ('q' == ControlKey || 'Q' == ControlKey))
 		{
 			_bShutdown = true;
+			SetEvent(_hShutDownEvent);
 		}
 	}
 	return bControlMode;
@@ -832,142 +834,47 @@ void IOCPServer::SetMaxPayloadLen(int len)
 	return;
 }
 
-void IOCPServer::PqcsProcessRoom(Room* pRoom)
-{
-	PostQueuedCompletionStatus(_hcp, ROOM_PROCESS, (ULONG_PTR)pRoom, (LPOVERLAPPED)ROOM_PROCESS);
-}
-
-void IOCPServer::RoomManageWork()
+void IOCPServer::RoomWork()
 {
 	if (MS_PER_ROOM_FRAME == -1)
 	{
 		return;
 	}
-	int startIndex = 0;
-	ULONG64 currentTime;
-	int updateRoomCnt;
 	while (1)
 	{
 		if (_bShutdown)
 		{
 			break;
 		}
-		/*if (_pRooms.empty())
+		AcquireSRWLockShared(&_pRoomsLock);
+		for (int i = 0; i< _registeredRoomCnt; i++)
 		{
-			Sleep(MS_PER_ROOM_FRAME);
-			continue;
-		}*/
-		
-		if (_newRoomCnt > 0)
-		{
-			AcquireSRWLockExclusive(&_pRoomsLock);
-			for (Room* pNewRoom : _pNewRooms)
-			{
-				_pRooms[_registeredRoomCnt++] = pNewRoom;
-			}
-			_pNewRooms.clear();
-			ReleaseSRWLockExclusive(&_pRoomsLock);
+			_pRooms[i]->ProcessRoom();
 		}
-		
-		if (_closeRoomCnt > 0)
-		{
-			AcquireSRWLockExclusive(&_pRoomsLock);
-			for (auto iter = _pCloseRooms.begin(); iter != _pCloseRooms.end();)
-			{
-				Room* pCloseRoom = *iter;
-				bool bCanFree = false;
-				for (int i = 0; i < _registeredRoomCnt; i++)
-				{
-					if (_pRooms[i] == pCloseRoom && _pRooms[i]->_bProcessing == false)
-					{
-						bCanFree = true;
-						_pRooms[i] = _pRooms[--_registeredRoomCnt];
-						break;
-					}
-				}
-				if (bCanFree)
-				{
-					pCloseRoom->~Room();
-					Free(pCloseRoom);
-					iter = _pCloseRooms.erase(iter);
-				}
-				else
-				{
-					iter++;
-				}
-			}
-			ReleaseSRWLockExclusive(&_pRoomsLock);
-		}
-
-		updateRoomCnt = 0;
-		startIndex = (startIndex + 1) % _registeredRoomCnt;
-		currentTime = GetTickCount64();
-		for (int i = startIndex; i< _registeredRoomCnt; i++)
-		{
-			if (_pRooms[i]->_bProcessing == false)
-			{
-				if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime == false)
-				{
-					_pRooms[i]->_bProcessing = true;
-					_pRooms[i]->_isUpdateTime = true;
-					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
-					continue;
-				}
-				
-				if (_pRooms[i]->_jobQueue.Size() > 0)
-				{
-					_pRooms[i]->_bProcessing = true;
-					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
-				}
-			}
-		}
-		for (int i = 0; i < startIndex; i++)
-		{
-			if (_pRooms[i]->_bProcessing == false)
-			{
-				if (currentTime - _pRooms[i]->_lastProcessTime > MS_PER_ROOM_FRAME && _pRooms[i]->_isUpdateTime == false)
-				{
-					_pRooms[i]->_bProcessing = true;
-					_pRooms[i]->_isUpdateTime = true;
-					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
-					continue;
-				}
-				if (_pRooms[i]->_jobQueue.Size() > 0)
-				{
-					_pRooms[i]->_bProcessing = true;
-					_pUpdateRooms[updateRoomCnt++] = _pRooms[i];
-				}
-			}
-		}
-		MemoryBarrier();
-		for (int i =0; i < updateRoomCnt; i++)
-		{
-			PqcsProcessRoom(_pUpdateRooms[i]);
-		}
-		Sleep(1);
+		ReleaseSRWLockShared(&_pRoomsLock);
 	}
 }
 
-unsigned __stdcall IOCPServer::RoomManageThreadFunc(LPVOID arg)
+unsigned __stdcall IOCPServer::RoomWorkThreadFunc(LPVOID arg)
 {
 	IOCPServer* pServer = (IOCPServer*)arg;
-	pServer->RoomManageWork();
+	pServer->RoomWork();
 	return 0;
 }
 
+
 bool IOCPServer::RegisterRoom(Room* pRoom)
 {
-	bool ret = false;
+	bool ret = false;;
 	AcquireSRWLockExclusive(&_pRoomsLock);
 	if (_pRoomSet.size() < MAX_ROOM_CNT)
 	{
 		auto retInsert = _pRoomSet.insert(pRoom);
 		if (retInsert.second == true)
 		{
-			_pNewRooms.push_back(pRoom);
-			_newRoomCnt++;
+			ret = true;
+			_pRooms[_registeredRoomCnt++] = pRoom;
 		}
-		ret = retInsert.second;
 	}
 	ReleaseSRWLockExclusive(&_pRoomsLock);
 	return ret;
@@ -979,12 +886,68 @@ bool IOCPServer::DeregisterRoom(Room* pRoom)
 	size_t retErase = _pRoomSet.erase(pRoom);
 	if (retErase == 1)
 	{
-		_pCloseRooms.push_back(pRoom);
-		_closeRoomCnt++;
+		for (int i = 0; i < _registeredRoomCnt; i++)
+		{
+			if (_pRooms[i] == pRoom)
+			{
+				_pRooms[i] = _pRooms[--_registeredRoomCnt];
+			}
+		}
 	}
 	ReleaseSRWLockExclusive(&_pRoomsLock);
 	return retErase;
 }
 
 
+void IOCPServer::ReserveDisconnectManage()
+{
+	HANDLE _hArr[2] = { _hReserveDisconnectEvent,_hShutDownEvent };
+	while (1)
+	{
+	
+		DWORD retWait = WaitForMultipleObjects(2, _hArr, false, INFINITE);
+		if (retWait == WAIT_OBJECT_0)
+		{
+			while (1)
+			{
+				if ((_reserveDisconnectQ.Size() == 0 && _reserveDisconnectList.size() == 0)|| _bShutdown)
+				{
+					break;
+				}
+				while(_reserveDisconnectQ.Size() > 0)
+				{
+					ReserveInfo reserveInfo;
+					_reserveDisconnectQ.Dequeue(&reserveInfo);
+					_reserveDisconnectList.push_back(reserveInfo);
+				}
+				ULONG64 currentTime = GetTickCount64();
+				for(auto itReserveInfo = _reserveDisconnectList.begin(); itReserveInfo !=_reserveDisconnectList.end();)
+				{
 
+					if (currentTime > itReserveInfo->reserveTime)
+					{
+						Disconnect(itReserveInfo->sessionInfo);
+						itReserveInfo = _reserveDisconnectList.erase(itReserveInfo);
+					}
+					else
+					{
+						itReserveInfo++;
+					}
+				}
+				Sleep(RESERVE_DISCONNECT_MS);
+			}
+		}
+		else
+		{
+			break;
+		}
+
+	}
+}
+
+unsigned __stdcall IOCPServer::ReserveDisconnectManageThreadFunc(LPVOID arg)
+{
+	IOCPServer* pServer = (IOCPServer*)arg;
+	pServer->ReserveDisconnectManage();
+	return 0;
+}

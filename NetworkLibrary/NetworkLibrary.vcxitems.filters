@@ -135,9 +135,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h">
       <Filter>Lock</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)WorkerJob.h">
-      <Filter>Room</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Room.h">
       <Filter>Room</Filter>
     </ClInclude>
@@ -146,6 +143,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h">
       <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomJob.h">
+      <Filter>Room</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

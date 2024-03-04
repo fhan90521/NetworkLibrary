@@ -8,23 +8,35 @@ class Room
 {
 private:
 	friend class IOCPServer;
-	MpscQueue<RoomJob*> _jobQueue;
 	char _bProcessing = false;
-	char  _isUpdateTime = false;
-	IOCPServer* _pServer=nullptr;
-	ULONG64 _lastProcessTime=0;
+	ULONG64 _prevUpdateTime = 0;
+	ULONG64 _updatePeriod = 0;
+	MpscQueue<RoomJob*> _jobQueue;
+	List<SessionInfo>_tryEnterSessions;
+	List<SessionInfo>_tryLeaveSessions;
+	ULONG64 _currentTime = 0;
 	void ProcessJob();
 	void	ProcessRoom();
+	void ProcessEnter();
+	void ProcessLeave();
+	void TryEnter(SessionInfo sessionInfo);
+	void TryLeave(SessionInfo sessionInfo);
 protected:
-	virtual void Update(float deltaTime) = 0;
+	virtual void Update() = 0;
+	virtual void OnEnter(SessionInfo sessionInfo) = 0;
+	virtual int RequestEnter(SessionInfo sessionInfo) = 0;
+	virtual void OnLeave(SessionInfo sessionInfo) = 0;
+	virtual bool RequestLeave(SessionInfo sessionInfo) = 0;
 	virtual ~Room();
 	void operator delete (void* p)
 	{
 		free(p);
 	}
 public:
-	Room(){};
+	Room() {};
 	void MakeRoomJob(CallbackType&& callback);
 	template<typename T, typename Ret, typename... Args>
 	void MakeRoomJob(Ret(T::* memFunc)(Args...), Args... args);
+	void EnterRoom(SessionInfo sessionInfo);
+	void LeaveRoom(SessionInfo sessionInfo);
 };
