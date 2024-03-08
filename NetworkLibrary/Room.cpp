@@ -90,12 +90,12 @@ void Room::TryLeave(SessionInfo sessionInfo)
 }
 void Room::EnterRoom(SessionInfo sessionInfo)
 {
-	MakeRoomJob(Room::TryEnter, sessionInfo);
+	MakeRoomJob(&Room::TryEnter, sessionInfo);
 }
 
 void Room::LeaveRoom(SessionInfo sessionInfo)
 {
-	MakeRoomJob(Room::TryLeave, sessionInfo);
+	MakeRoomJob(&Room::TryLeave, sessionInfo);
 }
 
 void Room::MakeRoomJob(CallbackType&& callback)

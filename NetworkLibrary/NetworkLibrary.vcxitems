@@ -28,6 +28,8 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBJob.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBJobQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomJob.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h" />
@@ -45,7 +47,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)MpscQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MPSCQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Malloc.h" />

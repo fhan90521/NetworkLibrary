@@ -13,6 +13,7 @@
 #include "NetworkHeader.h"
 #include "Log.h"
 #include "MyNew.h"
+#include "DBJobQueue.h"
 //#include "Log.h"
 using namespace rapidjson;
 
@@ -157,6 +158,8 @@ void IOCPServer::ServerSetting()
 	_pRooms = new Room*[MAX_ROOM_CNT];
 	_hReserveDisconnectEvent=CreateEvent(NULL, false, false, NULL);
 	_hShutDownEvent = CreateEvent(NULL, false, false, NULL);
+
+	InitializeSRWLock(&_DBInitialLock);
 }
 
 Session* IOCPServer::FindSession(SessionInfo sessionInfo)
@@ -404,7 +407,7 @@ bool IOCPServer::GetSendAuthority(Session* pSession)
 {
 	while (1)
 	{
-		if (pSession->sendBufQ.Size() == 0 || InterlockedExchange8(&pSession->bSending, true) != false)
+		if (pSession->sendBufQ.Size() == 0 || pSession->bSending == true || InterlockedExchange8(&pSession->bSending, true) != false)
 		{
 			return false;
 		}
@@ -414,7 +417,7 @@ bool IOCPServer::GetSendAuthority(Session* pSession)
 		}
 		else
 		{
-			pSession->bSending = false;
+			InterlockedExchange8(&pSession->bSending, false);
 		}
 	}
 }
@@ -565,11 +568,13 @@ unsigned __stdcall IOCPServer::AcceptThreadFunc(LPVOID arg)
 unsigned __stdcall IOCPServer::IOCPWorkThreadFunc(LPVOID arg)
 {
 	IOCPServer* pServer = (IOCPServer*)arg;
+	pServer->SetDBConnection();
 	pServer->IOCPWork();
+	pServer->CloseDBConnection();
 	return 0;
 }
 
-void IOCPServer::RegisterThread(_beginthreadex_proc_type pFunction)
+void IOCPServer::CreateThread(_beginthreadex_proc_type pFunction)
 {
 	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, pFunction, this, 0, NULL);
 	if (hThread == NULL)
@@ -642,7 +647,7 @@ void IOCPServer::SendCompletionRoutine(Session* pSession)
 		(pSession->pSendedBufArr[i])->DecrementRefCnt();
 	}
 	pSession->sendBufCnt = 0;
-	pSession->bSending = false;
+	InterlockedExchange8(&pSession->bSending, false);
 	if (pSession->bReservedDisconnect == true)
 	{
 		if (pSession->sendBufQ.Size() > 0)
@@ -740,6 +745,10 @@ void IOCPServer::IOCPWork()
 			{
 				RequestSendCompletionRoutine(pSession);
 			}
+			else if (pOverlapped == (LPOVERLAPPED)PROCESS_DB_JOB)
+			{
+				((DBJobQueue*)pSession)->ProcessDBJob();
+			}
 			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
 			{
 				break;
@@ -767,14 +776,14 @@ void IOCPServer::IOCPRun()
 	}
 	for (int i = 0; i < IOCP_THREAD_NUM; i++)
 	{
-		RegisterThread(IOCPServer::IOCPWorkThreadFunc);
+		CreateThread(IOCPServer::IOCPWorkThreadFunc);
 	}
 	for (int i = 0; i < ROOM_WORK_THREAD_CNT; i++)
 	{
-		RegisterThread(IOCPServer::RoomWorkThreadFunc);
+		CreateThread(IOCPServer::RoomWorkThreadFunc);
 	}
-	RegisterThread(IOCPServer::AcceptThreadFunc);
-	RegisterThread(IOCPServer::ReserveDisconnectManageThreadFunc);
+	CreateThread(IOCPServer::AcceptThreadFunc);
+	CreateThread(IOCPServer::ReserveDisconnectManageThreadFunc);
 	return;
 }
 bool IOCPServer::ServerControl()
@@ -951,3 +960,22 @@ unsigned __stdcall IOCPServer::ReserveDisconnectManageThreadFunc(LPVOID arg)
 	pServer->ReserveDisconnectManage();
 	return 0;
 }
+
+void IOCPServer::PostDBJob(DBJobQueue* pDBJobQueue)
+{
+	PostQueuedCompletionStatus(_hcp, PROCESS_DB_JOB, (ULONG_PTR)pDBJobQueue, (LPOVERLAPPED)PROCESS_DB_JOB);
+}
+
+DBJobQueue* IOCPServer::CreateDBJobQueue()
+{
+	DBJobQueue* pDBJobQueue=DBJobQueue::_DBJobQueuePool.Alloc();
+	pDBJobQueue->_pServer = this;
+	return pDBJobQueue;
+}
+
+void IOCPServer::ReleaseDBJobQueue(DBJobQueue* pDBJobQueue)
+{
+	DBJobQueue::_DBJobQueuePool.Free(pDBJobQueue);
+}
+
+

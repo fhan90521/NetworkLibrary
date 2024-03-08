@@ -126,7 +126,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h">
       <Filter>Debug</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MpscQueue.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)MPSCQueue.h">
       <Filter>Container</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)SpinLock.h">
@@ -146,6 +146,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomJob.h">
       <Filter>Room</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBJob.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBJobQueue.h">
+      <Filter>DB</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +184,9 @@
     </Filter>
     <Filter Include="Room">
       <UniqueIdentifier>{ac670b13-2fd6-4292-aaa1-ef7f32885ba0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DB">
+      <UniqueIdentifier>{b0087bd7-3dd6-4105-b9a5-de8db0a292ed}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

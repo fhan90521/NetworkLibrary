@@ -1,4 +1,5 @@
 #pragma once
+#pragma comment(lib,"mysqlclient.lib")
 #pragma comment(lib,"ws2_32.lib")
 #pragma comment (lib,"Winmm.lib")
 #include "MyWindow.h"
@@ -11,6 +12,8 @@
 #include<process.h>
 #include "LockQueue.h"
 #include <type_traits>
+#include "include/mysql.h"
+#include "include/errmsg.h"
 class IOCPServer
 {
 private:
@@ -37,7 +40,7 @@ private:
 	static unsigned __stdcall AcceptThreadFunc(LPVOID arg);
 	void IOCPWork();
 	static unsigned __stdcall IOCPWorkThreadFunc(LPVOID arg);
-	void RegisterThread(_beginthreadex_proc_type pFunction);
+	void CreateThread(_beginthreadex_proc_type pFunction);
 	
 	Session* FindSession(SessionInfo sessionInfo);
 	Session* AllocSession(SOCKET clientSock);
@@ -49,7 +52,7 @@ private:
 	{
 		SERVER_DOWN = 100,
 		REQUEST_SEND,
-		ROOM_PROCESS
+		PROCESS_DB_JOB
 	};
 	std::string _settingFileName;
 	int IOCP_THREAD_NUM = 0;
@@ -84,7 +87,7 @@ public:
 		CloseServer();
 	}
 	
-	bool _bShutdown = false;
+	CHAR _bShutdown = false;
 	bool ServerControl();
 	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf, bool bDisconnect=false);
 	void Disconnect(SessionInfo sessionInfo);
@@ -145,5 +148,42 @@ private:
 public:
 	LockFreeQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
+
+
+//DB
+private:
+	friend class DBJobQueue;
+	std::string DB_IP="127.0.0.1";
+	std::string DB_USER="root";
+	std::string DB_PASSWORD="1234";
+	std::string DB_SCHEMA="test";
+	unsigned int DB_PORT=3306;
+	thread_local inline static MYSQL _conn;
+	thread_local inline static MYSQL* _connection = NULL;
+	SRWLOCK _DBInitialLock;
+
+	void SetDBConnection()
+	{
+		AcquireSRWLockExclusive(&_DBInitialLock);
+		mysql_init(&_conn);
+		_connection = mysql_real_connect(&_conn, DB_IP.data(), DB_USER.data(), DB_PASSWORD.data(), DB_SCHEMA.data(), DB_PORT, (char*)NULL, 0);
+		if (_connection == NULL)
+		{
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "Mysql connection error : % s", mysql_error(&_conn));
+		}
+		ReleaseSRWLockExclusive(&_DBInitialLock);
+	}
+	MYSQL* GetDBConnection()
+	{
+		return _connection;
+	}
+	void CloseDBConnection()
+	{
+		mysql_close(_connection);
+	}
+	void PostDBJob(DBJobQueue* pDBJobQueue);
+public:
+	DBJobQueue* CreateDBJobQueue();
+	void ReleaseDBJobQueue(DBJobQueue* pDBJobQueue);
 };
 

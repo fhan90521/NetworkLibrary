@@ -2,8 +2,9 @@
 #include "MyStlContainer.h"
 #include "LockGuard.h"
 #include <stdatomic.h>
+#include "MyWindow.h"
 template <typename T>
-class MpscQueue
+class MPSCQueue
 {
 private:
 	Queue<T> _queue[2];
@@ -15,13 +16,14 @@ private:
 	{
 		EXCLUSIVE_LOCK
 		std::swap(_enqueueIndex, _dequeueIndex);
+		//MemoryBarrier();
 	}
 public:
 	void Enqueue(const T& inPar)
 	{
 		EXCLUSIVE_LOCK;
-		_size++;
 		_queue[_enqueueIndex].push(inPar);
+		_size++;
 	}
 	bool Dequeue(T* outPar)
 	{

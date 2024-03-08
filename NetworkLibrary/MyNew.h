@@ -25,7 +25,7 @@ Type* New(Args &&... args)
 {
 	static_assert(!std::is_base_of<Room, Type>::value, "Type must not inherit from Room class.");
 	Type* retP = (Type*)Malloc(sizeof(Type));
-	new (retP) Type(forward<Args>(args)...);
+	new (retP) Type(std::forward<Args>(args)...);
 	InterlockedIncrement(&GlobalObjectPool<Type>::allocatingCnt);
 	return retP;
 }
