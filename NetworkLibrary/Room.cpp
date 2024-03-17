@@ -46,13 +46,13 @@ void Room::ProcessEnter()
 	for (auto itSessionInfo = _tryEnterSessions.begin(); itSessionInfo != _tryEnterSessions.end();)
 	{
 		int ret = RequestEnter(*itSessionInfo);
-		if (ret == 0)
+		if (ret == ENTER_HOLD)
 		{
 			itSessionInfo++;
 		}
 		else
 		{
-			if (ret == 1)
+			if (ret == ENTER_SUCCESS)
 			{
 				OnEnter(*itSessionInfo);
 			}
@@ -86,6 +86,7 @@ void Room::TryEnter(SessionInfo sessionInfo)
 
 void Room::TryLeave(SessionInfo sessionInfo)
 {
+	_tryEnterSessions.remove(sessionInfo);
 	_tryLeaveSessions.push_back(sessionInfo);
 }
 void Room::EnterRoom(SessionInfo sessionInfo)

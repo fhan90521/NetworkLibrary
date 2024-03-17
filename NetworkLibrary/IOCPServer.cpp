@@ -861,6 +861,10 @@ void IOCPServer::RoomWork()
 			_pRooms[i]->ProcessRoom();
 		}
 		ReleaseSRWLockShared(&_pRoomsLock);
+		if (ROOM_THREAD_SLEEP_MS >= 0)
+		{
+			Sleep(ROOM_THREAD_SLEEP_MS);
+		}
 	}
 }
 

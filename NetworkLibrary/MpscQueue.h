@@ -16,7 +16,6 @@ private:
 	{
 		EXCLUSIVE_LOCK
 		std::swap(_enqueueIndex, _dequeueIndex);
-		//MemoryBarrier();
 	}
 public:
 	void Enqueue(const T& inPar)
@@ -38,6 +37,7 @@ public:
 		}
 		*outPar = std::move(_queue[_dequeueIndex].front());
 		_queue[_dequeueIndex].pop();
+		return true;
 	}
 	int Size()
 	{

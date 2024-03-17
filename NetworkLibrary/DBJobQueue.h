@@ -1,6 +1,6 @@
 #pragma once
 #include "DBJob.h"
-#include "MPSCQueue.h"
+#include "LockFreeQueue.h"
 #include "MyNew.h"
 #include "MyWindow.h"
 class DBJobQueue
@@ -11,7 +11,7 @@ private:
 	friend class QueuePool;
 	inline static QueuePool _DBJobQueuePool;
 	IOCPServer* _pServer=nullptr;
-	MPSCQueue<DBJob*> _pDBJobQ;
+	LockFreeQueue<DBJob*> _pDBJobQ;
 	CHAR _bProcessing = false;
 	DBJobQueue() {};
 	~DBJobQueue()
