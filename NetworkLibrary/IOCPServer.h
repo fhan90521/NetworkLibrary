@@ -1,24 +1,17 @@
 #pragma once
-#pragma comment(lib,"mysqlclient.lib")
-#pragma comment(lib,"ws2_32.lib")
-#pragma comment (lib,"Winmm.lib")
 #include "MyWindow.h"
 #include "CRecvBuffer.h"
 #include "CSendBuffer.h"
 #include "LockFreeStack.h"
 #include "Session.h"
-#include "Room.h"
 #include "MyStlContainer.h"
 #include<process.h>
-#include "LockQueue.h"
 #include <type_traits>
-#include "include/mysql.h"
-#include "include/errmsg.h"
 class IOCPServer
 {
 private:
 	void DropIoPending(SessionInfo sessionInfo);
-	void GetSeverSetValues();
+	void GetSeverSetValues(std::string settingFileName);
 	void ServerSetting();
 	void CloseServer();
 	HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
@@ -52,9 +45,8 @@ private:
 	{
 		SERVER_DOWN = 100,
 		REQUEST_SEND,
-		PROCESS_DB_JOB
+		PROCESS_JOB
 	};
-	std::string _settingFileName;
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
 	int BIND_PORT = 0;
@@ -78,8 +70,9 @@ private:
 	LONG _sendCnt = 0;
 	LONG _recvCnt = 0;
 public:
-	IOCPServer(bool bWan=true, std::string settingFileName = "ServerSetting.json") : _bWan(bWan), _settingFileName(settingFileName)
+	IOCPServer(std::string settingFileName = "ServerSetting.json", bool bWan=true) : _bWan(bWan)
 	{
+		GetSeverSetValues(settingFileName);
 		ServerSetting();
 	}
 	virtual ~IOCPServer()
@@ -111,26 +104,6 @@ public:
 	int GetConnectingSessionCnt();
 	void	 SetMaxPayloadLen(int len);
 
-
-//Room//
-private:
-	friend class Room;
-	UINT ROOM_WORK_THREAD_CNT = 0;
-	INT ROOM_THREAD_SLEEP_MS = 1;
-	UINT MAX_ROOM_CNT = 1024;
-	UINT MAX_ROOM_FRAME = 0;
-	UINT MS_PER_ROOM_FRAME =-1;
-	UINT _registeredRoomCnt = 0;
-	Room** _pRooms;
-	Set<Room*> _pRoomSet;
-	SRWLOCK _pRoomsLock;	
-	void RoomWork();
-	static unsigned __stdcall RoomWorkThreadFunc(LPVOID arg);
-public:
-	bool RegisterRoom(Room* pRoom);
-	bool DeregisterRoom(Room* pRoom);
-
-
 //Disconnect After Send//
 private:
 	enum
@@ -150,41 +123,9 @@ public:
 	LockFreeQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
 
-
-//DB
-private:
-	friend class DBJobQueue;
-	std::string DB_IP="127.0.0.1";
-	std::string DB_USER="root";
-	std::string DB_PASSWORD="1234";
-	std::string DB_SCHEMA="test";
-	unsigned int DB_PORT=3306;
-	thread_local inline static MYSQL _conn;
-	thread_local inline static MYSQL* _connection = NULL;
-	SRWLOCK _DBInitialLock;
-
-	void SetDBConnection()
-	{
-		AcquireSRWLockExclusive(&_DBInitialLock);
-		mysql_init(&_conn);
-		_connection = mysql_real_connect(&_conn, DB_IP.data(), DB_USER.data(), DB_PASSWORD.data(), DB_SCHEMA.data(), DB_PORT, (char*)NULL, 0);
-		if (_connection == NULL)
-		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "Mysql connection error : % s", mysql_error(&_conn));
-		}
-		ReleaseSRWLockExclusive(&_DBInitialLock);
-	}
-	MYSQL* GetDBConnection()
-	{
-		return _connection;
-	}
-	void CloseDBConnection()
-	{
-		mysql_close(_connection);
-	}
-	void PostDBJob(DBJobQueue* pDBJobQueue);
-public:
-	DBJobQueue* CreateDBJobQueue();
-	void ReleaseDBJobQueue(DBJobQueue* pDBJobQueue);
+//Job
+private: 
+	friend class JobQueue;
+	void PostJob(JobQueue* pJobQueue);
 };
 

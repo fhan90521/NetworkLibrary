@@ -10,7 +10,7 @@ class TlsMemoryPool
 private:
 	enum
 	{
-		THREADCNT = 16
+		THREADCNT =64
 	};
 	struct MemoryBlock :SLIST_ENTRY
 	{

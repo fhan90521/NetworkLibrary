@@ -2,7 +2,7 @@
 #pragma comment(lib, "Dbghelp.lib")
 #include <stdio.h>
 #include <iostream>
-#include <Windows.h>
+#include "MyWindow.h"
 #include <dbghelp.h>
 #include <Psapi.h>
 class CCrashDump

@@ -49,11 +49,11 @@ while True:
     pkt_num=-1
     if ':' in line:
         line = line.replace('\t','')
-        line = line.replace(' ','')
         line =line.split(':')
         if line[0]=='RegisterClass':
             registered_classes.append(line[1])
             continue
+        line[-1] = line[-1].replace(' ','')
         pkt_num=line[-1]
         line = line[0]
     line = line.replace(')','')
@@ -69,6 +69,7 @@ while True:
     every_func_name.append(func_name)
   
     parameters = line[1].split(',')
+    print(parameters)
     for parameter in parameters:
         parameter = parameter.split(' ')
         temp=[]
@@ -107,6 +108,7 @@ for i in range(0,len(every_func_name)):
     pkt_type_def='PKT_TYPE PKT_TYPE_'+every_func_name[i]+' = '
     if every_func_name[i] in designated_pkt_type:
         pkt_type_def += str(designated_pkt_type[every_func_name[i]])
+        name_and_typenum[1] = int(designated_pkt_type[every_func_name[i]])+1
     else:
         pkt_type_def += str(name_and_typenum[1])
         name_and_typenum[1]+=1
@@ -115,9 +117,9 @@ for i in range(0,len(every_func_name)):
 #fout.writelines('}\n')
 fout.close()
 
-#Proxy.h 작성
+#ServerProxy.h 작성
 declaration_tails=[]
-fout= open(class_name+"Proxy.h",'wt')
+fout= open(class_name+"ServerProxy.h",'wt')
 fout.writelines('#pragma once'+'\n')
 fout.writelines('#include "Session.h"\n')
 fout.writelines('#include ' +'"IOCPServer.h"'+'\n')
@@ -127,7 +129,7 @@ for registered_class in registered_classes:
 #fout.writelines('using namespace std;\n')
 #fout.writelines('namespace ' +name_and_typenum[0]+'\n')
 #fout.writelines('{\n')
-fout.writelines('class '+class_name+'Proxy\n')
+fout.writelines('class '+class_name+'ServerProxy\n')
 fout.writelines('{\n')
 fout.writelines('private:\n')
 fout.writelines('\tIOCPServer* _pServer;\n')
@@ -144,11 +146,10 @@ for i in range(0,len(every_func_name)):
             tail+='&'        
         tail+=' '
         tail+=parameters_name[j]
-    tail+=' )'
     declaration_tails.append(tail)
-    fout.writelines('\tvoid '+func_name+'(SessionInfo sessionInfo'+tail+';\n')
-    fout.writelines('\tvoid '+func_name+'(List<SessionInfo>& sessionInfoList'+tail+';\n\n')
-fout.writelines('\t'+class_name+'Proxy(IOCPServer* pServer)\n')
+    fout.writelines('\tvoid '+func_name+'(SessionInfo sessionInfo'+tail+', bool bDisconnect = false )'+';\n')
+    fout.writelines('\tvoid '+func_name+'(List<SessionInfo>& sessionInfoList'+tail+', bool bDisconnect = false);\n\n')
+fout.writelines('\t'+class_name+'ServerProxy(IOCPServer* pServer)\n')
 fout.writelines('\t{\n')
 fout.writelines('\t\t_pServer=pServer;\n')
 fout.writelines('\t}\n')
@@ -158,9 +159,9 @@ fout.close()
 
 
 
-#Proxy.cpp 작성
-fout= open(class_name+"Proxy.cpp",'wt')
-fout.writelines("#include " +' "'+class_name+'Proxy.h"\n')
+#ServerProxy.cpp 작성
+fout= open(class_name+"ServerProxy.cpp",'wt')
+fout.writelines("#include " +' "'+class_name+'ServerProxy.h"\n')
 fout.writelines('#include' + ' "'+ class_name+'PKT_TYPE.h"\n')
 #fout.writelines('namespace ' +name_and_typenum[0]+'\n')
 #fout.writelines('{\n')
@@ -180,16 +181,16 @@ for i in range(0,len(declaration_tails)):
     func_def+='\tcatch(int useSize)\n'
     func_def+='\t{\n'
     func_def+='\t}\n'
-    fout.writelines('void '+class_name+'Proxy::'+every_func_name[i]+'(SessionInfo sessionInfo'+declaration_tails[i]+'\n')
+    fout.writelines('void '+class_name+'ServerProxy::'+every_func_name[i]+'(SessionInfo sessionInfo'+declaration_tails[i]+', bool bDisconnect)\n')
     fout.writelines(func_def)
-    fout.writelines('\t_pServer->Unicast(sessionInfo, pBuf);\n')
+    fout.writelines('\t_pServer->Unicast(sessionInfo, pBuf, bDisconnect);\n')
     fout.writelines('\tpBuf->DecrementRefCnt();\n}\n')
     
-    fout.writelines('void '+class_name+'Proxy::'+every_func_name[i]+'(List<SessionInfo>& sessionInfoList'+declaration_tails[i]+'\n')
+    fout.writelines('void '+class_name+'ServerProxy::'+every_func_name[i]+'(List<SessionInfo>& sessionInfoList'+declaration_tails[i]+', bool bDisconnect)\n')
     fout.writelines(func_def)
     fout.writelines('\tfor(SessionInfo sessionInfo: sessionInfoList)\n')
     fout.writelines('\t{\n')
-    fout.writelines('\t\t_pServer->Unicast(sessionInfo, pBuf);\n')
+    fout.writelines('\t\t_pServer->Unicast(sessionInfo, pBuf, bDisconnect);\n')
     fout.writelines('\t}\n')
     fout.writelines('\tpBuf->DecrementRefCnt();\n')
     fout.writelines('}\n')
@@ -197,6 +198,85 @@ for i in range(0,len(declaration_tails)):
 fout.close()
 
 
+#ClientProxy.h 작성
+declaration_tails=[]
+fout= open(class_name+"ClientProxy.h",'wt')
+fout.writelines('#pragma once'+'\n')
+fout.writelines('#include "Session.h"\n')
+fout.writelines('#include ' +'"IOCPClient.h"'+'\n')
+fout.writelines('#include ' +'"MyStlContainer.h"'+'\n')
+for registered_class in registered_classes:
+    fout.writelines('#include "'+registered_class+'.h"\n')
+#fout.writelines('using namespace std;\n')
+#fout.writelines('namespace ' +name_and_typenum[0]+'\n')
+#fout.writelines('{\n')
+fout.writelines('class '+class_name+'ClientProxy\n')
+fout.writelines('{\n')
+fout.writelines('private:\n')
+fout.writelines('IOCPClient* _pClient;\n')
+fout.writelines('public:\n')
+for i in range(0,len(every_func_name)):
+    func_name=every_func_name[i]
+    parameters_name=every_func_parameters_name[i]
+    parameters_type=every_func_parameters_type[i]
+    tail=''
+    for j in range(0,len(parameters_name)):
+        tail+=', '
+        tail+=parameters_type[j]    
+        if parameters_type[j] in registered_classes or "Array" in parameters_type[j] or "Vector" in parameters_type[j]:
+            tail+='&'        
+        tail+=' '
+        tail+=parameters_name[j]
+    declaration_tails.append(tail)
+    fout.writelines('\tvoid '+func_name+'(SessionInfo sessionInfo'+tail+', bool bDisconnect = false )'+';\n')
+    fout.writelines('\tvoid '+func_name+'(List<SessionInfo>& sessionInfoList'+tail+', bool bDisconnect = false);\n\n')
+fout.writelines('\t'+class_name+'ClientProxy(IOCPClient* pClient)\n')
+fout.writelines('\t{\n')
+fout.writelines('\t\t_pClient=pClient;\n')
+fout.writelines('\t}\n')
+fout.writelines('};\n')
+#fout.writelines('}\n')
+fout.close()
+
+
+
+#ClientProxy.cpp 작성
+fout= open(class_name+"ClientProxy.cpp",'wt')
+fout.writelines("#include " +' "'+class_name+'ClientProxy.h"\n')
+fout.writelines('#include' + ' "'+ class_name+'PKT_TYPE.h"\n')
+#fout.writelines('namespace ' +name_and_typenum[0]+'\n')
+#fout.writelines('{\n')
+for i in range(0,len(declaration_tails)):
+    func_def='{\n'
+    func_def+='\tCSendBuffer* pBuf = CSendBuffer::Alloc();\n'
+    func_def+='\tpBuf->IncrementRefCnt();\n'
+    func_def+='\ttry\n'
+    func_def+= '\t{\n'
+    func_def+='\t\t*pBuf'
+    func_def+=" << "+'PKT_TYPE_'+every_func_name[i]
+    for j in range(0,len(every_func_parameters_name[i])):
+        func_def+=' << '
+        func_def+=every_func_parameters_name[i][j]
+    func_def+=';\n'
+    func_def+='\t}\n'
+    func_def+='\tcatch(int useSize)\n'
+    func_def+='\t{\n'
+    func_def+='\t}\n'
+    fout.writelines('void '+class_name+'ClientProxy::'+every_func_name[i]+'(SessionInfo sessionInfo'+declaration_tails[i]+', bool bDisconnect)\n')
+    fout.writelines(func_def)
+    fout.writelines('\t_pClient->Unicast(sessionInfo, pBuf, bDisconnect);\n')
+    fout.writelines('\tpBuf->DecrementRefCnt();\n}\n')
+    
+    fout.writelines('void '+class_name+'ClientProxy::'+every_func_name[i]+'(List<SessionInfo>& sessionInfoList'+declaration_tails[i]+', bool bDisconnect)\n')
+    fout.writelines(func_def)
+    fout.writelines('\tfor(SessionInfo sessionInfo: sessionInfoList)\n')
+    fout.writelines('\t{\n')
+    fout.writelines('\t\t_pClient->Unicast(sessionInfo, pBuf, bDisconnect);\n')
+    fout.writelines('\t}\n')
+    fout.writelines('\tpBuf->DecrementRefCnt();\n')
+    fout.writelines('}\n')
+#fout.writelines('}\n')
+fout.close()
 
 for i in range(0,len(every_func_name)):
     func_name=every_func_name[i]

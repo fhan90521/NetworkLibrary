@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 #include <iphlpapi.h>
+#include "Log.h"
 #include <stdlib.h>
 class PerformanceMonitor
 {
@@ -22,13 +23,30 @@ public:
 	float GetProcessCpuKernel(void) { return _processCpuKernel; }
 
 	float GetProcessUserMemoryByMB() { return (float)_pmc.PrivateUsage/1000000; }
-	float GetProcessNonPagedByMB() { return (float)_pmc.QuotaNonPagedPoolUsage / 1000000; }
-
+	float GetProcessNonPagedByMB() { return (float)_pmc.QuotaNonPagedPoolUsage/ 1000000; }
 	float GetSystemNonPagedByMB() { return (float)_perfInfo.KernelNonpaged*4096/1000000; }
 	float GetSystemAvailMemoryByGB() { return (float)_perfInfo.PhysicalAvailable*4096/1000000000; }
 
-	float GetOutDataSizeByKB() { return (float)(_outDataOct - _prevOut)/ 1000; }
-	float GetInDataSizeByKB() { return (float)(_inDataOct - _prevIn) / 1000; }
+	int GetOutDataSizeByKB() 
+	{ 
+		int ret = _outDataOct - _prevOut;
+		if (ret >= 0)
+		{
+			_lastNormalOut = ret;
+			return ret;
+		}
+		return _lastNormalOut;
+	}
+	int GetInDataSizeByKB() 
+	{
+		int ret = _inDataOct - _prevIn;
+		if (ret >= 0)
+		{
+			_lastNormalIn = ret;
+			return ret;
+		}
+		return _lastNormalIn;
+	}
 	void AddInterface(std::string interfaceIp);
 
 	void PrintMonitorData();
@@ -61,8 +79,10 @@ private:
 	//네트워크 사용량
 	std::set<int> _interfaceIndexSet;
 
-	ULONG64 _inDataOct=0;
-	ULONG64 _outDataOct=0;
-	ULONG64  _prevOut = 0;
-	ULONG64 _prevIn = 0;
+	double _inDataOct=0;
+	double _outDataOct=0;
+	double  _prevOut = 0;
+	double _prevIn = 0;
+	int _lastNormalOut = 0;
+	int _lastNormalIn = 0;
 };

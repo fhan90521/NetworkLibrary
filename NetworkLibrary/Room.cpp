@@ -1,46 +1,6 @@
 #include "Room.h"
 #include "MyNew.h"
-#include "MyWindow.h"
-void Room::ProcessJob()
-{
-	int qSize = _jobQueue.Size();
-	RoomJob* pJob;
-	for (int i = 0; i < qSize; i++)
-	{
-		_jobQueue.Dequeue(&pJob);
-		pJob->Execute();
-		Delete<RoomJob>(pJob);
-	}
-	return;
-}
-void Room::ProcessRoom()
-{
-	if (_bProcessing == true)
-	{
-		return ;
-	}
-	ULONG64 currentTime = GetTickCount64();
-	if (_jobQueue.Size() == 0 && currentTime - _prevUpdateTime < _updatePeriod)
-	{
-		return;
-	}
-	if (InterlockedExchange8(&_bProcessing, true) != false)
-	{
-		return ;
-	}
-	_currentTime = currentTime;
-	ProcessJob();
-	if (_currentTime - _prevUpdateTime < _updatePeriod)
-	{
-		ProcessEnter();
-		ProcessLeave();
-		Update();
-		_prevUpdateTime = _currentTime;
-	}
-	_bProcessing = false;
-
-}
-
+#include "RoomManager.h"
 void Room::ProcessEnter()
 {
 	for (auto itSessionInfo = _tryEnterSessions.begin(); itSessionInfo != _tryEnterSessions.end();)
@@ -60,64 +20,54 @@ void Room::ProcessEnter()
 		}
 	}
 }
-
-void Room::ProcessLeave()
+void Room::TryEnter(SessionInfo sessionInfo)
 {
-	for (auto itSessionInfo = _tryLeaveSessions.begin(); itSessionInfo != _tryLeaveSessions.end();)
+	int retRequestEnter =RequestEnter(sessionInfo);
+	if (retRequestEnter == ENTER_SUCCESS)
 	{
-		bool ret = RequestLeave(*itSessionInfo);
-		if (ret == false)
-		{
-			itSessionInfo++;
-		}
-		else
-		{	
-			OnLeave(*itSessionInfo);
-			itSessionInfo = _tryEnterSessions.erase(itSessionInfo);
-		}
+		OnEnter(sessionInfo);
+	}
+	else if(retRequestEnter == ENTER_HOLD)
+	{
+		_tryEnterSessions.insert(sessionInfo.id);
 	}
 }
 
-
-void Room::TryEnter(SessionInfo sessionInfo)
+void Room::Leave(SessionInfo sessionInfo)
 {
-	_tryEnterSessions.push_back(sessionInfo);
+	_tryEnterSessions.erase(sessionInfo.id);
+	OnLeave(sessionInfo);
+	//_tryLeaveSessions.push_back(sessionInfo);
 }
-
-void Room::TryLeave(SessionInfo sessionInfo)
+void Room::UpdateJob()
 {
-	_tryEnterSessions.remove(sessionInfo);
-	_tryLeaveSessions.push_back(sessionInfo);
+	_currentTime = GetTickCount64();
+	Update();
+	_prevUpdateTime = _currentTime;
+	_bUpdating = false;
+}
+Room::~Room()
+{
+	RoomManager::GetInstance()->DeregisterRoom(this);
+}
+Room::Room(IOCPServer* pServer) : JobQueue(pServer)
+{
+	RoomManager::GetInstance()->RegisterRoom(this);
 }
 void Room::EnterRoom(SessionInfo sessionInfo)
 {
-	MakeRoomJob(&Room::TryEnter, sessionInfo);
+	TryDoSync(&Room::TryEnter, sessionInfo);
 }
 
 void Room::LeaveRoom(SessionInfo sessionInfo)
 {
-	MakeRoomJob(&Room::TryLeave, sessionInfo);
+	TryDoSync(&Room::Leave, sessionInfo);
 }
 
-void Room::MakeRoomJob(CallbackType&& callback)
+int Room::GetUpdateCnt()
 {
-	_jobQueue.Enqueue(New<RoomJob>(std::move(callback)));
-	ProcessRoom();
+	int ret = _updateCnt;
+	_updateCnt = 0;
+	return ret;
 }
-
-template<typename T, typename Ret, typename... Args>
-void Room::MakeRoomJob(Ret(T::* memFunc)(Args...), Args... args)
-{
-	_jobQueue.Enqueue(New<RoomJob>(this, memFunc, std::forward<Args>(args)...));
-	ProcessRoom();
-}
-Room::~Room()
-{
-	RoomJob* pJob;
-	while (_jobQueue.Dequeue(&pJob))
-	{
-		Delete<RoomJob>(pJob);
-	}
-}
-
 

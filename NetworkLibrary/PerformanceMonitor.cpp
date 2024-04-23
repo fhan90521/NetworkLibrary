@@ -1,7 +1,6 @@
 ﻿#include"PerformanceMonitor.h"
 #include <iostream>
 #include <format>
-
 PerformanceMonitor::PerformanceMonitor(HANDLE hProcess)
 {
 	//------------------------------------------------------------------ 
@@ -154,9 +153,13 @@ void PerformanceMonitor::UpdateMonitorData(void)
 	for (int ifIndex : _interfaceIndexSet)
 	{
 		ifRow.dwIndex = ifIndex;
-		GetIfEntry(&ifRow);
-		_outDataOct += ifRow.dwOutOctets;
-		_inDataOct += ifRow.dwInOctets;
+		
+		DWORD retGetIf = GetIfEntry(&ifRow);
+		if (retGetIf == NO_ERROR)
+		{
+			_outDataOct += ifRow.dwOutOctets / 1000;
+			_inDataOct += ifRow.dwInOctets / 1000;
+		}
 	}
 }
 
@@ -170,8 +173,8 @@ ProcessUserMemory: {:.2f}MB
 ProcessNonPaged: {:.2f}MB
 SystemAvailableMemory: {:.2f}GB
 SystemNonPaged: {:.2f}MB                  
-OutDataSize: {:.2f}KB
-InDataSize: {:.2f}KB
+OutDataSize: {}KB
+InDataSize: {}KB
 )",GetSystemCpuTotal(),GetProcessCpuTotal(),GetProcessUserMemoryByMB(),GetProcessNonPagedByMB(),GetSystemAvailMemoryByGB(),GetSystemNonPagedByMB(),GetOutDataSizeByKB(),GetInDataSizeByKB());
 }
 
@@ -210,10 +213,7 @@ void PerformanceMonitor::AddInterface(std::string interfaceIp)
 		while (pAdapter) {
 			if (interfaceIp == "0.0.0.0")
 			{
-				if (strcmp(pAdapter->IpAddressList.IpAddress.String,"0.0.0.0")!=0)
-				{
-					_interfaceIndexSet.insert(pAdapter->Index);
-				}
+				_interfaceIndexSet.insert(pAdapter->Index);
 			}
 			else
 			{

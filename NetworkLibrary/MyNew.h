@@ -2,7 +2,6 @@
 #include "Malloc.h"
 #include "MyWindow.h"
 #include <utility>
-#include "Room.h"
 template <typename T>
 class GlobalObjectPool
 {
@@ -23,7 +22,6 @@ public:
 template<typename Type,typename ...Args>
 Type* New(Args &&... args)
 {
-	static_assert(!std::is_base_of<Room, Type>::value, "Type must not inherit from Room class.");
 	Type* retP = (Type*)Malloc(sizeof(Type));
 	new (retP) Type(std::forward<Args>(args)...);
 	InterlockedIncrement(&GlobalObjectPool<Type>::allocatingCnt);
@@ -33,7 +31,6 @@ Type* New(Args &&... args)
 template<typename Type>
 void Delete(Type* ptr)
 {
-	static_assert(!std::is_base_of<Room, Type>::value, "Type must not inherit from Room class.");
 	InterlockedDecrement(&GlobalObjectPool<Type>::allocatingCnt);
 	ptr->~Type();
 	Free(ptr);

@@ -13,7 +13,7 @@
 #include "NetworkHeader.h"
 #include "Log.h"
 #include "MyNew.h"
-#include "DBJobQueue.h"
+#include "JobQueue.h"
 //#include "Log.h"
 using namespace rapidjson;
 
@@ -42,49 +42,46 @@ void IOCPServer::DropIoPending(SessionInfo sessionInfo)
 	}
 }
 
-void IOCPServer::GetSeverSetValues()
+void IOCPServer::GetSeverSetValues(std::string settingFileName)
 {
-	std::ifstream fin(_settingFileName);
+	Document serverSetValues;
+	std::ifstream fin(settingFileName);
 	if (!fin)
 	{
-		Log::LogOnFile(Log::SYSTEM_LEVEL,"there is no %s\n", _settingFileName.data());
+		Log::LogOnFile(Log::SYSTEM_LEVEL,"there is no %s\n", settingFileName.data());
 		DebugBreak();
 	}
 	std::string json((std::istreambuf_iterator<char>(fin)), (std::istreambuf_iterator<char>()));
 	fin.close();
-	Document d;
-	rapidjson::ParseResult parseResult = d.Parse(json.data());
+	rapidjson::ParseResult parseResult = serverSetValues.Parse(json.data());
 	if (!parseResult) {
 		fprintf(stderr, "JSON parse error: %s (%d)",GetParseError_En(parseResult.Code()), parseResult.Offset());
 		exit(EXIT_FAILURE);
 	}
 
-	IOCP_THREAD_NUM = d["IOCP_THREAD_NUM"].GetInt();
+	IOCP_THREAD_NUM = serverSetValues["IOCP_THREAD_NUM"].GetInt();
 	
-	CONCURRENT_THREAD_NUM = d["CONCURRENT_THREAD_NUM"].GetInt();
+	CONCURRENT_THREAD_NUM = serverSetValues["CONCURRENT_THREAD_NUM"].GetInt();
 	
-	BIND_IP = d["BIND_IP"].GetString();
+	BIND_IP = serverSetValues["BIND_IP"].GetString();
 	
-	BIND_PORT = d["BIND_PORT"].GetInt();
+	BIND_PORT = serverSetValues["BIND_PORT"].GetInt();
 	
-	SESSION_MAX = d["SESSION_MAX"].GetInt();
+	SESSION_MAX = serverSetValues["SESSION_MAX"].GetInt();
 	
-	PACKET_CODE = d["PACKET_CODE"].GetInt();
+	PACKET_CODE = serverSetValues["PACKET_CODE"].GetInt();
 	
-	PACKET_KEY = d["PACKET_KEY"].GetInt();
+	PACKET_KEY = serverSetValues["PACKET_KEY"].GetInt();
 	
-	LOG_LEVEL = d["LOG_LEVEL"].GetInt();
+	LOG_LEVEL = serverSetValues["LOG_LEVEL"].GetInt();
 	return;
 }
 
 void IOCPServer::ServerSetting()
-{
-	GetSeverSetValues();
-	
+{	
 	timeBeginPeriod(1);
 	int ret_bind;
 	WSADATA wsa;
-
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
 		int error = WSAGetLastError();
@@ -154,12 +151,9 @@ void IOCPServer::ServerSetting()
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "CreateNewCompletionPort error : %d", error);
 		DebugBreak();
 	};
-	InitializeSRWLock(&_pRoomsLock);
-	_pRooms = new Room*[MAX_ROOM_CNT];
 	_hReserveDisconnectEvent=CreateEvent(NULL, false, false, NULL);
 	_hShutDownEvent = CreateEvent(NULL, false, false, NULL);
 
-	InitializeSRWLock(&_DBInitialLock);
 }
 
 Session* IOCPServer::FindSession(SessionInfo sessionInfo)
@@ -209,6 +203,15 @@ Session* IOCPServer::AllocSession(SOCKET clientSock)
 	pSession->sessionInfo.index.val = index;
 	//여기까지 bDeallocated == true이다
 	pSession->sessionManageInfo.bDeallocated = false;
+
+	bool ret = AssociateDeviceWithCompletionPort(_hcp, (HANDLE)clientSock, (ULONG_PTR)pSession);
+	if (ret == false)
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "AssociateDeviceWithCompletionPort error : %d\n", WSAGetLastError());
+		DebugBreak();
+	}
+	pSession->socket = clientSock;
+
 	return pSession;
 }
 
@@ -287,18 +290,8 @@ void IOCPServer::AcceptWork()
 		{
 			continue;
 		}
-
 		Session* pSession = AllocSession(clientSock);
-		
 
-		bool ret = AssociateDeviceWithCompletionPort(_hcp, (HANDLE)clientSock, (ULONG_PTR)pSession);
-		if (ret == false)
-		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "AssociateDeviceWithCompletionPort error : %d\n", WSAGetLastError());
-			DebugBreak();
-		}
-
-		pSession->socket = clientSock;
 		strcpy_s(pSession->ip, INET_ADDRSTRLEN, ip);
 		pSession->port = port;
 		OnAccept(pSession->sessionInfo);
@@ -339,7 +332,6 @@ void IOCPServer::CloseServer()
 	CloseHandle(_hShutDownEvent);
 	WSACleanup();
 	delete[] _sessionArray;
-	delete[] _pRooms;
 }
 
 void IOCPServer::RecvPost(Session* pSession)
@@ -568,9 +560,7 @@ unsigned __stdcall IOCPServer::AcceptThreadFunc(LPVOID arg)
 unsigned __stdcall IOCPServer::IOCPWorkThreadFunc(LPVOID arg)
 {
 	IOCPServer* pServer = (IOCPServer*)arg;
-	pServer->SetDBConnection();
 	pServer->IOCPWork();
-	pServer->CloseDBConnection();
 	return 0;
 }
 
@@ -745,9 +735,10 @@ void IOCPServer::IOCPWork()
 			{
 				RequestSendCompletionRoutine(pSession);
 			}
-			else if (pOverlapped == (LPOVERLAPPED)PROCESS_DB_JOB)
+			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
 			{
-				((DBJobQueue*)pSession)->ProcessDBJob();
+				((JobQueue*)pSession)->ProcessJob();
+				((JobQueue*)pSession)->_owner = nullptr;
 			}
 			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
 			{
@@ -777,10 +768,6 @@ void IOCPServer::IOCPRun()
 	for (int i = 0; i < IOCP_THREAD_NUM; i++)
 	{
 		CreateThread(IOCPServer::IOCPWorkThreadFunc);
-	}
-	for (int i = 0; i < ROOM_WORK_THREAD_CNT; i++)
-	{
-		CreateThread(IOCPServer::RoomWorkThreadFunc);
 	}
 	CreateThread(IOCPServer::AcceptThreadFunc);
 	CreateThread(IOCPServer::ReserveDisconnectManageThreadFunc);
@@ -843,73 +830,6 @@ void IOCPServer::SetMaxPayloadLen(int len)
 	return;
 }
 
-void IOCPServer::RoomWork()
-{
-	if (MS_PER_ROOM_FRAME == -1)
-	{
-		return;
-	}
-	while (1)
-	{
-		if (_bShutdown)
-		{
-			break;
-		}
-		AcquireSRWLockShared(&_pRoomsLock);
-		for (int i = 0; i< _registeredRoomCnt; i++)
-		{
-			_pRooms[i]->ProcessRoom();
-		}
-		ReleaseSRWLockShared(&_pRoomsLock);
-		if (ROOM_THREAD_SLEEP_MS >= 0)
-		{
-			Sleep(ROOM_THREAD_SLEEP_MS);
-		}
-	}
-}
-
-unsigned __stdcall IOCPServer::RoomWorkThreadFunc(LPVOID arg)
-{
-	IOCPServer* pServer = (IOCPServer*)arg;
-	pServer->RoomWork();
-	return 0;
-}
-
-
-bool IOCPServer::RegisterRoom(Room* pRoom)
-{
-	bool ret = false;;
-	AcquireSRWLockExclusive(&_pRoomsLock);
-	if (_pRoomSet.size() < MAX_ROOM_CNT)
-	{
-		auto retInsert = _pRoomSet.insert(pRoom);
-		if (retInsert.second == true)
-		{
-			ret = true;
-			_pRooms[_registeredRoomCnt++] = pRoom;
-		}
-	}
-	ReleaseSRWLockExclusive(&_pRoomsLock);
-	return ret;
-}
-
-bool IOCPServer::DeregisterRoom(Room* pRoom)
-{
-	AcquireSRWLockExclusive(&_pRoomsLock);
-	size_t retErase = _pRoomSet.erase(pRoom);
-	if (retErase == 1)
-	{
-		for (int i = 0; i < _registeredRoomCnt; i++)
-		{
-			if (_pRooms[i] == pRoom)
-			{
-				_pRooms[i] = _pRooms[--_registeredRoomCnt];
-			}
-		}
-	}
-	ReleaseSRWLockExclusive(&_pRoomsLock);
-	return retErase;
-}
 
 
 void IOCPServer::ReserveDisconnectManage()
@@ -965,21 +885,15 @@ unsigned __stdcall IOCPServer::ReserveDisconnectManageThreadFunc(LPVOID arg)
 	return 0;
 }
 
-void IOCPServer::PostDBJob(DBJobQueue* pDBJobQueue)
+void IOCPServer::PostJob(JobQueue* pJobQueue)
 {
-	PostQueuedCompletionStatus(_hcp, PROCESS_DB_JOB, (ULONG_PTR)pDBJobQueue, (LPOVERLAPPED)PROCESS_DB_JOB);
+	bool ret = PostQueuedCompletionStatus(_hcp, PROCESS_JOB, (ULONG_PTR)pJobQueue, (LPOVERLAPPED)PROCESS_JOB);
+	if (ret == false)
+	{
+		pJobQueue->_owner = nullptr;
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestSend error: %d\n", WSAGetLastError());
+	}
 }
 
-DBJobQueue* IOCPServer::CreateDBJobQueue()
-{
-	DBJobQueue* pDBJobQueue=DBJobQueue::_DBJobQueuePool.Alloc();
-	pDBJobQueue->_pServer = this;
-	return pDBJobQueue;
-}
-
-void IOCPServer::ReleaseDBJobQueue(DBJobQueue* pDBJobQueue)
-{
-	DBJobQueue::_DBJobQueuePool.Free(pDBJobQueue);
-}
 
 

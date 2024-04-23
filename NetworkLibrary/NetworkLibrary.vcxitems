@@ -17,21 +17,29 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CacheTracer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSendBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)DBManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)GetPOOLID.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RedisManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RoomManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DBJob.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)DBJobQueue.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)RoomJob.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPClient.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Job.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RedisManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeMemoryPool.h" />

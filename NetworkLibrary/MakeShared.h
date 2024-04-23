@@ -7,6 +7,6 @@
 template <typename T, typename... Args>
 SharedPtr<T> MakeShared(Args&&... args)
 {
-	SharedPtr<T> ptr = { New<T>(forward<Args>(args)...), Delete<T> };
+	SharedPtr<T> ptr = { New<T>(std::forward<Args>(args)...), Delete<T> };
 	return ptr;
 }

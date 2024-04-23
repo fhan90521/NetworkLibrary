@@ -11,6 +11,7 @@ class CSendBuffer
 {
 private:
 	friend class IOCPServer;
+	friend class IOCPClient;
 	enum enCSendBuffer
 	{
 		eBUFFER_DEFAULT = 512, // 패킷의 기본 버퍼 사이즈.

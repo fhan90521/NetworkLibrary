@@ -11,7 +11,7 @@ class TlsObjectPool
 private:
 	enum
 	{
-		THREADCNT = 16
+		THREADCNT = 64
 	};
 
 	struct Node

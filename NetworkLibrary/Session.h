@@ -20,6 +20,15 @@ union SessionInfo
 	};
 	Index index;
 	unsigned long long id;
+	friend bool operator == (const SessionInfo& left, const SessionInfo& right)
+	{
+		return left.id == right.id;
+	}
+	SessionInfo(const SessionInfo::ID otherId)
+	{
+		id = otherId;
+	}
+	SessionInfo() = default;
 };
 
 struct SessionManageInfo

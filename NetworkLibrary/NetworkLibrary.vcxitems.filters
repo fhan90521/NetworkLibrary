@@ -31,6 +31,21 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp">
       <Filter>Room</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPClient.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp">
+      <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DBManager.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RoomManager.cpp">
+      <Filter>Room</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RedisManager.cpp">
+      <Filter>Redis</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h">
@@ -144,14 +159,23 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RoomJob.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPClient.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Job.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBManager.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomManager.h">
       <Filter>Room</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)DBJob.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)DBJobQueue.h">
-      <Filter>DB</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RedisManager.h">
+      <Filter>Redis</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -176,9 +200,6 @@
     <Filter Include="Utility">
       <UniqueIdentifier>{7cfbc6c0-8b9f-4b29-97f9-1c1cab9e8e66}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Debug">
-      <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Lock">
       <UniqueIdentifier>{7fc7e48e-446c-4d62-b1d9-df38f50a71ff}</UniqueIdentifier>
     </Filter>
@@ -187,6 +208,15 @@
     </Filter>
     <Filter Include="DB">
       <UniqueIdentifier>{b0087bd7-3dd6-4105-b9a5-de8db0a292ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Job">
+      <UniqueIdentifier>{92214199-5032-4c34-a04f-6d7e31df9cc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Redis">
+      <UniqueIdentifier>{66f9c330-f8f8-4412-992b-f78d38b4f374}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
