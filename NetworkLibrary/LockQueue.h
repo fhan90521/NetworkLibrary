@@ -11,28 +11,23 @@ public:
 		_queue.push(inPar);
 	}
 
-	bool Pop(T* outPar)
+	T Pop()
 	{
 		EXCLUSIVE_LOCK;
 		if (_queue.empty())
-			return false;
-
-		*outPar = _queue.front();
+			return T();
+		T ret = _queue.front();
 		_queue.pop();
-		return true;
+		return ret;
 	}
 
-	int PopAll(Vector<T>& outVec)
+	void PopAll(Vector<T>& outVec)
 	{
-		int popCnt = 0;
 		EXCLUSIVE_LOCK;
-		while (_queue.empty()==false)
+		for(int i = 0 ;i<_queue.size();i++)
 		{
-			outVec.push_back(_queue.front());
-			_queue.pop();
-			popCnt++;
+			outVec.push_back(Pop());
 		}
-		return popCnt;
 	}
 
 	void Clear()

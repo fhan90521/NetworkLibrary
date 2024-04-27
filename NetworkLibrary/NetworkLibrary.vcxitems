@@ -25,6 +25,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)RedisManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp" />
@@ -38,6 +39,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Job.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RedisManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h" />

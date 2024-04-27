@@ -8,13 +8,13 @@
 #include<process.h>
 #include "LockQueue.h"
 #include <type_traits>
+#include <string>
 class IOCPClient
 {
 private:
 	void DropIoPending(SessionInfo sessionInfo);
-	void GetSeverSetValues();
+	void GetClientSetValues(std::string settingFileName);
 	void ClientSetting();
-	void CloseClient();
 	HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
 	BOOL AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDLE hDevice, ULONG_PTR dwCompletionKey);
 
@@ -67,17 +67,17 @@ private:
 	LONG _sendCnt = 0;
 	LONG _recvCnt = 0;
 public:
-	IOCPClient(bool bWan = true, std::string settingFileName = "ClientSetting.json") : _bWan(bWan), _settingFileName(settingFileName)
+	IOCPClient(std::string settingFileName, bool bWan = true) : _bWan(bWan), _settingFileName(settingFileName)
 	{
+		GetClientSetValues(settingFileName);
 		ClientSetting();
 	}
 	virtual ~IOCPClient()
 	{
-		CloseClient();
 	}
 	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf, bool bDisconnect = false);
 	void Disconnect(SessionInfo sessionInfo);
-
+	void CloseClient();
 protected:
 	void IOCPRun();
 	virtual void OnConnect(SessionInfo sessionInfo) = 0;
@@ -96,5 +96,6 @@ private:
 //Job
 	friend class JobQueue;
 	void PostJob(JobQueue* pJobQueue);
+	void ProcessJob(JobQueue* pJobQueue);
 };
 

@@ -182,4 +182,40 @@ public:
 		_back += arrLen;
 		return *this;
 	}
+
+	CSendBuffer& operator << (const String& str)
+	{
+		USHORT strLen = str.size();
+		if (GetFreeSize() < sizeof(strLen) + strLen)
+		{
+			if (Resize(sizeof(strLen) + strLen) == false)
+			{
+				throw(GetPayLoadSize());
+			}
+		}
+		*((USHORT*)&_buf[_back]) = strLen;
+		_back += sizeof(strLen);
+
+		memcpy(&_buf[_back], str.data(), strLen);
+		_back += strLen;
+		return *this;
+	}
+
+	CSendBuffer& operator << (const WString& wStr)
+	{
+		USHORT strLen = wStr.size();
+		if (GetFreeSize() < sizeof(strLen) + strLen*2)
+		{
+			if (Resize(sizeof(strLen) + strLen*2) == false)
+			{
+				throw(GetPayLoadSize());
+			}
+		}
+		*((USHORT*)&_buf[_back]) = strLen;
+		_back += sizeof(strLen);
+
+		memcpy(&_buf[_back], wStr.data(), strLen*2);
+		_back += strLen*2;
+		return *this;
+	}
 };

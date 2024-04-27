@@ -7,7 +7,7 @@ class Room: public JobQueue
 {
 private:
 	friend class RoomManager;
-	int _updateCnt = 0;
+	LONG _updateCnt = 0;
 	HashSet<SessionInfo::ID>_tryEnterSessions;
 	//List<SessionInfo>_tryLeaveSessions;
 	void ProcessEnter();

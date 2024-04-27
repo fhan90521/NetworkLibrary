@@ -45,6 +45,7 @@ void Room::UpdateJob()
 	Update();
 	_prevUpdateTime = _currentTime;
 	_bUpdating = false;
+	InterlockedIncrement(&_updateCnt);
 }
 Room::~Room()
 {
@@ -67,7 +68,7 @@ void Room::LeaveRoom(SessionInfo sessionInfo)
 int Room::GetUpdateCnt()
 {
 	int ret = _updateCnt;
-	_updateCnt = 0;
+	InterlockedExchange(&_updateCnt, 0);
 	return ret;
 }
 

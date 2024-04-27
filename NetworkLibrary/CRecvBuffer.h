@@ -54,7 +54,7 @@ public:
 		}
 		_remainSize -= dequeueSize;
 		
-		if (_remainSize < vecSize)
+		if (_remainSize < vecSize*sizeof(T))
 		{
 			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
 			throw(_remainSize);
@@ -131,4 +131,89 @@ public:
 		return true;
 	}
 	
+	CRecvBuffer& operator >> (String& str)
+	{
+		USHORT strLen;
+		int dequeueSize;
+
+
+		if (_remainSize < sizeof(strLen))
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
+			throw(_remainSize);
+		}
+
+		dequeueSize = _pBuf->Dequeue((char*)&strLen, sizeof(strLen));
+		if (dequeueSize != sizeof(strLen))
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
+			throw(dequeueSize);
+		}
+		_remainSize -= dequeueSize;
+
+		if (_remainSize < strLen)
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
+			throw(_remainSize);
+		}
+
+		if (strLen > str.size())
+		{
+			str.resize(strLen);
+		}
+
+
+		dequeueSize = _pBuf->Dequeue((char*)str.data(), strLen);
+		if (dequeueSize != strLen)
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
+			throw(dequeueSize);
+		}
+		_remainSize -= dequeueSize;
+
+		return *this;
+	}
+
+	CRecvBuffer& operator >> (WString& wStr)
+	{
+		USHORT strLen;
+		int dequeueSize;
+
+
+		if (_remainSize < sizeof(strLen))
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
+			throw(_remainSize);
+		}
+
+		dequeueSize = _pBuf->Dequeue((char*)&strLen, sizeof(strLen));
+		if (dequeueSize != sizeof(strLen))
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
+			throw(dequeueSize);
+		}
+		_remainSize -= dequeueSize;
+
+		if (_remainSize < strLen*2)
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
+			throw(_remainSize);
+		}
+
+		if (strLen > wStr.size())
+		{
+			wStr.resize(strLen);
+		}
+
+
+		dequeueSize = _pBuf->Dequeue((char*)wStr.data(), strLen*2);
+		if (dequeueSize != strLen)
+		{
+			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
+			throw(dequeueSize);
+		}
+		_remainSize -= dequeueSize;
+
+		return *this;
+	}
 };

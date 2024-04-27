@@ -1,16 +1,13 @@
 #include "DBManager.h"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/error/en.h"
 #include "GetMyThreadID.h"
-using namespace rapidjson;
+#include "ParseJson.h"
 DBManager::DBManager(std::string DBSetFile, int maxThreadCnt)
 {
 	if (InterlockedExchange8(&_bInitialLock, true) == false)
 	{
 		InitializeSRWLock(&_DBInitialLock);
 	}
+	GetDBSetValue(DBSetFile);
 	_maxConnection = maxThreadCnt;
 	_DBConnections = new DBConnection[_maxConnection];
 }
@@ -20,20 +17,7 @@ DBManager::~DBManager()
 }
 void DBManager::GetDBSetValue(std::string DBSetFile)
 {
-	Document DBSetValues;
-	std::ifstream fin(DBSetFile);
-	if (!fin)
-	{
-		Log::LogOnFile(Log::SYSTEM_LEVEL, "there is no %s\n", DBSetFile.data());
-		DebugBreak();
-	}
-	std::string json((std::istreambuf_iterator<char>(fin)), (std::istreambuf_iterator<char>()));
-	fin.close();
-	rapidjson::ParseResult parseResult = DBSetValues.Parse(json.data());
-	if (!parseResult) {
-		fprintf(stderr, "JSON parse error: %s (%d)", GetParseError_En(parseResult.Code()), parseResult.Offset());
-		exit(EXIT_FAILURE);
-	}
+	Document DBSetValues=ParseJson(DBSetFile);
 	DB_IP = DBSetValues["DB_IP"].GetString();
 	DB_USER = DBSetValues["DB_USER"].GetString();
 	DB_PASSWORD = DBSetValues["DB_PASSWORD"].GetString();

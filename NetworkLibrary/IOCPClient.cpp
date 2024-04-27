@@ -4,18 +4,14 @@
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/error/en.h"
 #include<conio.h>
 #include<memory.h>
 #include "NetworkHeader.h"
 #include "Log.h"
 #include "MyNew.h"
 #include "JobQueue.h"
+#include "ParseJson.h"
 //#include "Log.h"
-using namespace rapidjson;
 
 HANDLE IOCPClient::CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
 {
@@ -42,38 +38,22 @@ void IOCPClient::DropIoPending(SessionInfo sessionInfo)
 	}
 }
 
-void IOCPClient::GetSeverSetValues()
+void IOCPClient::GetClientSetValues(std::string settingFileName)
 {
-	std::ifstream fin(_settingFileName);
-	if (!fin)
-	{
-		Log::LogOnFile(Log::SYSTEM_LEVEL, "there is no %s\n", _settingFileName.data());
-		DebugBreak();
-	}
-	std::string json((std::istreambuf_iterator<char>(fin)), (std::istreambuf_iterator<char>()));
-	fin.close();
-	Document d;
-	rapidjson::ParseResult parseResult = d.Parse(json.data());
-	if (!parseResult) {
-		fprintf(stderr, "JSON parse error: %s (%d)", GetParseError_En(parseResult.Code()), parseResult.Offset());
-		exit(EXIT_FAILURE);
-	}
-
-	IOCP_THREAD_NUM = d["IOCP_THREAD_NUM"].GetInt();
-	CONCURRENT_THREAD_NUM = d["CONCURRENT_THREAD_NUM"].GetInt();
-	SERVER_IP = d["SERVER_IP"].GetString();
-	SERVER_PORT = d["SERVER_PORT"].GetInt();
-	PACKET_CODE = d["PACKET_CODE"].GetInt();
-	PACKET_KEY = d["PACKET_KEY"].GetInt();
-	LOG_LEVEL = d["LOG_LEVEL"].GetInt();
+	Document clientSetValues = ParseJson(settingFileName);
+	IOCP_THREAD_NUM = clientSetValues["IOCP_THREAD_NUM"].GetInt();
+	CONCURRENT_THREAD_NUM = clientSetValues["CONCURRENT_THREAD_NUM"].GetInt();
+	SERVER_IP = clientSetValues["SERVER_IP"].GetString();
+	SERVER_PORT = clientSetValues["SERVER_PORT"].GetInt();
+	PACKET_CODE = clientSetValues["PACKET_CODE"].GetInt();
+	PACKET_KEY = clientSetValues["PACKET_KEY"].GetInt();
+	LOG_LEVEL = clientSetValues["LOG_LEVEL"].GetInt();
 
 	return;
 }
 
 void IOCPClient::ClientSetting()
 {
-	GetSeverSetValues();
-
 	timeBeginPeriod(1);
 	WSADATA wsa;
 
@@ -608,8 +588,7 @@ void IOCPClient::IOCPWork()
 			}
 			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
 			{
-				((JobQueue*)pSession)->ProcessJob();
-				((JobQueue*)pSession)->_owner = nullptr;
+				ProcessJob((JobQueue*)pSession);
 			}
 			else if (pOverlapped == (LPOVERLAPPED)REQUEST_CONNECT)
 			{
@@ -660,7 +639,18 @@ void IOCPClient::SetMaxPayloadLen(int len)
 
 void IOCPClient::PostJob(JobQueue* pJobQueue)
 {
-	PostQueuedCompletionStatus(_hcp, PROCESS_JOB, (ULONG_PTR)pJobQueue, (LPOVERLAPPED)PROCESS_JOB);
+	pJobQueue->_selfPtrQueue.push(pJobQueue->shared_from_this());
+	bool ret = PostQueuedCompletionStatus(_hcp, PROCESS_JOB, (ULONG_PTR)PROCESS_JOB, (LPOVERLAPPED)PROCESS_JOB);
+	if (ret == false)
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestJob error: %d\n", WSAGetLastError());
+	}
+}
+
+void IOCPClient::ProcessJob(JobQueue* pJobQueue)
+{
+	pJobQueue->ProcessJob();
+	pJobQueue->_selfPtrQueue.pop();
 }
 
 

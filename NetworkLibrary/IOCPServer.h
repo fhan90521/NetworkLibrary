@@ -7,13 +7,13 @@
 #include "MyStlContainer.h"
 #include<process.h>
 #include <type_traits>
+#include "LockQueue.h"
 class IOCPServer
 {
 private:
 	void DropIoPending(SessionInfo sessionInfo);
 	void GetSeverSetValues(std::string settingFileName);
 	void ServerSetting();
-	void CloseServer();
 	HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
 	BOOL AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDLE hDevice, ULONG_PTR dwCompletionKey);
 
@@ -70,14 +70,13 @@ private:
 	LONG _sendCnt = 0;
 	LONG _recvCnt = 0;
 public:
-	IOCPServer(std::string settingFileName = "ServerSetting.json", bool bWan=true) : _bWan(bWan)
+	IOCPServer(std::string settingFileName, bool bWan=true) : _bWan(bWan)
 	{
 		GetSeverSetValues(settingFileName);
 		ServerSetting();
 	}
 	virtual ~IOCPServer()
 	{
-		CloseServer();
 	}
 	
 	CHAR _bShutdown = false;
@@ -85,7 +84,7 @@ public:
 	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf, bool bDisconnect=false);
 	void Disconnect(SessionInfo sessionInfo);
 	bool GetClientIp(SessionInfo sessionInfo, String& outPar);
-
+	void CloseServer();
 protected:
 	void IOCPRun();
 	virtual bool OnAcceptRequest(const char* ip,USHORT port)=0;
@@ -127,5 +126,6 @@ public:
 private: 
 	friend class JobQueue;
 	void PostJob(JobQueue* pJobQueue);
+	void ProcessJob(JobQueue* pJobQueue);
 };
 

@@ -4,18 +4,14 @@
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/error/en.h"
 #include<conio.h>
 #include<memory.h>
 #include "NetworkHeader.h"
 #include "Log.h"
 #include "MyNew.h"
 #include "JobQueue.h"
+#include "ParseJson.h"
 //#include "Log.h"
-using namespace rapidjson;
 
 HANDLE IOCPServer::CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
 {
@@ -44,20 +40,7 @@ void IOCPServer::DropIoPending(SessionInfo sessionInfo)
 
 void IOCPServer::GetSeverSetValues(std::string settingFileName)
 {
-	Document serverSetValues;
-	std::ifstream fin(settingFileName);
-	if (!fin)
-	{
-		Log::LogOnFile(Log::SYSTEM_LEVEL,"there is no %s\n", settingFileName.data());
-		DebugBreak();
-	}
-	std::string json((std::istreambuf_iterator<char>(fin)), (std::istreambuf_iterator<char>()));
-	fin.close();
-	rapidjson::ParseResult parseResult = serverSetValues.Parse(json.data());
-	if (!parseResult) {
-		fprintf(stderr, "JSON parse error: %s (%d)",GetParseError_En(parseResult.Code()), parseResult.Offset());
-		exit(EXIT_FAILURE);
-	}
+	Document serverSetValues = ParseJson(settingFileName);
 
 	IOCP_THREAD_NUM = serverSetValues["IOCP_THREAD_NUM"].GetInt();
 	
@@ -737,8 +720,7 @@ void IOCPServer::IOCPWork()
 			}
 			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
 			{
-				((JobQueue*)pSession)->ProcessJob();
-				((JobQueue*)pSession)->_owner = nullptr;
+				ProcessJob((JobQueue*)pSession);
 			}
 			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
 			{
@@ -887,12 +869,18 @@ unsigned __stdcall IOCPServer::ReserveDisconnectManageThreadFunc(LPVOID arg)
 
 void IOCPServer::PostJob(JobQueue* pJobQueue)
 {
+	pJobQueue->_selfPtrQueue.push(pJobQueue->shared_from_this());
 	bool ret = PostQueuedCompletionStatus(_hcp, PROCESS_JOB, (ULONG_PTR)pJobQueue, (LPOVERLAPPED)PROCESS_JOB);
 	if (ret == false)
 	{
-		pJobQueue->_owner = nullptr;
-		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestSend error: %d\n", WSAGetLastError());
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestJob error: %d\n", WSAGetLastError());
 	}
+}
+
+void IOCPServer::ProcessJob(JobQueue* pJobQueue)
+{
+	pJobQueue->ProcessJob();
+	pJobQueue->_selfPtrQueue.pop();
 }
 
 

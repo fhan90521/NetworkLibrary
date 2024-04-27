@@ -8,16 +8,17 @@
 #include "MyStlContainer.h"
 class JobQueue: public std::enable_shared_from_this<JobQueue>
 {
-protected:
+private:
 	friend class IOCPServer;
 	friend class IOCPClient;
-	SharedPtr<JobQueue> _owner=nullptr;
 	IOCPServer* _pServer = nullptr;
 	IOCPClient* _pClient = nullptr;
+	Queue<SharedPtr<JobQueue>> _selfPtrQueue;
+	LockFreeQueue<Job*> _jobQueue;
 	char _bProcessing = false;
 	LONG _processedJobCnt = 0;
-	LockFreeQueue<Job*> _jobQueue;
 	void ProcessJob();
+protected:
 	bool GetPopAuthority();
 	virtual ~JobQueue();
 	JobQueue(IOCPServer* pServer) :_pServer(pServer) {};
@@ -47,12 +48,10 @@ public:
 		{
 			if (_pServer)
 			{
-				_owner = shared_from_this();
 				_pServer->PostJob(this);
 			}
 			else if (_pClient)
 			{
-				_owner = shared_from_this();
 				_pClient->PostJob(this);
 			}
 		}
@@ -65,12 +64,10 @@ public:
 		{
 			if (_pServer)
 			{
-				_owner = shared_from_this();
 				_pServer->PostJob(this);
 			}
 			else if (_pClient)
 			{
-				_owner = shared_from_this();
 				_pClient->PostJob(this);
 			}
 		}

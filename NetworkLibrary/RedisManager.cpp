@@ -1,24 +1,21 @@
 #include "RedisManager.h"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/error/en.h"
 #include "Log.h"
 #include "GetMyThreadID.h"
-using namespace rapidjson;
+#include "ParseJson.h"
 cpp_redis::client* RedisManager::GetRedisConnection()
 {
 	RedisConnection& redisConnection=_redisConnections[GetMyThreadID()];
 	if (redisConnection.connection == nullptr)
 	{
 		redisConnection.connection = new cpp_redis::client;
-		redisConnection.connection->connect();
+		redisConnection.connection->connect(REDIS_IP,REDIS_PORT);
 	}
 	return redisConnection.connection;
 }
 
 RedisManager::RedisManager(std::string RedisSetFile, int maxThreadCnt)
 {
+	GetRedisSetValue(RedisSetFile);
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
@@ -38,19 +35,6 @@ RedisManager::~RedisManager()
 
 void RedisManager::GetRedisSetValue(std::string RedisSetFile)
 {
-	Document RedisSetValues;
-	std::ifstream fin(RedisSetFile);
-	if (!fin)
-	{
-		Log::LogOnFile(Log::SYSTEM_LEVEL, "there is no %s\n", RedisSetFile.data());
-		DebugBreak();
-	}
-	std::string json((std::istreambuf_iterator<char>(fin)), (std::istreambuf_iterator<char>()));
-	fin.close();
-	rapidjson::ParseResult parseResult = RedisSetValues.Parse(json.data());
-	if (!parseResult) {
-		fprintf(stderr, "JSON parse error: %s (%d)", GetParseError_En(parseResult.Code()), parseResult.Offset());
-		exit(EXIT_FAILURE);
-	}
+	Document RedisSetValues=ParseJson(RedisSetFile);
 	REDIS_IP = RedisSetValues["REDIS_IP"].GetString();
 }
