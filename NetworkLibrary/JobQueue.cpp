@@ -35,7 +35,14 @@ void JobQueue::ProcessJob()
 	InterlockedExchange8(&_bProcessing, false);
 	if (GetPopAuthority() == true)
 	{
-		_pServer->PostJob(this);
+		if (_pServer)
+		{
+			_pServer->PostJob(this);
+		}
+		else if (_pClient)
+		{
+			_pClient->PostJob(this);
+		}
 	}
 }
 bool JobQueue::GetPopAuthority()
