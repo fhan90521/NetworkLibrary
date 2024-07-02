@@ -24,6 +24,7 @@ void JobQueue::ProcessJob()
 {
 	Job* pJob = nullptr;
 	int qSize = _jobQueue.Size();
+	_currentTime = GetTickCount64();
 	for (int i = 0; i < qSize; i++)
 	{
 		_jobQueue.Dequeue(&pJob);
@@ -37,7 +38,6 @@ void JobQueue::ProcessJob()
 		_pServer->PostJob(this);
 	}
 }
-
 bool JobQueue::GetPopAuthority()
 {
 	while (1)

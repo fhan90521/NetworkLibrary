@@ -19,6 +19,7 @@ private:
 	LONG _processedJobCnt = 0;
 	void ProcessJob();
 protected:
+	ULONG64 _currentTime = 0;
 	bool GetPopAuthority();
 	virtual ~JobQueue();
 	JobQueue(IOCPServer* pServer) :_pServer(pServer) {};

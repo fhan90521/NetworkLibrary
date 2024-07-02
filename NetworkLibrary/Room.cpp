@@ -41,7 +41,6 @@ void Room::Leave(SessionInfo sessionInfo)
 }
 void Room::UpdateJob()
 {
-	_currentTime = GetTickCount64();
 	Update();
 	_prevUpdateTime = _currentTime;
 	_bUpdating = false;
@@ -53,6 +52,7 @@ Room::~Room()
 }
 Room::Room(IOCPServer* pServer) : JobQueue(pServer)
 {
+	_prevUpdateTime = GetTickCount64();
 	RoomManager::GetInstance()->RegisterRoom(this);
 }
 void Room::EnterRoom(SessionInfo sessionInfo)

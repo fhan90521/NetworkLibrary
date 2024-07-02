@@ -15,7 +15,6 @@ private:
 	void TryEnter(SessionInfo sessionInfo);
 	void Leave(SessionInfo sessionInfo);
 protected:
-	ULONG64 _currentTime = 0;
 	ULONG64 _prevUpdateTime = 0;
 	CHAR _bUpdating = false;
 	void UpdateJob();

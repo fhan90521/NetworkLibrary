@@ -720,7 +720,9 @@ void IOCPServer::IOCPWork()
 			}
 			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
 			{
-				ProcessJob((JobQueue*)pSession);
+				SharedPtr<JobQueue> jobQueue =((JobQueue*)pSession)->_selfPtrQueue.front();
+				jobQueue->_selfPtrQueue.pop();
+				jobQueue->ProcessJob();
 			}
 			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
 			{
@@ -877,11 +879,6 @@ void IOCPServer::PostJob(JobQueue* pJobQueue)
 	}
 }
 
-void IOCPServer::ProcessJob(JobQueue* pJobQueue)
-{
-	pJobQueue->ProcessJob();
-	pJobQueue->_selfPtrQueue.pop();
-}
 
 
 

@@ -588,7 +588,9 @@ void IOCPClient::IOCPWork()
 			}
 			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
 			{
-				ProcessJob((JobQueue*)pSession);
+				SharedPtr<JobQueue> jobQueue = ((JobQueue*)pSession)->_selfPtrQueue.front();
+				jobQueue->_selfPtrQueue.pop();
+				jobQueue->ProcessJob();
 			}
 			else if (pOverlapped == (LPOVERLAPPED)REQUEST_CONNECT)
 			{
@@ -645,12 +647,6 @@ void IOCPClient::PostJob(JobQueue* pJobQueue)
 	{
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestJob error: %d\n", WSAGetLastError());
 	}
-}
-
-void IOCPClient::ProcessJob(JobQueue* pJobQueue)
-{
-	pJobQueue->ProcessJob();
-	pJobQueue->_selfPtrQueue.pop();
 }
 
 
