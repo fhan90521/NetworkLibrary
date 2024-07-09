@@ -162,7 +162,6 @@ void IOCPClient::ReleaseSession()
 	_session.bReservedDisconnect = false;
 	_session.recvBuffer.ClearBuffer();
 	InterlockedExchange8(&_session.onConnecting, true);
-	InterlockedExchange16(&_bConnecting, false);
 	OnDisconnect(sessionInfo);
 }
 
@@ -372,23 +371,7 @@ void IOCPClient::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisco
 	return;
 }
 
-bool IOCPClient::Connect()
-{
-	if (InterlockedCompareExchange16(&_bConnecting, true,false) == false)
-	{
-		bool retPQCS = PostQueuedCompletionStatus(_hcp, REQUEST_CONNECT, (ULONG_PTR)REQUEST_CONNECT, (LPOVERLAPPED)REQUEST_CONNECT);
-		if (retPQCS == false)
-		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "PQCS REQUEST_CONNECT error: %d\n", WSAGetLastError());
-			InterlockedExchange16(&_bConnecting, false);
-			return false;
-		}
-		return true;
-	}
-	return false;
-}
-
-void IOCPClient::ConnectWork()
+bool IOCPClient::Connect(SessionInfo& newSessionInfo)
 {
 	SOCKET serverSock = socket(AF_INET, SOCK_STREAM, 0);
 	sockaddr_in serverAddr;
@@ -400,14 +383,14 @@ void IOCPClient::ConnectWork()
 	if (retConnect == SOCKET_ERROR)
 	{
 		int error = WSAGetLastError();
-		Log::LogOnFile(Log::SYSTEM_LEVEL,"connect fail: %d", error);
-		InterlockedExchange16(&_bConnecting, false);
-		OnConnectFail(error);
-		return;
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "connect fail: %d", error);
+		return false;
 	}
 	InitializeSession(serverSock);
+	newSessionInfo = _session.sessionInfo;
 	OnConnect(_session.sessionInfo);
 	RecvPost();
+	return true;
 }
 
 void IOCPClient::Disconnect(SessionInfo sessionInfo)
@@ -591,10 +574,6 @@ void IOCPClient::IOCPWork()
 				SharedPtr<JobQueue> jobQueue = ((JobQueue*)pSession)->_selfPtrQueue.front();
 				jobQueue->_selfPtrQueue.pop();
 				jobQueue->ProcessJob();
-			}
-			else if (pOverlapped == (LPOVERLAPPED)REQUEST_CONNECT)
-			{
-				ConnectWork();
 			}
 			else if (pOverlapped == (LPOVERLAPPED)CLIENT_DOWN)
 			{

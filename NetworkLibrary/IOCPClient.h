@@ -27,7 +27,6 @@ private:
 	void RecvCompletionRoutine();
 	void SendCompletionRoutine();
 	void RequestSendCompletionRoutine();
-	void ConnectWork();
 
 	void IOCPWork();
 	static unsigned __stdcall IOCPWorkThreadFunc(LPVOID arg);
@@ -42,7 +41,6 @@ private:
 	enum IOCP_KEY
 	{
 		CLIENT_DOWN = 100,
-		REQUEST_CONNECT,
 		REQUEST_SEND,
 		PROCESS_JOB
 	};
@@ -67,7 +65,7 @@ private:
 	LONG _sendCnt = 0;
 	LONG _recvCnt = 0;
 public:
-	IOCPClient(std::string settingFileName, bool bWan = true) : _bWan(bWan), _settingFileName(settingFileName)
+	IOCPClient(std::string settingFileName="ClientSettingFile.json", bool bWan = true) : _bWan(bWan), _settingFileName(settingFileName)
 	{
 		GetClientSetValues(settingFileName);
 		ClientSetting();
@@ -81,19 +79,16 @@ public:
 protected:
 	void IOCPRun();
 	virtual void OnConnect(SessionInfo sessionInfo) = 0;
-	virtual void OnConnectFail(int error) = 0;
 	virtual void OnDisconnect(SessionInfo sessionInfo) = 0;
 	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf) = 0;
 	virtual void Run() = 0;
 public:
-	bool Connect();
+	bool Connect(SessionInfo& newSessionInfo);
 	int GetRecvCnt();
 	int GetSendCnt();
 	void	 SetMaxPayloadLen(int len);
-private:
-	SHORT _bConnecting = false;
-
 //Job
+private:
 	friend class JobQueue;
 	void PostJob(JobQueue* pJobQueue);
 };
