@@ -388,7 +388,6 @@ bool IOCPClient::Connect(SessionInfo& newSessionInfo)
 	}
 	InitializeSession(serverSock);
 	newSessionInfo = _session.sessionInfo;
-	OnConnect(_session.sessionInfo);
 	RecvPost();
 	return true;
 }
