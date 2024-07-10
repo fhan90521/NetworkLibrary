@@ -39,10 +39,6 @@ void JobQueue::ProcessJob()
 		{
 			_pServer->PostJob(this);
 		}
-		else if (_pClient)
-		{
-			_pClient->PostJob(this);
-		}
 	}
 }
 bool JobQueue::GetPopAuthority()
