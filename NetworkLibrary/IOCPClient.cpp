@@ -9,7 +9,6 @@
 #include "NetworkHeader.h"
 #include "Log.h"
 #include "MyNew.h"
-#include "JobQueue.h"
 #include "ParseJson.h"
 //#include "Log.h"
 
@@ -23,11 +22,10 @@ BOOL IOCPClient::AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDL
 	HANDLE hcp = CreateIoCompletionPort(hDevice, hCompletionPort, dwCompletionKey, 0);
 	return (hcp == hCompletionPort);
 }
-
-void IOCPClient::DropIoPending(SessionInfo sessionInfo)
+void IOCPClient::DropIoPending()
 {
 
-	if (IsSessionAvailable(sessionInfo)==false)
+	if (IsSessionAvailable()==false)
 	{
 		return;
 	}
@@ -37,7 +35,6 @@ void IOCPClient::DropIoPending(SessionInfo sessionInfo)
 		ReleaseSession();
 	}
 }
-
 void IOCPClient::GetClientSetValues(std::string settingFileName)
 {
 	Document clientSetValues = ParseJson(settingFileName);
@@ -48,10 +45,8 @@ void IOCPClient::GetClientSetValues(std::string settingFileName)
 	PACKET_CODE = clientSetValues["PACKET_CODE"].GetInt();
 	PACKET_KEY = clientSetValues["PACKET_KEY"].GetInt();
 	LOG_LEVEL = clientSetValues["LOG_LEVEL"].GetInt();
-
 	return;
 }
-
 void IOCPClient::ClientSetting()
 {
 	timeBeginPeriod(1);
@@ -88,8 +83,7 @@ void IOCPClient::ClientSetting()
 		DebugBreak();
 	};
 }
-
-bool IOCPClient::IsSessionAvailable(SessionInfo sessionInfo)
+bool IOCPClient::IsSessionAvailable()
 {
 	InterlockedIncrement16(&_session.sessionManageInfo.refCnt);
 	if (_session.sessionManageInfo.bDeallocated == true)
@@ -101,29 +95,13 @@ bool IOCPClient::IsSessionAvailable(SessionInfo sessionInfo)
 		}
 		return false;
 	}
-
-	//Release가 안되고 있다->bDeallocated==false case 1. 그냥 사용 정상인경우 , case 2 Release가 되고 또 이미 다른id로 사용된다 <-문제 b.
-	if (_session.sessionInfo.id != sessionInfo.id)
-	{
-		if (InterlockedDecrement16(&_session.sessionManageInfo.refCnt) == 0)
-		{
-			ReleaseSession();
-		}
-		return false;
-	}
 	return true;
 }
-
 void  IOCPClient::InitializeSession(SOCKET clientSock)
 {
 	InterlockedIncrement16(&_session.sessionManageInfo.refCnt);
-
-	//문제 b에 의해 먼저 id를 할당하고 bDeallocated 변수를 바꾼다.
-	
-	_session.sessionInfo.id = _newSessionID++;
 	//여기까지 bDeallocated == true이다
 	_session.sessionManageInfo.bDeallocated = false;
-
 	bool ret = AssociateDeviceWithCompletionPort(_hcp, (HANDLE)clientSock, (ULONG_PTR)&_session);
 	if (ret == false)
 	{
@@ -131,15 +109,14 @@ void  IOCPClient::InitializeSession(SOCKET clientSock)
 		DebugBreak();
 	}
 	_session.socket = clientSock;
+	_session.sendBufCnt = 0;
+	_session.bSending = false;
+	_session.bReservedDisconnect = false;
+	_session.recvBuffer.ClearBuffer();
+	InterlockedExchange8(&_session.onConnecting, true);
 }
-
 void IOCPClient::ReleaseSession()
 {
-	/*struct SessionManageInfo
-	{
-		SHORT refCnt = 0;
-		SHORT bDeallocated = true;
-	};*/
 	if (InterlockedCompareExchange((LONG*)&_session.sessionManageInfo, true, 0) != 0)
 	{
 		// refCnt ==0 && bDeallocated == false 이 아닌 경우
@@ -157,14 +134,8 @@ void IOCPClient::ReleaseSession()
 		//OnSend(pSession->sessionInfo, pSession->pSendedBufArr[i]->GetPayLoadSize());
 		(_session.pSendedBufArr[i])->DecrementRefCnt();
 	}
-	_session.sendBufCnt = 0;
-	_session.bSending = false;
-	_session.bReservedDisconnect = false;
-	_session.recvBuffer.ClearBuffer();
-	InterlockedExchange8(&_session.onConnecting, true);
-	OnDisconnect(sessionInfo);
+	OnDisconnect();
 }
-
 void IOCPClient::CloseClient()
 {
 	closesocket(_session.socket);
@@ -172,7 +143,6 @@ void IOCPClient::CloseClient()
 	{
 		PostQueuedCompletionStatus(_hcp, CLIENT_DOWN, CLIENT_DOWN, (LPOVERLAPPED)CLIENT_DOWN);
 	}
-
 	int i = 0;
 	for (HANDLE hThread : _hThreadList)
 	{
@@ -190,7 +160,6 @@ void IOCPClient::CloseClient()
 	CloseHandle(_hcp);
 	WSACleanup();
 }
-
 void IOCPClient::RecvPost()
 {
 	if (_session.onConnecting == false)
@@ -243,13 +212,12 @@ void IOCPClient::RecvPost()
 		{
 			if (_session.onConnecting == false)
 			{
-				DropIoPending(sessionInfo);
+				DropIoPending();
 			}
 		}
 	}
 
 }
-
 bool IOCPClient::GetSendAuthority()
 {
 	while (1)
@@ -268,7 +236,6 @@ bool IOCPClient::GetSendAuthority()
 		}
 	}
 }
-
 void IOCPClient::SendPost()
 {
 	WSABUF wsaBufs[MAX_SEND_BUF_CNT];
@@ -307,7 +274,6 @@ void IOCPClient::SendPost()
 		}
 	}
 }
-
 void IOCPClient::RequestSend()
 {
 	InterlockedIncrement16(&_session.sessionManageInfo.refCnt);
@@ -317,10 +283,9 @@ void IOCPClient::RequestSend()
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestSend error: %d\n", WSAGetLastError());
 	}
 }
-
-void IOCPClient::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisconnectAfterSend)
+void IOCPClient::Unicast(CSendBuffer* pBuf, bool bDisconnectAfterSend)
 {
-	if (IsSessionAvailable(sessionInfo) == false)
+	if (IsSessionAvailable() == false)
 	{
 		return;
 	}
@@ -370,8 +335,7 @@ void IOCPClient::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisco
 	}
 	return;
 }
-
-bool IOCPClient::Connect(SessionInfo& newSessionInfo)
+bool IOCPClient::Connect()
 {
 	SOCKET serverSock = socket(AF_INET, SOCK_STREAM, 0);
 	sockaddr_in serverAddr;
@@ -387,14 +351,13 @@ bool IOCPClient::Connect(SessionInfo& newSessionInfo)
 		return false;
 	}
 	InitializeSession(serverSock);
-	newSessionInfo = _session.sessionInfo;
 	RecvPost();
 	return true;
 }
 
-void IOCPClient::Disconnect(SessionInfo sessionInfo)
+void IOCPClient::Disconnect()
 {
-	if (IsSessionAvailable(sessionInfo)==false)
+	if (IsSessionAvailable()==false)
 	{
 		return;
 	}
@@ -470,7 +433,7 @@ void IOCPClient::RecvCompletionRoutine()
 				break;
 			}
 		}
-		OnRecv(_session.sessionInfo, buf);
+		OnRecv(buf);
 		recvCnt++;
 	}
 	InterlockedAdd(&_recvCnt, recvCnt);
@@ -495,7 +458,7 @@ void IOCPClient::SendCompletionRoutine()
 	{
 		if (_session.sendBufQ.Size() == 0 && _session.bReservedDisconnect==true)
 		{
-			Disconnect(_session.sessionInfo);
+			Disconnect();
 		}
 	}
 	if (InterlockedDecrement16(&_session.sessionManageInfo.refCnt) == 0)
@@ -503,7 +466,6 @@ void IOCPClient::SendCompletionRoutine()
 		ReleaseSession();
 	}
 }
-
 void IOCPClient::RequestSendCompletionRoutine()
 {
 	SendPost();
@@ -568,12 +530,6 @@ void IOCPClient::IOCPWork()
 			{
 				RequestSendCompletionRoutine();
 			}
-			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
-			{
-				SharedPtr<JobQueue> jobQueue = ((JobQueue*)pSession)->_selfPtrQueue.front();
-				jobQueue->_selfPtrQueue.pop();
-				jobQueue->ProcessJob();
-			}
 			else if (pOverlapped == (LPOVERLAPPED)CLIENT_DOWN)
 			{
 				break;
@@ -615,16 +571,6 @@ void IOCPClient::SetMaxPayloadLen(int len)
 {
 	PAYLOAD_MAX_LEN = len;
 	return;
-}
-
-void IOCPClient::PostJob(JobQueue* pJobQueue)
-{
-	pJobQueue->_selfPtrQueue.push(pJobQueue->shared_from_this());
-	bool ret = PostQueuedCompletionStatus(_hcp, PROCESS_JOB, (ULONG_PTR)PROCESS_JOB, (LPOVERLAPPED)PROCESS_JOB);
-	if (ret == false)
-	{
-		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestJob error: %d\n", WSAGetLastError());
-	}
 }
 
 

@@ -12,9 +12,7 @@
 class IOCPClient
 {
 private:
-	void DropIoPending(SessionInfo sessionInfo);
-	void GetClientSetValues(std::string settingFileName);
-	void ClientSetting();
+	void DropIoPending();
 	HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
 	BOOL AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDLE hDevice, ULONG_PTR dwCompletionKey);
 
@@ -32,7 +30,7 @@ private:
 	static unsigned __stdcall IOCPWorkThreadFunc(LPVOID arg);
 	void CreateThread(_beginthreadex_proc_type pFunction);
 
-	bool IsSessionAvailable(SessionInfo sessionInfo);
+	bool IsSessionAvailable();
 	void InitializeSession(SOCKET clientSock);
 	void ReleaseSession();
 private:
@@ -41,9 +39,9 @@ private:
 	enum IOCP_KEY
 	{
 		CLIENT_DOWN = 100,
-		REQUEST_SEND,
-		PROCESS_JOB
+		REQUEST_SEND
 	};
+protected:
 	std::string _settingFileName;
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
@@ -51,12 +49,10 @@ private:
 	int PACKET_KEY = 0;
 	int LOG_LEVEL = 0;
 	int PAYLOAD_MAX_LEN = 300;
-	bool _bWan;
-protected:
 	std::string SERVER_IP;
-	int SERVER_PORT;
+	int SERVER_PORT=0;
 private:
-	DWORD _newSessionID = 0;
+	bool _bWan;
 	HANDLE _hcp = INVALID_HANDLE_VALUE;
 	List<HANDLE> _hThreadList;
 	Session _session;
@@ -65,30 +61,29 @@ private:
 	LONG _sendCnt = 0;
 	LONG _recvCnt = 0;
 public:
-	IOCPClient(std::string settingFileName="ClientSettingFile.json", bool bWan = true) : _bWan(bWan), _settingFileName(settingFileName)
+	IOCPClient(std::string settingFileName, bool bWan=true) : _bWan(bWan), _settingFileName(settingFileName)
 	{
 		GetClientSetValues(settingFileName);
 		ClientSetting();
 	}
+	IOCPClient(bool bWan=true) : _bWan(bWan){}
 	virtual ~IOCPClient()
 	{
 	}
-	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf, bool bDisconnect = false);
-	void Disconnect(SessionInfo sessionInfo);
+	void Unicast(CSendBuffer* buf, bool bDisconnect = false);
+	void Disconnect();
 	void CloseClient();
 protected:
 	void IOCPRun();
-	virtual void OnDisconnect(SessionInfo sessionInfo) = 0;
-	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf) = 0;
+	virtual void OnDisconnect() = 0;
+	virtual void OnRecv(CRecvBuffer& buf) = 0;
 	virtual void Run() = 0;
+	void GetClientSetValues(std::string settingFileName);
+	void ClientSetting();
 public:
-	bool Connect(SessionInfo& newSessionInfo);
+	bool Connect();
 	int GetRecvCnt();
 	int GetSendCnt();
-	void	 SetMaxPayloadLen(int len);
-//Job
-private:
-	friend class JobQueue;
-	void PostJob(JobQueue* pJobQueue);
+	void	SetMaxPayloadLen(int len);
 };
 

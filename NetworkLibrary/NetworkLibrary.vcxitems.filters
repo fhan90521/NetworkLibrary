@@ -40,7 +40,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)DBManager.cpp">
       <Filter>DB</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RoomManager.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem.cpp">
       <Filter>Room</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)RedisManager.cpp">
@@ -174,7 +174,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)DBManager.h">
       <Filter>DB</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RoomManager.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h">
       <Filter>Room</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)RedisManager.h">

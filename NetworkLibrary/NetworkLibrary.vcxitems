@@ -29,7 +29,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)RedisManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)RoomManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
@@ -41,7 +41,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RedisManager.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)RoomManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeMemoryPool.h" />

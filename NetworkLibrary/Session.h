@@ -36,6 +36,7 @@ struct SessionManageInfo
 	SHORT bDeallocated = true;
 	SHORT refCnt = 0;
 };
+
 struct Session
 {
 	SOCKET socket;

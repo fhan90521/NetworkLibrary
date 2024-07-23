@@ -207,7 +207,7 @@ public:
 
 
 		dequeueSize = _pBuf->Dequeue((char*)wStr.data(), strLen*2);
-		if (dequeueSize != strLen)
+		if (dequeueSize != strLen*2)
 		{
 			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
 			throw(dequeueSize);

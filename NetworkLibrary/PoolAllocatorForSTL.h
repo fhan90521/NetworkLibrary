@@ -1,51 +1,30 @@
 #pragma once
 #pragma warning(disable : 4267)
 #include "Malloc.h"
-template <class T>
+#include <cstddef>
+
+template<typename T>
 class PoolAllocatorForSTL
 {
 public:
+	using value_type = T;
 
-	typedef std::size_t size_type;
-	typedef std::ptrdiff_t difference_type;
-	typedef T* pointer;
-	typedef const T* const_pointer;
-	typedef T& reference;
-	typedef const T& const_reference;
-	typedef T value_type;
+	PoolAllocatorForSTL() { }
 
-	PoolAllocatorForSTL() = default;
+	template<typename Other>
+	PoolAllocatorForSTL(const PoolAllocatorForSTL<Other>&) { }
 
-	template <class U>
-	struct rebind
-	{
-		typedef PoolAllocatorForSTL<U> other;
-	};
-	template<typename U>
-	PoolAllocatorForSTL(const PoolAllocatorForSTL<U>& other) {};
-
-
-	pointer allocate(size_type n)
+	T* allocate(size_t count)
 	{
 		//std::cout << typeid(T).name() << std::endl;
 		//std::cout << sizeof(T)* n<<std::endl;
-		T* ret = (T*)(Malloc(sizeof(T) * n));
+		T* ret = (T*)(Malloc(sizeof(T) * count));
 		return ret;
 	}
 
-	void deallocate(pointer p, size_type n)
+	void deallocate(T* p, size_t n)
 	{
 		Free(p);
-	}
-
-	void construct(pointer p, const_reference val)
-	{
-		new (p) T(val);
-	}
-
-	void destroy(pointer p)
-	{
-		p->~T();
 	}
 };
 

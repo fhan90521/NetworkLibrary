@@ -29,7 +29,8 @@ while True:
     line = line.replace('\n','')
     if line == '{':
         break
-
+#c++ 기본타입
+basic_type = ["int","unsigned int","short", "unsigned short","long","unsigned long","long long","unsigned long long","bool","char","unsigned char","float","double","ULONG64", "LONG64"]
 #함수 한 줄씩 읽기
 while True:
     one_func_parameters_type=[]
@@ -69,7 +70,6 @@ while True:
     every_func_name.append(func_name)
   
     parameters = line[1].split(',')
-    print(parameters)
     for parameter in parameters:
         parameter = parameter.split(' ')
         temp=[]
@@ -141,8 +141,9 @@ for i in range(0,len(every_func_name)):
     tail=''
     for j in range(0,len(parameters_name)):
         tail+=', '
-        tail+=parameters_type[j]    
-        if parameters_type[j] in registered_classes or "Array" in parameters_type[j] or "Vector" in parameters_type[j]:
+        tail+=parameters_type[j]
+        #print(parameters_type[j])
+        if parameters_type[j] not in basic_type:
             tail+='&'        
         tail+=' '
         tail+=parameters_name[j]
@@ -221,15 +222,18 @@ for i in range(0,len(every_func_name)):
     parameters_type=every_func_parameters_type[i]
     tail=''
     for j in range(0,len(parameters_name)):
-        tail+=', '
+        if j!= 0:
+            tail+=', '
         tail+=parameters_type[j]    
-        if parameters_type[j] in registered_classes or "Array" in parameters_type[j] or "Vector" in parameters_type[j]:
-            tail+='&'        
+        if parameters_type[j] not in basic_type:
+            tail+='&'      
         tail+=' '
         tail+=parameters_name[j]
     declaration_tails.append(tail)
-    fout.writelines('\tvoid '+func_name+'(SessionInfo sessionInfo'+tail+', bool bDisconnect = false )'+';\n')
-    fout.writelines('\tvoid '+func_name+'(List<SessionInfo>& sessionInfoList'+tail+', bool bDisconnect = false);\n\n')
+    if len(tail) != 0 :
+        fout.writelines('\tvoid '+func_name +'('+tail+', bool bDisconnect = false )'+';\n')
+    else:
+         fout.writelines('\tvoid '+func_name +'(bool bDisconnect = false )'+';\n')
 fout.writelines('\t'+class_name+'ClientProxy(IOCPClient* pClient)\n')
 fout.writelines('\t{\n')
 fout.writelines('\t\t_pClient=pClient;\n')
@@ -262,19 +266,13 @@ for i in range(0,len(declaration_tails)):
     func_def+='\tcatch(int useSize)\n'
     func_def+='\t{\n'
     func_def+='\t}\n'
-    fout.writelines('void '+class_name+'ClientProxy::'+every_func_name[i]+'(SessionInfo sessionInfo'+declaration_tails[i]+', bool bDisconnect)\n')
+    if len(declaration_tails[i]) != 0:
+        fout.writelines('void '+class_name+'ClientProxy::'+every_func_name[i]+'('+declaration_tails[i]+', bool bDisconnect)\n')
+    else:
+        fout.writelines('void '+class_name+'ClientProxy::'+every_func_name[i]+'(bool bDisconnect)\n')
     fout.writelines(func_def)
-    fout.writelines('\t_pClient->Unicast(sessionInfo, pBuf, bDisconnect);\n')
+    fout.writelines('\t_pClient->Unicast(pBuf, bDisconnect);\n')
     fout.writelines('\tpBuf->DecrementRefCnt();\n}\n')
-    
-    fout.writelines('void '+class_name+'ClientProxy::'+every_func_name[i]+'(List<SessionInfo>& sessionInfoList'+declaration_tails[i]+', bool bDisconnect)\n')
-    fout.writelines(func_def)
-    fout.writelines('\tfor(SessionInfo sessionInfo: sessionInfoList)\n')
-    fout.writelines('\t{\n')
-    fout.writelines('\t\t_pClient->Unicast(sessionInfo, pBuf, bDisconnect);\n')
-    fout.writelines('\t}\n')
-    fout.writelines('\tpBuf->DecrementRefCnt();\n')
-    fout.writelines('}\n')
 #fout.writelines('}\n')
 fout.close()
 
@@ -286,8 +284,8 @@ for i in range(0,len(every_func_name)):
         if parameters_type[j] in registered_classes:
             parameters_name[j]=parameters_name[j]+"Ptr"
 
-#Stub.h 작성
-fout= open(class_name+"Stub.h",'wt')
+#ServerStub.h 작성
+fout= open(class_name+"ServerStub.h",'wt')
 fout.writelines('#pragma once'+'\n')
 fout.writelines('#include "Session.h"\n')
 fout.writelines('#include "CRecvBuffer.h"\n')
@@ -298,7 +296,7 @@ for registered_class in registered_classes:
     fout.writelines('#include "'+registered_class+'.h"\n')
 #fout.writelines('namespace ' +name_and_typenum[0]+'\n')
 #fout.writelines('{\n')
-fout.writelines('class '+class_name+'Stub\n')
+fout.writelines('class '+class_name+'ServerStub\n')
 fout.writelines('{\n')
 #fout.writelines('protected:\n')
 #fout.writelines('\tProxy* _pProxy=nullptr;\n')
@@ -315,7 +313,7 @@ for i in range(0,len(every_func_name)):
             proc_declaration+="UniquePtr<"+parameters_type[j]+'>& '
         else:
             proc_declaration+=parameters_type[j]
-            if "Array" in parameters_type[j] or "Vector" in parameters_type[j]:
+            if parameters_type[j] not in basic_type:
                 proc_declaration+="&"    
         proc_declaration+=' '
         proc_declaration+=parameters_name[j]
@@ -328,9 +326,9 @@ fout.writelines('};\n')
 #fout.writelines('}\n')
 fout.close()
 
-#Stub.cpp 작성
-fout= open(class_name+"Stub.cpp",'wt')
-fout.writelines("#include " +' "'+class_name+'Stub.h"\n ')
+#ServerStub.cpp 작성
+fout= open(class_name+"ServerStub.cpp",'wt')
+fout.writelines("#include " +' "'+class_name+'ServerStub.h"\n ')
 fout.writelines('#include "IOCPServer.h"\n')
 fout.writelines('#include <iostream>\n')
 fout.writelines('#include "Log.h"\n')
@@ -341,7 +339,7 @@ for i in range(0,len(every_func_name)):
     func_name=every_func_name[i]
     parameters_name=every_func_parameters_name[i]
     parameters_type=every_func_parameters_type[i]
-    packet_proc_declaration= "bool "+class_name+"Stub::PacketProc"+ func_name +'(SessionInfo sessionInfo, CRecvBuffer& buf)'
+    packet_proc_declaration= "bool "+class_name+"ServerStub::PacketProc"+ func_name +'(SessionInfo sessionInfo, CRecvBuffer& buf)'
     packet_proc_def='{\n'
     for j in range(0,len(parameters_name)):
         if parameters_type[j] in registered_classes:
@@ -378,7 +376,7 @@ for i in range(0,len(every_func_name)):
     fout.writelines(''+packet_proc_declaration+'\n')
     fout.writelines(packet_proc_def+'\n')
 fout.writelines('\n')
-fout.writelines('bool '+class_name+'Stub::PacketProc(SessionInfo sessionInfo, CRecvBuffer& buf)\n')
+fout.writelines('bool '+class_name+'ServerStub::PacketProc(SessionInfo sessionInfo, CRecvBuffer& buf)\n')
 fout.writelines('{\n')
 fout.writelines('\tshort packetType;\n')
 fout.writelines('\ttry\n')
@@ -396,6 +394,130 @@ for i in range(0,len(every_func_name)):
     fout.writelines('\tcase '+'PKT_TYPE_'+func_name+':\n')
     fout.writelines('\t{\n')
     fout.writelines('\t\treturn '+'PacketProc'+func_name+'(sessionInfo,buf);\n')
+    fout.writelines('\t\tbreak;\n')
+    fout.writelines('\t}\n')
+
+fout.writelines('\tdefault:\n')
+fout.writelines('\t{\n')
+fout.writelines('\t\tLog::LogOnFile(Log::DEBUG_LEVEL,"Packet Type not exist error\\n");\n')
+fout.writelines('\t\treturn false;\n')
+fout.writelines('\t\tbreak;\n')
+fout.writelines('\t}\n')
+fout.writelines('\t}\n')
+fout.writelines('}\n')
+fout.close()
+#ClientStub 작성
+#ClientStub.h 작성
+fout= open(class_name+"ClientStub.h",'wt')
+fout.writelines('#pragma once'+'\n')
+fout.writelines('#include "Session.h"\n')
+fout.writelines('#include "CRecvBuffer.h"\n')
+fout.writelines('#include "MakeUnique.h"\n')
+fout.writelines('#include ' +'"MyStlContainer.h"'+'\n')
+fout.writelines('#include' + ' "'+ class_name+'PKT_TYPE.h"\n')
+for registered_class in registered_classes:
+    fout.writelines('#include "'+registered_class+'.h"\n')
+#fout.writelines('namespace ' +name_and_typenum[0]+'\n')
+#fout.writelines('{\n')
+fout.writelines('class '+class_name+'ClientStub\n')
+fout.writelines('{\n')
+#fout.writelines('protected:\n')
+#fout.writelines('\tProxy* _pProxy=nullptr;\n')
+fout.writelines('public:\n')
+for i in range(0,len(every_func_name)):
+    func_name=every_func_name[i]
+    parameters_name=every_func_parameters_name[i]
+    parameters_type=every_func_parameters_type[i]
+    packet_proc_declaration= "bool PacketProc"+func_name +'(CRecvBuffer& buf)'
+    proc_declaration="virtual void Proc"+func_name+'('
+    for j in range(0,len(parameters_name)):
+        if j!= 0:
+            proc_declaration+=', '
+        if parameters_type[j] in registered_classes:
+            proc_declaration+="UniquePtr<"+parameters_type[j]+'>& '
+        else:
+            proc_declaration+=parameters_type[j]
+            if parameters_type[j] not in basic_type:
+                proc_declaration+="&"    
+        proc_declaration+=' '
+        proc_declaration+=parameters_name[j]
+    proc_declaration+=' )'
+    fout.writelines('\t'+packet_proc_declaration+';\n')
+    fout.writelines('\t'+proc_declaration+'{}\n\n')
+fout.writelines('\tbool PacketProc(CRecvBuffer& buf);\n')
+#fout.writelines('\tvoid AttachProxy(Proxy* pProxy);\n')
+fout.writelines('};\n')
+#fout.writelines('}\n')
+fout.close()
+
+#ClientStub.cpp 작성
+fout= open(class_name+"ClientStub.cpp",'wt')
+fout.writelines("#include " +' "'+class_name+'ClientStub.h"\n ')
+fout.writelines('#include <iostream>\n')
+fout.writelines('#include "Log.h"\n')
+fout.writelines('using namespace std;\n')
+#fout.writelines('namespace ' +name_and_typenum[0]+'\n')
+#fout.writelines('{\n')
+for i in range(0,len(every_func_name)):
+    func_name=every_func_name[i]
+    parameters_name=every_func_parameters_name[i]
+    parameters_type=every_func_parameters_type[i]
+    packet_proc_declaration= "bool "+class_name+"ClientStub::PacketProc"+ func_name +'(CRecvBuffer& buf)'
+    packet_proc_def='{\n'
+    for j in range(0,len(parameters_name)):
+        if parameters_type[j] in registered_classes:
+            packet_proc_def+='\t'+"UniquePtr<"+parameters_type[j]+'> '+parameters_name[j]+"= MakeUnique<"+parameters_type[j]+">();\n"
+        else:
+            packet_proc_def+='\t'+parameters_type[j]+' '+parameters_name[j]+';\n'
+    
+    packet_proc_def+='\ttry\n'
+    packet_proc_def+='\t{\n'
+
+    packet_proc_def+='\t\tbuf'  
+    for j in range(0,len(parameters_name)):
+        packet_proc_def+=' >> '+parameters_name[j]
+        if parameters_type[j] in registered_classes:
+            packet_proc_def+=".get()"        
+    packet_proc_def+=';\n'
+    packet_proc_def+='\t}\n'
+    packet_proc_def+='\tcatch(int useSize)\n'
+    packet_proc_def+='\t{\n'
+    packet_proc_def+='\t\t Log::LogOnFile(Log::DEBUG_LEVEL, "PacketProc'+func_name+' error\\n");\n'
+    packet_proc_def+='\t\t return false;\n'
+    packet_proc_def+='\t}\n'
+    packet_proc_def+='\tProc'+func_name+'('
+    for j in range(0,len(parameters_name)):
+        if j!= 0:
+            packet_proc_def+=', '
+        if parameters_type[j] in registered_classes:
+            #packet_proc_def+="move("+ parameters_name[j]+")"
+            packet_proc_def+=parameters_name[j]
+        else:
+            packet_proc_def+=parameters_name[j]
+    packet_proc_def+=');\n'
+    packet_proc_def+='\treturn true;\n'
+    packet_proc_def+='}'
+    fout.writelines(''+packet_proc_declaration+'\n')
+    fout.writelines(packet_proc_def+'\n')
+fout.writelines('\n')
+fout.writelines('bool '+class_name+'ClientStub::PacketProc(CRecvBuffer& buf)\n')
+fout.writelines('{\n')
+fout.writelines('\tshort packetType;\n')
+fout.writelines('\ttry\n')
+fout.writelines('\t{\n')
+fout.writelines('\t\tbuf>>packetType;\n')
+fout.writelines('\t}\n')
+fout.writelines('\tcatch(int remainSize)\n')
+fout.writelines('\t{\n')
+fout.writelines('\t\t return false;\n')
+fout.writelines('\t}\n')
+fout.writelines('\tswitch(packetType)\n')
+fout.writelines('\t{\n')
+for i in range(0,len(every_func_name)):
+    func_name=every_func_name[i]
+    fout.writelines('\tcase '+'PKT_TYPE_'+func_name+':\n')
+    fout.writelines('\t{\n')
+    fout.writelines('\t\treturn '+'PacketProc'+func_name+'(buf);\n')
     fout.writelines('\t\tbreak;\n')
     fout.writelines('\t}\n')
 
