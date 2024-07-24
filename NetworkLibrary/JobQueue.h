@@ -71,16 +71,8 @@ public:
 	{
 		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, std::forward<Args>(args)...));
 	}
-	void ProcJobOnClient()
+	bool PopJob(Job** pJob)
 	{
-		Job* pJob = nullptr;
-		int qSize = _jobQueue.Size();
-		_currentTime = GetTickCount64();
-		for (int i = 0; i < qSize; i++)
-		{
-			_jobQueue.Dequeue(&pJob);
-			pJob->Execute();
-			Delete<Job>(pJob);
-		}
+		return _jobQueue.Dequeue(pJob);
 	}
 };

@@ -21,6 +21,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)GetPOOLID.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
@@ -36,6 +37,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DBManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPClient.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Job.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />

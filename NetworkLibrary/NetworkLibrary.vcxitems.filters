@@ -49,6 +49,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp">
       <Filter>RapidJson</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h">
@@ -182,6 +185,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h">
       <Filter>RapidJson</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h">
+      <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
