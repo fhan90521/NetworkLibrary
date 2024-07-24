@@ -13,7 +13,7 @@ private:
 		LOCK_ROOMS,
 		LOCK_SESSION_TO_ROOM
 	};
-	USE_MUTEXS(2);
+	USE_RECURSIVE_MUTEX(2);
 	friend class Room;
 	std::jthread _roomThread;
 	HashMap<Room::ID,SharedPtr<Room>> _rooms;

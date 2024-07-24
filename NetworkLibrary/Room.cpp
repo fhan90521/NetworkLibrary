@@ -91,12 +91,12 @@ Room::Room(IOCPServer* pServer) : JobQueue(pServer)
 }
 void Room::EnterRoom(SessionInfo sessionInfo)
 {
-	TryDoSync(&Room::TryEnter, sessionInfo);
+	DoAsync(&Room::TryEnter, sessionInfo);
 }
 
 void Room::LeaveRoom(SessionInfo sessionInfo)
 {
-	TryDoSync(&Room::Leave, sessionInfo);
+	DoAsync(&Room::Leave, sessionInfo);
 }
 
 int Room::GetUpdateCnt()

@@ -134,7 +134,7 @@ void RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 			auto roomIter = _rooms.find(sessionRoomID);
 			if (roomIter != _rooms.end())
 			{
-				roomIter->second->TryDoSync(&Room::LeaveRoomSystem,sessionInfo);
+				roomIter->second->DoAsync(&Room::LeaveRoomSystem,sessionInfo);
 			}
 		}
 		_sessionToRoomID.erase(sessionToRoomIDIter);
