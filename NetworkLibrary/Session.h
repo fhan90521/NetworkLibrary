@@ -44,7 +44,7 @@ struct Session
 	SessionManageInfo sessionManageInfo;
 
 	CHAR bReservedDisconnect = false;
-	CHAR onConnecting=true;
+	CHAR onConnecting;
 	CHAR bSending;
 	SHORT sendBufCnt = 0;
 	OVERLAPPED sendOverLapped;

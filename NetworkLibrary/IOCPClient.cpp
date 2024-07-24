@@ -350,6 +350,19 @@ bool IOCPClient::Connect()
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "connect fail: %d", error);
 		return false;
 	}
+
+	struct linger _linger;
+	_linger.l_onoff = 1;
+	_linger.l_linger = 0;
+
+	int ret_linger = setsockopt(serverSock, SOL_SOCKET, SO_LINGER, (char*)&_linger, sizeof(_linger));
+	if (ret_linger == SOCKET_ERROR)
+	{
+		int error = WSAGetLastError();
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "linger error : %d", error);
+		DebugBreak();
+	}
+
 	InitializeSession(serverSock);
 	RecvPost();
 	return true;

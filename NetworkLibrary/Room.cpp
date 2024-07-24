@@ -52,6 +52,10 @@ void Room::Leave(SessionInfo sessionInfo)
 		_sessionsInRoom.erase(iterSession);
 		_sessionCnt--;
 	}
+	else
+	{
+		int a = 10;
+	}
 	//_tryLeaveSessions.push_back(sessionInfo);
 }
 void Room::LeaveRoomSystem(SessionInfo sessionInfo)

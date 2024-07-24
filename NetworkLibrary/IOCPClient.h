@@ -75,6 +75,7 @@ public:
 	void CloseClient();
 protected:
 	void IOCPRun();
+	virtual void OnConnect(SessionInfo sessionInfo) = 0;
 	virtual void OnDisconnect() = 0;
 	virtual void OnRecv(CRecvBuffer& buf) = 0;
 	virtual void Run() = 0;

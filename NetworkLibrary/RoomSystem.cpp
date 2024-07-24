@@ -24,15 +24,16 @@ void RoomSystem::UpdateRooms()
 	{
 		{
 			SHARED_LOCK_IDX(LOCK_ROOMS)
-			LONG64 currentTime = GetTickCount64();
+			ULONG64 currentTime = GetTickCount64();
 			for (auto&  temp: _rooms)
 			{
 				SharedPtr<Room>& pRoom = temp.second;
 				if (pRoom->_bUpdating == false)
 				{
-					LONG64 timeDiff = currentTime - pRoom->_prevUpdateTime;
+					ULONG64 timeDiff = currentTime - pRoom->_prevUpdateTime;
 					if (timeDiff >= _updatePeriod)
 					{
+						pRoom->_bUpdating = true;
 						pRoom->DoAsync(&Room::UpdateJob);
 					}
 				}
