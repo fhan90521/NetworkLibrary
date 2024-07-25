@@ -44,7 +44,7 @@ private:
 	void ReleaseSession(Session* pSession);
 private:
 	const long long EXIT_TIMEOUT = 5000;
-	const long long SENDQ_MAX_LEN = 512;
+	const long long SENDQ_MAX_LEN = 1024;
 protected:
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;

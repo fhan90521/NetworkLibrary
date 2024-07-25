@@ -40,7 +40,7 @@ private:
 	void ReleaseSession(Session* pSession);
 private:
 	const long long EXIT_TIMEOUT = 5000;
-	const long long SENDQ_MAX_LEN = 512;
+	const long long SENDQ_MAX_LEN = 1024;
 	enum IOCP_KEY
 	{
 		SERVER_DOWN = 100,

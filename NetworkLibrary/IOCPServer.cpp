@@ -462,7 +462,6 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisco
 		return;
 	}
 
-
 	if (pSession->sendBufQ.Size() < SENDQ_MAX_LEN)
 	{
 		if (_bWan)
@@ -478,6 +477,7 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisco
 	}
 	else
 	{
+		Log::LogOnFile(Log::DEBUG_LEVEL, "SendQ Buf Over Max\n");
 		InterlockedExchange8(&pSession->onConnecting, false);
 		CancelIo((HANDLE)pSession->socket);
 	}

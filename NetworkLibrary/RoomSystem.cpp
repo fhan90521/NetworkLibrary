@@ -5,7 +5,7 @@ int RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
 	pRoom->_roomID = _newRoomID;
 	pRoom->_pRoomSystem = this;
 	{
-		EXCLUSIVE_LOCK_IDX(LOCK_ROOMS);
+		RECURSIVE_LOCK_IDX(LOCK_ROOMS);
 		_rooms[_newRoomID] = pRoom;
 	}
 	int ret = _newRoomID++;
@@ -14,7 +14,7 @@ int RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
 
 void RoomSystem::DeregisterRoom(int roomID)
 {
-	EXCLUSIVE_LOCK_IDX(LOCK_ROOMS);
+	RECURSIVE_LOCK_IDX(LOCK_ROOMS);
 	_rooms.erase(roomID);
 }
 
@@ -23,7 +23,7 @@ void RoomSystem::UpdateRooms()
 	while (bShutDown==false)
 	{
 		{
-			SHARED_LOCK_IDX(LOCK_ROOMS)
+			RECURSIVE_LOCK_IDX(LOCK_ROOMS)
 			ULONG64 currentTime = GetTickCount64();
 			for (auto&  temp: _rooms)
 			{
@@ -55,13 +55,13 @@ RoomSystem::~RoomSystem()
 
 void RoomSystem::ChangeRoom(SessionInfo sessionInfo, int& beforeRoomID, int& afterRoomID)
 {
-	EXCLUSIVE_LOCK_IDX(LOCK_SESSION_TO_ROOM);
+	RECURSIVE_LOCK_IDX(LOCK_SESSION_TO_ROOM);
 	auto sessionToRoomIDIter=_sessionToRoomID.find(sessionInfo.id);
 	if (sessionToRoomIDIter != _sessionToRoomID.end())
 	{
 		if (sessionToRoomIDIter->second == beforeRoomID)
 		{
-			SHARED_LOCK_IDX(LOCK_ROOMS);
+			RECURSIVE_LOCK_IDX(LOCK_ROOMS);
 			auto beforeRoomIter = _rooms.find(beforeRoomID);
 			auto afterRoomIter = _rooms.find(afterRoomID);
 			if (beforeRoomIter != _rooms.end())
@@ -106,11 +106,11 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 	
 	//어느 룸에도 속해있지 않고 처음 룸에 입장
 	bool ret = false;
-	EXCLUSIVE_LOCK_IDX(LOCK_SESSION_TO_ROOM);
+	RECURSIVE_LOCK_IDX(LOCK_SESSION_TO_ROOM);
 	auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.id);
 	if (sessionToRoomIDIter == _sessionToRoomID.end())
 	{
-		SHARED_LOCK_IDX(LOCK_ROOMS);
+		RECURSIVE_LOCK_IDX(LOCK_ROOMS);
 		auto roomsIter = _rooms.find(roomID);
 		if (roomsIter != _rooms.end())
 		{
@@ -124,12 +124,12 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 
 void RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 {
-	EXCLUSIVE_LOCK_IDX(LOCK_SESSION_TO_ROOM);
+	RECURSIVE_LOCK_IDX(LOCK_SESSION_TO_ROOM);
 	auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.id);
 	if (sessionToRoomIDIter != _sessionToRoomID.end())
 	{
 		{
-			SHARED_LOCK_IDX(LOCK_ROOMS);
+			RECURSIVE_LOCK_IDX(LOCK_ROOMS);
 			int sessionRoomID = sessionToRoomIDIter->second;
 			auto roomIter = _rooms.find(sessionRoomID);
 			if (roomIter != _rooms.end())
