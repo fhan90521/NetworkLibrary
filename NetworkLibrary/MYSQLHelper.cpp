@@ -1,7 +1,7 @@
-#include "DBManager.h"
+#include "MYSQLHelper.h"
 #include "GetMyThreadID.h"
 #include "ParseJson.h"
-DBManager::DBManager(std::string DBSetFile, int maxThreadCnt)
+MYSQLHelper::MYSQLHelper(std::string DBSetFile, int maxThreadCnt)
 {
 	if (InterlockedExchange8(&_bInitialLock, true) == false)
 	{
@@ -9,13 +9,13 @@ DBManager::DBManager(std::string DBSetFile, int maxThreadCnt)
 	}
 	GetDBSetValue(DBSetFile);
 	_maxConnection = maxThreadCnt;
-	_DBConnections = new DBConnection[_maxConnection];
+	_MYSQLConnections = new MYSQLConnection[_maxConnection];
 }
-DBManager::~DBManager()
+MYSQLHelper::~MYSQLHelper()
 {
-	delete[] _DBConnections;
+	delete[] _MYSQLConnections;
 }
-void DBManager::GetDBSetValue(std::string DBSetFile)
+void MYSQLHelper::GetDBSetValue(std::string DBSetFile)
 {
 	Document DBSetValues=ParseJson(DBSetFile);
 	DB_IP = DBSetValues["DB_IP"].GetString();
@@ -24,11 +24,11 @@ void DBManager::GetDBSetValue(std::string DBSetFile)
 	DB_SCHEMA = DBSetValues["DB_SCHEMA"].GetString();
 }
 
-bool DBManager::ConnectDB()
+bool MYSQLHelper::Connect()
 {
 	bool ret = true;
 	AcquireSRWLockExclusive(&_DBInitialLock);
-	DBConnection& dbConnection = _DBConnections[GetMyThreadID()];
+	MYSQLConnection& dbConnection = _MYSQLConnections[GetMyThreadID()];
 	mysql_init(&dbConnection.connection);
 	dbConnection.isConnecting = mysql_real_connect(&dbConnection.connection, DB_IP.data(), DB_USER.data(), DB_PASSWORD.data(), DB_SCHEMA.data(), DB_PORT, (char*)NULL, 0);
 	if (dbConnection.isConnecting == NULL)
@@ -40,20 +40,20 @@ bool DBManager::ConnectDB()
 	return ret;
 }
 
-MYSQL* DBManager::GetDBConnection()
+MYSQL* MYSQLHelper::GetConnection()
 {
-	DBConnection& dbConnection = _DBConnections[GetMyThreadID()];
+	MYSQLConnection& dbConnection = _MYSQLConnections[GetMyThreadID()];
 	
 	if (dbConnection.isConnecting == NULL)
 	{
-		ConnectDB();
+		Connect();
 	}
 	return &dbConnection.connection;
 }
 
-void DBManager::CloseDBConnection()
+void MYSQLHelper::CloseConnection()
 {
-	DBConnection& dbConnection = _DBConnections[GetMyThreadID()];
+	MYSQLConnection& dbConnection = _MYSQLConnections[GetMyThreadID()];
 	mysql_close(&dbConnection.connection);
 	dbConnection.isConnecting = NULL;
 }

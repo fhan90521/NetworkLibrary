@@ -37,7 +37,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp">
       <Filter>Job</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)DBManager.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)MYSQLHelper.cpp">
       <Filter>DB</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem.cpp">
@@ -174,7 +174,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h">
       <Filter>Job</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)DBManager.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)MYSQLHelper.h">
       <Filter>DB</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h">

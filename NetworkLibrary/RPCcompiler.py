@@ -30,7 +30,7 @@ while True:
     if line == '{':
         break
 #c++ 기본타입
-basic_type = ["int","unsigned int","short", "unsigned short","long","unsigned long","long long","unsigned long long","bool","char","unsigned char","float","double","ULONG64", "LONG64"]
+basic_type = ["int","unsigned int","short", "unsigned short","long","unsigned long","long long","unsigned long long","bool","char","unsigned char","float","double","ULONG64", "LONG64","BYTE","INT64","WORD"]
 #함수 한 줄씩 읽기
 while True:
     one_func_parameters_type=[]

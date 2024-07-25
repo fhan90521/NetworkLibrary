@@ -364,6 +364,7 @@ bool IOCPClient::Connect()
 	}
 
 	InitializeSession(serverSock);
+	OnConnect();
 	RecvPost();
 	return true;
 }
