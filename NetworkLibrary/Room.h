@@ -5,6 +5,7 @@
 #include "JobQueue.h"
 #include "MyStlContainer.h"
 #define INVALID_ROOM_ID -1
+#define CHANGING_ROOM_ID -2
 class Room: public JobQueue
 {
 private:
@@ -15,15 +16,13 @@ private:
 	HashSet<SessionInfo::ID>_tryEnterSessions;
 	HashSet<SessionInfo::ID>_sessionsInRoom;
 	CHAR _bUpdating = false;
-	unsigned short _roomID;
+	int _roomID;
 	//List<SessionInfo>_tryLeaveSessions;
 	void ProcessEnter();
 	//void ProcessLeave();
 	void TryEnter(SessionInfo sessionInfo);
-	void Leave(SessionInfo sessionInfo);
+	void Leave(SessionInfo sessionInfo,int afterRoomID);
 	void LeaveRoomSystem(SessionInfo sessionInfo);
-	void EnterRoom(SessionInfo sessionInfo);
-	void LeaveRoom(SessionInfo sessionInfo);
 protected:
 	ULONG64 _prevUpdateTime = 0;
 	void UpdateJob();
@@ -35,7 +34,7 @@ protected:
 	void ChangeRoom(SessionInfo sessionInfo, int& beforeRoomID, int& afterRoomID);
 	//virtual bool RequestLeave(SessionInfo sessionInfo) = 0;
 public:
-	typedef unsigned short ID;
+	typedef int ID;
 	virtual ~Room();
 	Room(IOCPServer* pServer);
 	enum

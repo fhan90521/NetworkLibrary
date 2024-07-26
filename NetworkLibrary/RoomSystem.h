@@ -8,13 +8,9 @@
 class RoomSystem
 {
 private:
-	enum 
-	{
-		LOCK_ROOMS,
-		LOCK_SESSION_TO_ROOM
-	};
-	USE_RECURSIVE_MUTEX(2);
+	USE_RECURSIVE_MUTEX;
 	friend class Room;
+	class IOCPServer* _pServer = nullptr;
 	std::jthread _roomThread;
 	HashMap<Room::ID,SharedPtr<Room>> _rooms;
 	HashMap<SessionInfo::ID, Room::ID> _sessionToRoomID;
@@ -22,6 +18,7 @@ private:
 	int _updatePeriod=30;
 	int _newRoomID = 0;
 	void UpdateRooms();
+	void EnterRoom(SessionInfo sessionInfo,int beforeRoomID ,int afterRoomID);
 	void ChangeRoom(SessionInfo sessionInfo, int& beforeRoomID, int& afterRoomID);
 public:
 	void SetUpdatePeriod(int updatePeriod)
@@ -30,7 +27,7 @@ public:
 	}
 	void LeaveRoomSystem(SessionInfo sessionInfo);
 	bool EnterRoomSystem(SessionInfo sessionInfo, int roomID);
-	RoomSystem();
+	RoomSystem(class IOCPServer* pServer);
 	virtual ~RoomSystem();
 
 	int RegisterRoom(const SharedPtr<Room>& pRoom);

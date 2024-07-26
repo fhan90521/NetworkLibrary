@@ -46,7 +46,7 @@ private:
 #define	EXCLUSIVE_LOCK_IDX(idx)	ExclusiveLockGuard exclusiveLockGuard##idx(_sMutex[idx]);
 #define EXCLUSIVE_LOCK	EXCLUSIVE_LOCK_IDX(0)
 
-#define USE_RECURSIVE_MUTEX(count) std::recursive_mutex _rMutex[count];
-
+#define USE_RECURSIVE_MUTEXS(count) std::recursive_mutex _rMutex[count];
+#define USE_RECURSIVE_MUTEX USE_RECURSIVE_MUTEXS(1);
 #define	RECURSIVE_LOCK_IDX(idx)	RecursiveLockGuard recursiveLockGuard##idx(_rMutex[idx]);
 #define RECURSIVE_LOCK	RECURSIVE_LOCK_IDX(0)

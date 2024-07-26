@@ -42,7 +42,7 @@ void Room::TryEnter(SessionInfo sessionInfo)
 	}
 }
 
-void Room::Leave(SessionInfo sessionInfo)
+void Room::Leave(SessionInfo sessionInfo,int afterRoomID)
 {
 	_tryEnterSessions.erase(sessionInfo.id);
 	auto iterSession = _sessionsInRoom.find(sessionInfo.id);
@@ -51,10 +51,7 @@ void Room::Leave(SessionInfo sessionInfo)
 		OnLeave(sessionInfo);
 		_sessionsInRoom.erase(iterSession);
 		_sessionCnt--;
-	}
-	else
-	{
-		int a = 10;
+		_pRoomSystem->EnterRoom(sessionInfo,GetRoomID(),afterRoomID);
 	}
 	//_tryLeaveSessions.push_back(sessionInfo);
 }
@@ -88,15 +85,6 @@ Room::~Room()
 Room::Room(IOCPServer* pServer) : JobQueue(pServer)
 {
 	_prevUpdateTime = GetTickCount64();
-}
-void Room::EnterRoom(SessionInfo sessionInfo)
-{
-	DoAsync(&Room::TryEnter, sessionInfo);
-}
-
-void Room::LeaveRoom(SessionInfo sessionInfo)
-{
-	DoAsync(&Room::Leave, sessionInfo);
 }
 
 int Room::GetUpdateCnt()
