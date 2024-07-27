@@ -125,6 +125,6 @@ public:
 //Job
 private: 
 	friend class JobQueue;
-	void PostJob(JobQueue* pJobQueue);
+	void PostJob(class JobQueue* pJobQueue);
 };
 
