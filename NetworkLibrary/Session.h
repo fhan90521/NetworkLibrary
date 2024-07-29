@@ -12,13 +12,17 @@ union SessionInfo
 	struct Index
 	{
 	private:
-		unsigned short reserved1;
-		unsigned short reserved2;
-		unsigned short reserved3;
+		USHORT reserved1;
+		USHORT reserved2;
+		USHORT reserved3;
 	public:
-		unsigned short val;
+		USHORT val;
 	};
+private:
+	friend class IOCPServer;
+	friend class IOCPDummyClient;
 	Index index;
+public:
 	unsigned long long id;
 	friend bool operator == (const SessionInfo& left, const SessionInfo& right)
 	{

@@ -60,7 +60,7 @@ protected:
 	std::string BIND_IP;
 private:
 	SOCKET _listenSock=INVALID_SOCKET;
-	DWORD _newSessionID = 0;
+	ULONG64 _newSessionID = 0;
 	HANDLE _hcp=INVALID_HANDLE_VALUE;
 	List<HANDLE> _hThreadList;
 	Session* _sessionArray;

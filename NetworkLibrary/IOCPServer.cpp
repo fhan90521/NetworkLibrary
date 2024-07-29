@@ -168,7 +168,7 @@ Session* IOCPServer::FindSession(SessionInfo sessionInfo)
 Session* IOCPServer::AllocSession(SOCKET clientSock)
 {
 
-	unsigned short index; 
+	USHORT index; 
 	bool retPop = _validIndexStack.Pop(&index);
 	if (retPop == false)
 	{
@@ -718,9 +718,10 @@ void IOCPServer::IOCPWork()
 			}
 			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
 			{
+				//어셈블리 분석상 quque는 pop해서 원소의 소멸자 후에도 본인의 포인터를 사용하여 쓰기를 하기 때문에 레퍼런스로 받으면 안됨
 				SharedPtr<JobQueue> jobQueue =((JobQueue*)pSession)->_selfPtrQueue.front();
-				jobQueue->_selfPtrQueue.pop();
 				jobQueue->ProcessJob();
+				jobQueue->_selfPtrQueue.pop();
 			}
 			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
 			{

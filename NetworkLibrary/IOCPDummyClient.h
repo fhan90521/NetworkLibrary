@@ -57,7 +57,7 @@ protected:
 	bool _bWan;
 	std::string SERVER_IP;
 private:
-	DWORD _newSessionID = 0;
+	ULONG64 _newSessionID = 0;
 	HANDLE _hcp=INVALID_HANDLE_VALUE;
 	List<HANDLE> _hThreadList;
 	Session* _sessionArray;

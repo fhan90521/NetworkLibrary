@@ -130,7 +130,7 @@ Session* IOCPDummyClient::FindSession(SessionInfo sessionInfo)
 Session* IOCPDummyClient::AllocSession(SOCKET serverSock)
 {
 
-	unsigned short index; 
+	USHORT index; 
 	bool retPop = _validIndexStack.Pop(&index);
 	if (retPop == false)
 	{

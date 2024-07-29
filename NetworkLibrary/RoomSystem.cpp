@@ -54,7 +54,6 @@ RoomSystem::~RoomSystem()
 	_roomThread.join();
 }
 
-
 void RoomSystem::EnterRoom(SessionInfo sessionInfo, int beforeRoomID, int afterRoomID)
 {
 	RECURSIVE_LOCK;
