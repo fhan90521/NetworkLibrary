@@ -51,7 +51,7 @@ void Room::Leave(SessionInfo sessionInfo,int afterRoomID)
 		OnLeave(sessionInfo);
 		_sessionsInRoom.erase(iterSession);
 		_sessionCnt--;
-		_pRoomSystem->EnterRoom(sessionInfo,GetRoomID(),afterRoomID);
+		_pRoomSystem->EnterRoom(sessionInfo,this,afterRoomID);
 	}
 	//_tryLeaveSessions.push_back(sessionInfo);
 }
@@ -73,9 +73,9 @@ void Room::UpdateJob()
 	_bUpdating = false;
 	InterlockedIncrement(&_updateCnt);
 }
-void Room::ChangeRoom(SessionInfo sessionInfo, int& beforeRoomID, int& afterRoomID)
+bool Room::ChangeRoom(SessionInfo sessionInfo, int afterRoomID)
 {
-	_pRoomSystem->ChangeRoom(sessionInfo, beforeRoomID, afterRoomID);
+	return _pRoomSystem->ChangeRoom(sessionInfo, this, afterRoomID);
 }
 Room::~Room()
 {

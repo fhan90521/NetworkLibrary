@@ -5,7 +5,7 @@ int RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
 	pRoom->_roomID = _newRoomID;
 	pRoom->_pRoomSystem = this;
 	{
-		RECURSIVE_LOCK;
+		EXCLUSIVE_LOCK;
 		_rooms[_newRoomID] = pRoom;
 	}
 	int ret = _newRoomID++;
@@ -14,7 +14,7 @@ int RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
 
 void RoomSystem::DeregisterRoom(int roomID)
 {
-	RECURSIVE_LOCK;
+	EXCLUSIVE_LOCK;
 	_rooms.erase(roomID);
 }
 
@@ -23,7 +23,7 @@ void RoomSystem::UpdateRooms()
 	while (bShutDown==false)
 	{
 		{
-			RECURSIVE_LOCK
+			EXCLUSIVE_LOCK;
 			ULONG64 currentTime = GetTickCount64();
 			for (auto&  temp: _rooms)
 			{
@@ -54,84 +54,80 @@ RoomSystem::~RoomSystem()
 	_roomThread.join();
 }
 
-void RoomSystem::EnterRoom(SessionInfo sessionInfo, int beforeRoomID, int afterRoomID)
+void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
 {
-	RECURSIVE_LOCK;
-	auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.id);
-	if (sessionToRoomIDIter != _sessionToRoomID.end())
+	bool bDisconnect = false;
+
 	{
-		if (sessionToRoomIDIter->second == CHANGING_ROOM_ID)
+		EXCLUSIVE_LOCK;
+		auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.id);
+		if (sessionToRoomIDIter != _sessionToRoomID.end())
 		{
-			auto afterRoomsIter = _rooms.find(afterRoomID);
-			if (afterRoomsIter != _rooms.end())
+			if (sessionToRoomIDIter->second == CHANGING_ROOM_ID)
 			{
-				_sessionToRoomID[sessionInfo.id] = afterRoomID;
-				afterRoomsIter->second->DoAsync(&Room::TryEnter, sessionInfo);
-				return;
-			}
-			else
-			{
-				auto beforeRoomIter = _rooms.find(beforeRoomID);
-				if (beforeRoomIter != _rooms.end())
+				auto afterRoomsIter = _rooms.find(afterRoomID);
+				if (afterRoomsIter != _rooms.end())
 				{
-					beforeRoomIter->second->DoAsync(&Room::TryEnter, sessionInfo);
+					_sessionToRoomID[sessionInfo.id] = afterRoomID;
+					afterRoomsIter->second->DoAsync(&Room::TryEnter, sessionInfo);
+					return;
+				}
+				else
+				{
+					beforeRoom->DoAsync(&Room::TryEnter, sessionInfo);
 					return;
 				}
 			}
+			else
+			{
+				bDisconnect = true;
+			}
 		}
-		else
-		{
-			_pServer->Disconnect(sessionInfo);
-		}
+	}
+
+	if (bDisconnect==true)
+	{
+		_pServer->Disconnect(sessionInfo);
 	}
 }
 
-void RoomSystem::ChangeRoom(SessionInfo sessionInfo, int& beforeRoomID, int& afterRoomID)
+bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterRoomID)
 {
-	RECURSIVE_LOCK;
-	auto sessionToRoomIDIter=_sessionToRoomID.find(sessionInfo.id);
-	if (sessionToRoomIDIter != _sessionToRoomID.end())
-	{
-		if (sessionToRoomIDIter->second == beforeRoomID)
-		{
-			auto beforeRoomIter = _rooms.find(beforeRoomID);
-			auto afterRoomIter = _rooms.find(afterRoomID);
-			if (beforeRoomIter != _rooms.end()&& afterRoomIter != _rooms.end())
-			{	
+	bool bDisconnect = false;
+	bool ret = false;
 
-				_sessionToRoomID[sessionInfo.id] = CHANGING_ROOM_ID;
-				int ret =_sessionToRoomID[sessionInfo.id];
-				beforeRoomIter->second->DoAsync(&Room::Leave,sessionInfo, afterRoomID);
-				afterRoomID = CHANGING_ROOM_ID;
+	{
+		EXCLUSIVE_LOCK;
+		auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.id);
+		if (sessionToRoomIDIter != _sessionToRoomID.end())
+		{
+			if (sessionToRoomIDIter->second == beforeRoom->GetRoomID())
+			{
+				auto afterRoomIter = _rooms.find(afterRoomID);
+				if (afterRoomIter != _rooms.end())
+				{
+
+					sessionToRoomIDIter->second = CHANGING_ROOM_ID;
+					beforeRoom->DoAsync(&Room::Leave, sessionInfo, afterRoomID);
+					ret = true;
+				}
 			}
 			else
 			{
-				//전이 없을때
-				if (beforeRoomIter == _rooms.end())
-				{
-					beforeRoomID = INVALID_ROOM_ID;
-				}
-				//후가 없을때
-				if (afterRoomIter == _rooms.end())
-				{
-					afterRoomID = INVALID_ROOM_ID;
-				}
-
-				if (afterRoomID == INVALID_ROOM_ID && beforeRoomID == INVALID_ROOM_ID)
-				{
-					_sessionToRoomID.erase(sessionToRoomIDIter);
-				}
+				bDisconnect = true;
 			}
 		}
 		else
 		{
-			afterRoomID = beforeRoomID = sessionToRoomIDIter->second;
+			bDisconnect = true;
 		}
 	}
-	else
+
+	if (bDisconnect == true)
 	{
-		beforeRoomID = afterRoomID = INVALID_ROOM_ID;
+		_pServer->Disconnect(sessionInfo);
 	}
+	return ret;
 }
 
 bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
@@ -139,7 +135,7 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 	
 	//어느 룸에도 속해있지 않고 처음 룸에 입장
 	bool ret = false;
-	RECURSIVE_LOCK;
+	EXCLUSIVE_LOCK;
 	auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.id);
 	if (sessionToRoomIDIter == _sessionToRoomID.end())
 	{
@@ -156,7 +152,7 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 
 void RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 {
-	RECURSIVE_LOCK;
+	EXCLUSIVE_LOCK;
 	auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.id);
 	if (sessionToRoomIDIter != _sessionToRoomID.end())
 	{

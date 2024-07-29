@@ -37,6 +37,6 @@ public:
 	}
 
 private:
-	USE_MUTEX
+	USE_LOCK
 	Queue<T> _queue;
 };

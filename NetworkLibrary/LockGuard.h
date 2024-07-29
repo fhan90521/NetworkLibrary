@@ -1,52 +1,51 @@
 #pragma once
-#include <shared_mutex>
-//class SharedMutex
-//{
-//private:
-//	alignas(64) std::shared_mutex _mutex;
-//public:
-//	void LockShared() { _mutex.lock_shared();}
-//	void UnlockShared() { _mutex.unlock_shared(); }
-//	void Lock() { _mutex.lock(); }
-//	void UnLock() { _mutex.unlock(); }
-//};
-
-class SharedLockGuard
+#include "MyWindow.h"
+#include <mutex>
+enum class LOCK_TYPE
+{
+	SHARED,
+	EXCLUSIVE,
+};
+template <LOCK_TYPE type>
+class SRWLockGuard
 {
 public:
-	SharedLockGuard(std::shared_mutex& sMutex) : _sMutex(sMutex){ _sMutex.lock_shared(); }
-	~SharedLockGuard() { _sMutex.unlock_shared(); }
+	SRWLockGuard(SRWLOCK& srwLock) : _srwLock(srwLock)
+	{ 
+		if constexpr (type == LOCK_TYPE::SHARED)
+		{
+			AcquireSRWLockShared(&_srwLock);
+		}
+		else
+		{
+
+			AcquireSRWLockExclusive(&_srwLock);
+		}
+	}
+	~SRWLockGuard()
+	{
+		if constexpr (type == LOCK_TYPE::SHARED)
+		{
+			ReleaseSRWLockShared(&_srwLock);
+		}
+		else
+		{
+			ReleaseSRWLockExclusive(&_srwLock);
+		}
+	}
 
 private:
-	std::shared_mutex& _sMutex;
+	SRWLOCK& _srwLock;
 };
 
-class ExclusiveLockGuard
-{
-public:
-	ExclusiveLockGuard(std::shared_mutex& sMutex) : _sMutex(sMutex) {_sMutex.lock();}
-	~ExclusiveLockGuard() {_sMutex.unlock();}
-private:
-	std::shared_mutex& _sMutex;
-};
-
-class RecursiveLockGuard
-{
-public:
-	RecursiveLockGuard(std::recursive_mutex& rMutex) : _rMutex(rMutex) { _rMutex.lock(); }
-	~RecursiveLockGuard() { _rMutex.unlock(); }
-private:
-	std::recursive_mutex& _rMutex;
-};
-
-#define USE_MUTEXS(count)	std::shared_mutex _sMutex[count];
-#define USE_MUTEX	USE_MUTEXS(1)
-#define	SHARED_LOCK_IDX(idx)	SharedLockGuard sharedLockGuard##idx(_sMutex[idx]);
+#define USE_LOCKS(count)	SRWLOCK _srwLock[count];
+#define USE_LOCK	USE_LOCKS(1)
+#define	SHARED_LOCK_IDX(idx)	SRWLockGuard<LOCK_TYPE::SHARED> sharedLockGuard##idx(_srwLock[idx]);
 #define SHARED_LOCK	SHARED_LOCK_IDX(0)
-#define	EXCLUSIVE_LOCK_IDX(idx)	ExclusiveLockGuard exclusiveLockGuard##idx(_sMutex[idx]);
+#define	EXCLUSIVE_LOCK_IDX(idx)	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> exclusiveLockGuard##idx(_srwLock[idx]);
 #define EXCLUSIVE_LOCK	EXCLUSIVE_LOCK_IDX(0)
 
 #define USE_RECURSIVE_MUTEXS(count) std::recursive_mutex _rMutex[count];
 #define USE_RECURSIVE_MUTEX USE_RECURSIVE_MUTEXS(1);
-#define	RECURSIVE_LOCK_IDX(idx)	RecursiveLockGuard recursiveLockGuard##idx(_rMutex[idx]);
+#define	RECURSIVE_LOCK_IDX(idx)	std::lock_guard recursiveLockGuard##idx(_rMutex[idx]);
 #define RECURSIVE_LOCK	RECURSIVE_LOCK_IDX(0)

@@ -31,7 +31,7 @@ protected:
 	virtual int RequestEnter(SessionInfo sessionInfo) = 0;
 	virtual void OnLeave(SessionInfo sessionInfo) = 0;
 	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo) = 0;
-	void ChangeRoom(SessionInfo sessionInfo, int& beforeRoomID, int& afterRoomID);
+	bool ChangeRoom(SessionInfo sessionInfo, int afterRoomID);
 	//virtual bool RequestLeave(SessionInfo sessionInfo) = 0;
 public:
 	typedef int ID;
