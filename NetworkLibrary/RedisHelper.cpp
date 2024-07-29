@@ -1,8 +1,8 @@
-#include "RedisManager.h"
+#include "RedisHelper.h"
 #include "Log.h"
 #include "GetMyThreadID.h"
 #include "ParseJson.h"
-cpp_redis::client* RedisManager::GetRedisConnection()
+cpp_redis::client* RedisHelper::GetRedisConnection()
 {
 	RedisConnection& redisConnection=_redisConnections[GetMyThreadID()];
 	if (redisConnection.connection == nullptr)
@@ -13,7 +13,7 @@ cpp_redis::client* RedisManager::GetRedisConnection()
 	return redisConnection.connection;
 }
 
-RedisManager::RedisManager(std::string RedisSetFile, int maxThreadCnt)
+RedisHelper::RedisHelper(std::string RedisSetFile, int maxThreadCnt)
 {
 	GetRedisSetValue(RedisSetFile);
 	WSADATA wsa;
@@ -27,13 +27,13 @@ RedisManager::RedisManager(std::string RedisSetFile, int maxThreadCnt)
 	_redisConnections = new RedisConnection[_maxConnection];
 }
 
-RedisManager::~RedisManager()
+RedisHelper::~RedisHelper()
 {
 	delete[] _redisConnections;
 	WSACleanup();
 }
 
-void RedisManager::GetRedisSetValue(std::string RedisSetFile)
+void RedisHelper::GetRedisSetValue(std::string RedisSetFile)
 {
 	Document RedisSetValues=ParseJson(RedisSetFile);
 	REDIS_IP = RedisSetValues["REDIS_IP"].GetString();

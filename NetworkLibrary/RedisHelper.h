@@ -3,7 +3,7 @@
 #pragma comment (lib, "tacopie.lib")
 #include <cpp_redis/cpp_redis>
 #include <string>
-class RedisManager
+class RedisHelper
 {
 private:
 	struct RedisConnection
@@ -16,7 +16,7 @@ private:
 	int _maxConnection;
 	void GetRedisSetValue(std::string RedisSetFile);
 public:
-	RedisManager(std::string RedisSetFile, int maxThreadCnt = 64);
-	~RedisManager();
+	RedisHelper(std::string RedisSetFile, int maxThreadCnt = 64);
+	~RedisHelper();
 	cpp_redis::client* GetRedisConnection();
 };

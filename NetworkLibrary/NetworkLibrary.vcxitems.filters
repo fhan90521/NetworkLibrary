@@ -43,7 +43,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem.cpp">
       <Filter>Room</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RedisManager.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)RedisHelper.cpp">
       <Filter>Redis</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp">
@@ -51,6 +51,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp">
       <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DBJobQueue.cpp">
+      <Filter>Job</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -180,7 +183,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h">
       <Filter>Room</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RedisManager.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h">
       <Filter>Redis</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h">
@@ -188,6 +191,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h">
       <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBJobQueue.h">
+      <Filter>Job</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,7 @@ class JobQueue : public std::enable_shared_from_this<JobQueue>
 private:
 	friend class IOCPServer;
 	friend class IOCPClient;
+	friend class DBJobQueue;
 	IOCPServer* _pServer = nullptr;
 	Queue<SharedPtr<JobQueue>> _selfPtrQueue;
 	LockFreeQueue<Job*> _jobQueue;
