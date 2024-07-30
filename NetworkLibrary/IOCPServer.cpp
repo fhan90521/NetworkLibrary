@@ -756,6 +756,10 @@ void IOCPServer::IOCPRun()
 	CreateThread(IOCPServer::ReserveDisconnectManageThreadFunc);
 	return;
 }
+HANDLE IOCPServer::GetCompletionPortHandle()
+{
+	return _hcp;
+}
 bool IOCPServer::ServerControl()
 {
 	static bool bControlMode = false;
@@ -866,16 +870,6 @@ unsigned __stdcall IOCPServer::ReserveDisconnectManageThreadFunc(LPVOID arg)
 	IOCPServer* pServer = (IOCPServer*)arg;
 	pServer->ReserveDisconnectManage();
 	return 0;
-}
-
-void IOCPServer::PostJob(JobQueue* pJobQueue)
-{
-	pJobQueue->_selfPtrQueue.push(pJobQueue->shared_from_this());
-	bool ret = PostQueuedCompletionStatus(_hcp, PROCESS_JOB, (ULONG_PTR)pJobQueue, (LPOVERLAPPED)PROCESS_JOB);
-	if (ret == false)
-	{
-		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestJob error: %d\n", WSAGetLastError());
-	}
 }
 
 

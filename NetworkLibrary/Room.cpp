@@ -82,7 +82,7 @@ Room::~Room()
 	
 }
 
-Room::Room(IOCPServer* pServer) : JobQueue(pServer)
+Room::Room(HANDLE hCompletionPort) : JobQueue(hCompletionPort)
 {
 	_prevUpdateTime = GetTickCount64();
 }

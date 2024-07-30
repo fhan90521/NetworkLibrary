@@ -10,13 +10,13 @@ class Room: public JobQueue
 {
 private:
 	friend class RoomSystem;
-	class RoomSystem* _pRoomSystem;
+	class RoomSystem* _pRoomSystem=nullptr;
 	LONG _updateCnt = 0;
 	int _sessionCnt = 0;
 	HashSet<SessionInfo::ID>_tryEnterSessions;
 	HashSet<SessionInfo::ID>_sessionsInRoom;
 	CHAR _bUpdating = false;
-	int _roomID;
+	int _roomID= INVALID_ROOM_ID;
 	//List<SessionInfo>_tryLeaveSessions;
 	void ProcessEnter();
 	//void ProcessLeave();
@@ -36,7 +36,7 @@ protected:
 public:
 	typedef int ID;
 	virtual ~Room();
-	Room(IOCPServer* pServer);
+	Room(HANDLE hCompletionPort);
 	enum
 	{
 		ENTER_DENIED,

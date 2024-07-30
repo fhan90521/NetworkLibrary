@@ -10,9 +10,12 @@ class JobQueue : public std::enable_shared_from_this<JobQueue>
 {
 private:
 	friend class IOCPServer;
-	friend class IOCPClient;
-	friend class DBJobQueue;
-	IOCPServer* _pServer = nullptr;
+	friend class WorkThreadPool;
+	enum IOCP_KEY
+	{
+		PROCESS_JOB = 128
+	};
+	HANDLE _hCompletionPort;
 	Queue<SharedPtr<JobQueue>> _selfPtrQueue;
 	LockFreeQueue<Job*> _jobQueue;
 	char _bProcessing = false;
@@ -22,7 +25,8 @@ protected:
 	ULONG64 _currentTime = 0;
 	bool GetPopAuthority();
 	virtual ~JobQueue();
-	JobQueue(IOCPServer* pServer = nullptr) :_pServer(pServer) {};
+	JobQueue(HANDLE hCompletionPort = NULL) :_hCompletionPort(hCompletionPort) {};
+	void PostJob();
 public:
 	void TryDoSync(CallbackType&& callback)
 	{
@@ -46,10 +50,7 @@ public:
 		_jobQueue.Enqueue(New<Job>(std::move(callback)));
 		if (GetPopAuthority() == true)
 		{
-			if (_pServer)
-			{
-				_pServer->PostJob(this);
-			}
+			PostJob();
 		}
 	}
 	template<typename T, typename Ret, typename... Args>
@@ -58,10 +59,7 @@ public:
 		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, std::forward<Args>(args)...));
 		if (GetPopAuthority() == true)
 		{
-			if (_pServer)
-			{
-				_pServer->PostJob(this);
-			}
+			PostJob();
 		}
 	}
 	int GetProcessedJobCnt();

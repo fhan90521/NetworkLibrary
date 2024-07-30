@@ -7,7 +7,15 @@ JobQueue::~JobQueue()
 		Delete<Job>(pJob);
 	}	
 }
-
+void JobQueue::PostJob()
+{
+    _selfPtrQueue.push(shared_from_this());
+	bool ret = PostQueuedCompletionStatus(_hCompletionPort, PROCESS_JOB, (ULONG_PTR)this, (LPOVERLAPPED)PROCESS_JOB);
+	if (ret == false)
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestJob error: %d\n", WSAGetLastError());
+	}
+}
 int JobQueue::GetProcessedJobCnt()
 {
 	int ret = _processedJobCnt;
@@ -35,10 +43,7 @@ void JobQueue::ProcessJob()
 	InterlockedExchange8(&_bProcessing, false);
 	if (GetPopAuthority() == true)
 	{
-		if (_pServer)
-		{
-			_pServer->PostJob(this);
-		}
+		PostJob();
 	}
 }
 bool JobQueue::GetPopAuthority()

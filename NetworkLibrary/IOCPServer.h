@@ -45,7 +45,7 @@ private:
 	{
 		SERVER_DOWN = 100,
 		REQUEST_SEND,
-		PROCESS_JOB
+		PROCESS_JOB=128
 	};
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
@@ -79,6 +79,7 @@ public:
 	{
 	}
 	
+	HANDLE GetCompletionPortHandle();
 	CHAR _bShutdown = false;
 	bool ServerControl();
 	void Unicast(SessionInfo sessionInfo, CSendBuffer* buf, bool bDisconnect=false);
@@ -121,10 +122,5 @@ private:
 public:
 	LockFreeQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
-
-//Job
-private: 
-	friend class JobQueue;
-	void PostJob(class JobQueue* pJobQueue);
 };
 

@@ -52,7 +52,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)DBJobQueue.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)WorkThreadPool.cpp">
       <Filter>Job</Filter>
     </ClCompile>
   </ItemGroup>
@@ -192,7 +192,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)DBJobQueue.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)WorkThreadPool.h">
       <Filter>Job</Filter>
     </ClInclude>
   </ItemGroup>
