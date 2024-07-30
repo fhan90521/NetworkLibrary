@@ -11,10 +11,6 @@ class JobQueue : public std::enable_shared_from_this<JobQueue>
 private:
 	friend class IOCPServer;
 	friend class WorkThreadPool;
-	enum IOCP_KEY
-	{
-		PROCESS_JOB = 128
-	};
 	HANDLE _hCompletionPort;
 	Queue<SharedPtr<JobQueue>> _selfPtrQueue;
 	LockFreeQueue<Job*> _jobQueue;

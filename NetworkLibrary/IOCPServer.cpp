@@ -11,6 +11,7 @@
 #include "MyNew.h"
 #include "JobQueue.h"
 #include "ParseJson.h"
+#include "WorkType.h"
 //#include "Log.h"
 
 HANDLE IOCPServer::CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
@@ -287,7 +288,7 @@ void IOCPServer::CloseServer()
 	closesocket(_listenSock);
 	for (int i = 0; i < IOCP_THREAD_NUM; i++)
 	{
-		PostQueuedCompletionStatus(_hcp, SERVER_DOWN, SERVER_DOWN,(LPOVERLAPPED)SERVER_DOWN);
+		PostQueuedCompletionStatus(_hcp, SHUT_DOWN, SHUT_DOWN,(LPOVERLAPPED)SHUT_DOWN);
 	}
 
 	int i = 0;
@@ -723,7 +724,7 @@ void IOCPServer::IOCPWork()
 				jobQueue->ProcessJob();
 				jobQueue->_selfPtrQueue.pop();
 			}
-			else if (pOverlapped == (LPOVERLAPPED)SERVER_DOWN)
+			else if (pOverlapped == (LPOVERLAPPED)SHUT_DOWN)
 			{
 				break;
 			}

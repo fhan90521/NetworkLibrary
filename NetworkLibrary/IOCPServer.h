@@ -41,12 +41,6 @@ private:
 private:
 	const long long EXIT_TIMEOUT = 5000;
 	const long long SENDQ_MAX_LEN = 1024;
-	enum IOCP_KEY
-	{
-		SERVER_DOWN = 100,
-		REQUEST_SEND,
-		PROCESS_JOB=128
-	};
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
 	int BIND_PORT = 0;

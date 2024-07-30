@@ -1,4 +1,5 @@
 #include "JobQueue.h"
+#include "WorkType.h"
 JobQueue::~JobQueue()
 {
 	Job* pJob;
