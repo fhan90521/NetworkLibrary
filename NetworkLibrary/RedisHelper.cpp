@@ -23,8 +23,8 @@ RedisHelper::RedisHelper(std::string RedisSetFile, int maxThreadCnt)
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "WSAStartup() error : %d\n", error);
 		DebugBreak();
 	}
-	_maxConnection = maxThreadCnt;
-	_redisConnections = new RedisConnection[_maxConnection];
+	_maxThreadCnt = maxThreadCnt;
+	_redisConnections = new RedisConnection[_maxThreadCnt];
 }
 
 RedisHelper::~RedisHelper()
