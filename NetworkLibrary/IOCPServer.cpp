@@ -32,7 +32,7 @@ void IOCPServer::DropIoPending(SessionInfo sessionInfo)
 	{
 		return;
 	}
-	CancelIo((HANDLE)pSession->socket);
+	CancelIoEx((HANDLE)pSession->socket,NULL);
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession(pSession);
@@ -103,6 +103,7 @@ void IOCPServer::ServerSetting()
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "sendbuf 0 error : %d\n", error);
 		DebugBreak();
 	}*/
+
 
 	struct linger _linger;
 	_linger.l_onoff = 1;
@@ -398,6 +399,10 @@ bool IOCPServer::GetSendAuthority(Session* pSession)
 
 void IOCPServer::SendPost(Session* pSession)
 {
+	if (pSession->onConnecting == false)
+	{
+		return;
+	}
 	WSABUF wsaBufs[MAX_SEND_BUF_CNT];
 	pSession->sendBufCnt = min(MAX_SEND_BUF_CNT, pSession->sendBufQ.Size());
 	for (int i = 0; i < pSession->sendBufCnt; i++)
@@ -454,7 +459,7 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisco
 		return;
 	}
 
-	if (pSession->bReservedDisconnect == true)
+	if (pSession->onConnecting == false || pSession->bReservedDisconnect == true)
 	{
 		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 		{
@@ -478,9 +483,13 @@ void IOCPServer::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool bDisco
 	}
 	else
 	{
-		Log::LogOnFile(Log::DEBUG_LEVEL, "SendQ Buf Over Max\n");
 		InterlockedExchange8(&pSession->onConnecting, false);
-		CancelIo((HANDLE)pSession->socket);
+		CancelIoEx((HANDLE)pSession->socket,NULL);
+		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+		{
+			ReleaseSession(pSession);
+		}
+		return;
 	}
 
 	if (bDisconnectAfterSend)

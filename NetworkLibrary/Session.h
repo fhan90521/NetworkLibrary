@@ -2,8 +2,8 @@
 #include "MyWindow.h"
 #include "CRingBuffer.h"
 #include "CSendBuffer.h"
-#include "LockFreeQueue.h"
-#include "LockFreeQueueBasic.h"
+#include "LockQueue.h"
+#include "MPSCQueue.h"
 #define MAX_SEND_BUF_CNT 512
 
 union SessionInfo
@@ -52,7 +52,7 @@ struct Session
 	CHAR bSending;
 	SHORT sendBufCnt = 0;
 	OVERLAPPED sendOverLapped;
-	LockFreeQueue<CSendBuffer*> sendBufQ;
+	MPSCQueue<CSendBuffer*> sendBufQ;
 	CSendBuffer** pSendedBufArr;
 
 	OVERLAPPED recvOverLapped;

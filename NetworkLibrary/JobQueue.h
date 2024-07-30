@@ -1,6 +1,7 @@
 #pragma once
 #include "Job.h"
-#include "LockFreeQueue.h"
+#include "LockQueue.h"
+#include "MPSCQueue.h"
 #include <memory>
 #include "MyNew.h"
 #include "IOCPServer.h"
@@ -13,7 +14,7 @@ private:
 	friend class WorkThreadPool;
 	HANDLE _hCompletionPort;
 	Queue<SharedPtr<JobQueue>> _selfPtrQueue;
-	LockFreeQueue<Job*> _jobQueue;
+	MPSCQueue<Job*> _jobQueue;
 	char _bProcessing = false;
 	LONG _processedJobCnt = 0;
 	void ProcessJob();

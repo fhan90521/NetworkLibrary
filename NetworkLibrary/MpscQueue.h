@@ -11,7 +11,7 @@ private:
 	std::atomic<int> _size = 0;
 	char _enqueueIndex = 0;
 	char _dequeueIndex = 1;
-	USE_MUTEX;
+	USE_LOCK;
 	void Flip()
 	{
 		EXCLUSIVE_LOCK
@@ -35,7 +35,7 @@ public:
 		{
 			Flip();
 		}
-		*outPar = std::move(_queue[_dequeueIndex].front());
+		*outPar = _queue[_dequeueIndex].front();
 		_queue[_dequeueIndex].pop();
 		return true;
 	}

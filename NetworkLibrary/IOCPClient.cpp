@@ -29,7 +29,7 @@ void IOCPClient::DropIoPending()
 	{
 		return;
 	}
-	CancelIo((HANDLE)_session.socket);
+	CancelIoEx((HANDLE)_session.socket,NULL);
 	if (InterlockedDecrement16(&_session.sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession();
@@ -238,6 +238,10 @@ bool IOCPClient::GetSendAuthority()
 }
 void IOCPClient::SendPost()
 {
+	if (_session.onConnecting == false)
+	{
+		return;
+	}
 	WSABUF wsaBufs[MAX_SEND_BUF_CNT];
 	_session.sendBufCnt = min(MAX_SEND_BUF_CNT, _session.sendBufQ.Size());
 	for (int i = 0; i < _session.sendBufCnt; i++)
@@ -290,7 +294,7 @@ void IOCPClient::Unicast(CSendBuffer* pBuf, bool bDisconnectAfterSend)
 		return;
 	}
 
-	if (_session.bReservedDisconnect == true)
+	if (_session.onConnecting == false || _session.bReservedDisconnect == true)
 	{
 		if (InterlockedDecrement16(&_session.sessionManageInfo.refCnt) == 0)
 		{
@@ -316,7 +320,12 @@ void IOCPClient::Unicast(CSendBuffer* pBuf, bool bDisconnectAfterSend)
 	else
 	{
 		InterlockedExchange8(&_session.onConnecting, false);
-		CancelIo((HANDLE)_session.socket);
+		CancelIoEx((HANDLE)_session.socket,NULL);
+		if (InterlockedDecrement16(&_session.sessionManageInfo.refCnt) == 0)
+		{
+			ReleaseSession();
+		}
+		return;
 	}
 
 	if (bDisconnectAfterSend)

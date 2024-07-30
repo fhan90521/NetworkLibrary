@@ -114,7 +114,7 @@ private:
 	void ReserveDisconnectManage();
 	static unsigned __stdcall ReserveDisconnectManageThreadFunc(LPVOID arg);
 public:
-	LockFreeQueue<ReserveInfo> _reserveDisconnectQ;
+	LockQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
 };
 

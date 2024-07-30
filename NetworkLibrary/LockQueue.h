@@ -5,35 +5,25 @@ template<typename T>
 class LockQueue
 {
 public:
-	void Push(const T& inPar)
+	void Enqueue(const T& inPar)
 	{
 		EXCLUSIVE_LOCK;
 		_queue.push(inPar);
 	}
-
-	T Pop()
+	bool Dequeue(T* outPar)
 	{
 		EXCLUSIVE_LOCK;
 		if (_queue.empty())
-			return T();
-		T ret = _queue.front();
-		_queue.pop();
-		return ret;
-	}
-
-	void PopAll(Vector<T>& outVec)
-	{
-		EXCLUSIVE_LOCK;
-		for(int i = 0 ;i<_queue.size();i++)
 		{
-			outVec.push_back(Pop());
+			return false;
 		}
+		*outPar = _queue.front();
+		_queue.pop();
+		return true;
 	}
-
-	void Clear()
+	int Size()
 	{
-		EXCLUSIVE_LOCK;
-		_queue = Queue<T>();
+		return _queue.size();
 	}
 
 private:

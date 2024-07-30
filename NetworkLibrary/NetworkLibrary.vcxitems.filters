@@ -195,7 +195,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)WorkThreadPool.h">
       <Filter>Job</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)WorkType.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)WorkType.h">
+      <Filter>Job</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Buffer">

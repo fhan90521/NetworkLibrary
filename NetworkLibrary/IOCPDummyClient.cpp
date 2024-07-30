@@ -29,7 +29,7 @@ void IOCPDummyClient::DropIoPending(SessionInfo sessionInfo)
 	{
 		return;
 	}
-	CancelIo((HANDLE)pSession->socket);
+	CancelIoEx((HANDLE)pSession->socket,NULL);
 	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 	{
 		ReleaseSession(pSession);
@@ -343,6 +343,10 @@ bool IOCPDummyClient::GetSendAuthority(Session* pSession)
 
 void IOCPDummyClient::SendPost(Session* pSession)
 {
+	if (pSession->onConnecting == false)
+	{
+		return;
+	}
 	WSABUF wsaBufs[MAX_SEND_BUF_CNT];
 	pSession->sendBufCnt = min(MAX_SEND_BUF_CNT, pSession->sendBufQ.Size());
 	for (int i = 0; i < pSession->sendBufCnt; i++)
@@ -399,7 +403,7 @@ void IOCPDummyClient::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool b
 		return;
 	}
 
-	if (pSession->bReservedDisconnect == true)
+	if (pSession->onConnecting == false || pSession->bReservedDisconnect == true)
 	{
 		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
 		{
@@ -425,7 +429,12 @@ void IOCPDummyClient::Unicast(SessionInfo sessionInfo, CSendBuffer* pBuf, bool b
 	else
 	{
 		InterlockedExchange8(&pSession->onConnecting, false);
-		CancelIo((HANDLE)pSession->socket);
+		CancelIoEx((HANDLE)pSession->socket,NULL);
+		if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+		{
+			ReleaseSession(pSession);
+		}
+		return;
 	}
 
 	if (bDisconnectAfterSend)
