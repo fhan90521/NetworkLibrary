@@ -382,7 +382,7 @@ bool IOCPServer::GetSendAuthority(Session* pSession)
 {
 	while (1)
 	{
-		if (pSession->bSending == true || InterlockedExchange8(&pSession->bSending, true) != false)
+		if (pSession->sendBufQ.Size() == 0 || pSession->bSending == true || InterlockedExchange8(&pSession->bSending, true) != false)
 		{
 			return false;
 		}
