@@ -51,6 +51,7 @@ bool JobQueue::GetPopAuthority()
 {
 	while (1)
 	{
+		//Size체크는 필수적인것이고 bSending flag한번체크하는 것은 인터락함수 호출을 조금 줄일 수 있을까 해서 넣은 것v
 		if (_jobQueue.Size() ==0 || _bProcessing == true || InterlockedExchange8(&_bProcessing, true) != false)
 		{
 			return false;
