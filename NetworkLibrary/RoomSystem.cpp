@@ -39,7 +39,7 @@ void RoomSystem::UpdateRooms()
 				}
 			}
 		}
-		Sleep(_updatePeriod / 4);
+		Sleep(_updatePeriod / 3);
 	}
 }
 

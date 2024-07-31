@@ -15,7 +15,7 @@ private:
 	HashMap<Room::ID,SharedPtr<Room>> _rooms;
 	HashMap<SessionInfo::ID, Room::ID> _sessionToRoomID;
 	bool bShutDown = false;
-	int _updatePeriod=30;
+	int _updatePeriod=15;
 	int _newRoomID = 0;
 	void UpdateRooms();
 	void EnterRoom(SessionInfo sessionInfo,Room* beforeRoom ,int afterRoomID);
