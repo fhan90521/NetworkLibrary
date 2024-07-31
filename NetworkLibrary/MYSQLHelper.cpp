@@ -8,8 +8,8 @@ MYSQLHelper::MYSQLHelper(std::string DBSetFile, int maxThreadCnt)
 		InitializeSRWLock(&_DBInitialLock);
 	}
 	GetDBSetValue(DBSetFile);
-	_maxConnection = maxThreadCnt;
-	_MYSQLConnections = new MYSQLConnection[_maxConnection];
+	_maxThreadCnt = maxThreadCnt;
+	_MYSQLConnections = new MYSQLConnection[_maxThreadCnt];
 }
 MYSQLHelper::~MYSQLHelper()
 {

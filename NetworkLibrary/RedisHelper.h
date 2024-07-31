@@ -13,7 +13,7 @@ private:
 	RedisConnection* _redisConnections;
 	std::string REDIS_IP;
 	unsigned int REDIS_PORT = 6379;
-	int _maxConnection;
+	int _maxThreadCnt;
 	void GetRedisSetValue(std::string RedisSetFile);
 public:
 	RedisHelper(std::string RedisSetFile, int maxThreadCnt = 64);

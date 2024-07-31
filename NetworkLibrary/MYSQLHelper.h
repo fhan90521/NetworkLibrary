@@ -19,7 +19,7 @@ private:
 	std::string DB_PASSWORD;
 	std::string DB_SCHEMA;
 	unsigned int DB_PORT = 3306;
-	int _maxConnection;
+	int _maxThreadCnt;
 	MYSQLConnection* _MYSQLConnections;
 	inline static SRWLOCK _DBInitialLock;
 	inline static char _bInitialLock = false;

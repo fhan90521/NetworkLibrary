@@ -43,17 +43,17 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem.cpp">
       <Filter>Room</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RedisHelper.cpp">
-      <Filter>Redis</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp">
-      <Filter>RapidJson</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp">
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)WorkThreadPool.cpp">
       <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RedisHelper.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp">
+      <Filter>RapidJson</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -183,12 +183,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h">
       <Filter>Room</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h">
-      <Filter>Redis</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h">
-      <Filter>RapidJson</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h">
       <Filter>Network</Filter>
     </ClInclude>
@@ -197,6 +191,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)WorkType.h">
       <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h">
+      <Filter>RapidJson</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -230,17 +230,14 @@
     <Filter Include="Job">
       <UniqueIdentifier>{92214199-5032-4c34-a04f-6d7e31df9cc1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Redis">
-      <UniqueIdentifier>{66f9c330-f8f8-4412-992b-f78d38b4f374}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Debug">
       <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="RapidJson">
-      <UniqueIdentifier>{a9cfbf20-f512-441b-b477-2cce81c9bc5b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Container">
       <UniqueIdentifier>{1f2edac6-c633-4d06-9e16-c509c107c608}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RapidJson">
+      <UniqueIdentifier>{cfeb790b-010a-4176-9a23-9f4ff45e7195}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
