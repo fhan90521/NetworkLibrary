@@ -53,7 +53,7 @@ bool JobQueue::GetPopAuthority()
 	{
 		if (_jobQueue.Size() ==0 || _bProcessing == true || InterlockedExchange8(&_bProcessing, true) != false)
 		{
-			break;
+			return false;
 		}
 		if (_jobQueue.Size() > 0)
 		{
@@ -64,5 +64,4 @@ bool JobQueue::GetPopAuthority()
 			InterlockedExchange8(&_bProcessing, false);
 		}
 	}
-    return false;
 }
