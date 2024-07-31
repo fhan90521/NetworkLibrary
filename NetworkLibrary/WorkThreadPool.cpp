@@ -27,7 +27,7 @@ void WorkThreadPool::WorkFunc()
 			SharedPtr<JobQueue> jobQ = pJobQueue->_selfPtr;
 			jobQ->_selfPtr = nullptr;
 			jobQ->ProcessJob();
-		
+	
 		}
 		else
 		{
