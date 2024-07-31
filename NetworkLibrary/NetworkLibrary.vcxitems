@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{deeaf9c8-e3f1-4850-b9d2-03d66dbcaed0}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CacheTracer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSendBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)WorkThreadPool.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)MYSQLHelper.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)GetPOOLID.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RedisHelper.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)WorkThreadPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MYSQLHelper.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPClient.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Job.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeMemoryPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeObjectPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueueBasic.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeStack.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MPSCQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Malloc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MemoryHeader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)MyNew.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceMonitor.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceProfiler.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)PoolAllocatorForSTL.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Room.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Session.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SpinLock.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)TlsMemoryPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)TlsObjectPool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)WorkType.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)RPCcompiler.py" />
+  </ItemGroup>
+</Project>
