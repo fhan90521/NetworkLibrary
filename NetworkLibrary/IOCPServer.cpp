@@ -729,10 +729,8 @@ void IOCPServer::IOCPWork()
 			}
 			else if (pOverlapped == (LPOVERLAPPED)PROCESS_JOB)
 			{
-				//어셈블리 분석상 quque는 pop해서 원소의 소멸자 호출 후에도 멤버변수에 쓰기를 하기 때문에 레퍼런스로 받으면 안됨
-				SharedPtr<JobQueue> jobQueue =((JobQueue*)pSession)->_selfPtrQueue.front();
-				jobQueue->ProcessJob();
-				jobQueue->_selfPtrQueue.pop();
+				((JobQueue*)pSession)->ProcessJob();
+				((JobQueue*)pSession)->_selfPtr = nullptr;
 			}
 			else if (pOverlapped == (LPOVERLAPPED)SHUT_DOWN)
 			{
