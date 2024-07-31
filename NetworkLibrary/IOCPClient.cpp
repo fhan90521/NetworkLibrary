@@ -222,13 +222,13 @@ bool IOCPClient::GetSendAuthority()
 {
 	while (1)
 	{
-		if (_session.sendBufQ.Size() == 0 || _session.bSending == true || InterlockedExchange8(&_session.bSending, true) != false)
+		if (_session.bSending == true || InterlockedExchange8(&_session.bSending, true) != false)
 		{
 			return false;
 		}
 		if (_session.sendBufQ.Size() > 0)
 		{
-			return true;;
+			return true;
 		}
 		else
 		{

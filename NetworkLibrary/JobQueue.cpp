@@ -51,7 +51,7 @@ bool JobQueue::GetPopAuthority()
 {
 	while (1)
 	{
-		if (_jobQueue.Size() == 0 || _bProcessing == true || InterlockedExchange8(&_bProcessing, true) != false)
+		if (_bProcessing == true || InterlockedExchange8(&_bProcessing, true) != false)
 		{
 			break;
 		}
