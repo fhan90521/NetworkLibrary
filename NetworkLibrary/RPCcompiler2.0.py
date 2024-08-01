@@ -221,9 +221,7 @@ def write_server_stub_cpp(file_name, class_name, functions):
             fout.writelines(f'\tcase PKT_TYPE_{func_name}:\n\t{{\n')
             fout.writelines(f'\t\treturn PacketProc{func_name}(sessionInfo, buf);\n')
             fout.writelines('\t\tbreak;\n\t}\n')
-        
-        fout.writelines('\t}\n\treturn false;\n}\n')
-        
+        fout.writelines('\tdefault:\n\t{\n\t\treturn false;\n\t}\n\t}\n}\n')        
 
 def write_client_stub_header(file_name, class_name, functions, basic_type):
      with open(file_name, 'wt') as fout:
@@ -287,8 +285,7 @@ def write_client_stub_cpp(file_name, class_name, functions):
             fout.writelines(f'\tcase PKT_TYPE_{func_name}:\n\t{{\n')
             fout.writelines(f'\t\treturn PacketProc{func_name}(buf);\n')
             fout.writelines('\t\tbreak;\n\t}\n')
-        
-        fout.writelines('\t}\n\treturn false;\n}\n')
+        fout.writelines('\tdefault:\n\t{\n\t\treturn false;\n\t}\n\t}\n}\n')
 
 def write_dummy_client_proxy_header(file_name, class_name, functions, basic_type):
     with open(file_name, 'wt') as fout:
