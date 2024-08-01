@@ -241,7 +241,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)RPCcompiler.py">
+    <None Include="$(MSBuildThisFileDirectory)RPCcompiler2.0.py">
       <Filter>RPC</Filter>
     </None>
   </ItemGroup>
