@@ -2,7 +2,7 @@
 #include "MyWindow.h"
 #include "CRingBuffer.h"
 #include "CSendBuffer.h"
-#include "LockQueue.h"
+//#include "LockQueue.h"
 #include "MPSCQueue.h"
 #define MAX_SEND_BUF_CNT 512
 

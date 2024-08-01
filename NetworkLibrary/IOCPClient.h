@@ -6,7 +6,6 @@
 #include "Session.h"
 #include "MyStlContainer.h"
 #include<process.h>
-#include "LockQueue.h"
 #include <type_traits>
 #include <string>
 class IOCPClient
