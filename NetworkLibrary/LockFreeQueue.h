@@ -5,6 +5,7 @@ template <typename T>
 class LockFreeQueue
 {
 private:
+    //최적화 컴파일을 켜지 않았을 때 정상작동
     struct Node
     {
         T data;

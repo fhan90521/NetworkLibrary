@@ -7,12 +7,12 @@ class LockQueue
 public:
 	void Enqueue(const T& inPar)
 	{
-		EXCLUSIVE_LOCK;
+		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 		_queue.push(inPar);
 	}
 	bool Dequeue(T* outPar)
 	{
-		EXCLUSIVE_LOCK;
+		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 		if (_queue.empty())
 		{
 			return false;
@@ -25,8 +25,11 @@ public:
 	{
 		return _queue.size();
 	}
-
+	LockQueue()
+	{
+		InitializeSRWLock(&_srwLock);
+	}
 private:
-	USE_LOCK
+	SRWLOCK _srwLock;
 	Queue<T> _queue;
 };

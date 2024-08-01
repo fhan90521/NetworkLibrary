@@ -8,7 +8,9 @@
 
 union SessionInfo
 {
+public:
 	typedef unsigned long long ID;
+private:
 	struct Index
 	{
 	private:
@@ -22,8 +24,12 @@ private:
 	friend class IOCPServer;
 	friend class IOCPDummyClient;
 	Index index;
-public:
 	unsigned long long id;
+public:
+	unsigned long long Id()
+	{
+		return id;
+	}
 	friend bool operator == (const SessionInfo& left, const SessionInfo& right)
 	{
 		return left.id == right.id;

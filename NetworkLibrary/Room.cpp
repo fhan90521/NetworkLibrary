@@ -29,23 +29,23 @@ void Room::TryEnter(SessionInfo sessionInfo)
 	int retRequestEnter =RequestEnter(sessionInfo);
 	if (retRequestEnter == ENTER_SUCCESS)
 	{
-		if (_sessionsInRoom.find(sessionInfo.id) == _sessionsInRoom.end())
+		if (_sessionsInRoom.find(sessionInfo.Id()) == _sessionsInRoom.end())
 		{
-			_sessionsInRoom.insert(sessionInfo.id);
+			_sessionsInRoom.insert(sessionInfo.Id());
 			OnEnter(sessionInfo);
 			_sessionCnt++;
 		}
 	}
 	else if(retRequestEnter == ENTER_HOLD)
 	{
-		_tryEnterSessions.insert(sessionInfo.id);
+		_tryEnterSessions.insert(sessionInfo.Id());
 	}
 }
 
 void Room::Leave(SessionInfo sessionInfo,int afterRoomID)
 {
-	_tryEnterSessions.erase(sessionInfo.id);
-	auto iterSession = _sessionsInRoom.find(sessionInfo.id);
+	_tryEnterSessions.erase(sessionInfo.Id());
+	auto iterSession = _sessionsInRoom.find(sessionInfo.Id());
 	if (iterSession != _sessionsInRoom.end())
 	{
 		OnLeave(sessionInfo);
@@ -57,8 +57,8 @@ void Room::Leave(SessionInfo sessionInfo,int afterRoomID)
 }
 void Room::LeaveRoomSystem(SessionInfo sessionInfo)
 {
-	_tryEnterSessions.erase(sessionInfo.id);
-	auto iterSession = _sessionsInRoom.find(sessionInfo.id);
+	_tryEnterSessions.erase(sessionInfo.Id());
+	auto iterSession = _sessionsInRoom.find(sessionInfo.Id());
 	if (iterSession != _sessionsInRoom.end())
 	{
 		OnLeaveRoomSystem(sessionInfo);

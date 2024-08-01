@@ -39,7 +39,7 @@ public:
 		}
 	};
 	//가변인자 템플릿이 인자를 void로 할때 rep stos byte ptr [rdi] 어셈블리어로 할당해주는 주소를 0으로 밀어주는데
-	//이게 락프리큐에서 두개이상의 스레드가 할당해주는 주소에 쓰기를 시도할 때  byte단위로 mov를 해서 문제를 일으킬 수 있다. 
+	//이게 락프리큐(LockFreeQueueBasic)에서 두개이상의 스레드가 할당해주는 주소에 쓰기를 시도할 때  byte단위로 mov를 해서 문제를 일으킬 수 있다. 
 	template<typename... Args>
 	T* Alloc(Args&&... args)
 	{
@@ -52,6 +52,7 @@ public:
 			if (oldTop.bitPartial.pTopNode == NULL)
 			{
 				pNode = (Node*)_aligned_malloc(sizeof(Node),16);
+				//이부분에서 void 일때 rep stos byte ptr [rdi]
 				new (pNode)T(std::forward<Args>(args)...);
 				return (T*)pNode;
 			}

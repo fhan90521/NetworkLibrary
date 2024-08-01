@@ -3,6 +3,46 @@
 #include <mutex>
 #include <shared_mutex>
 
+enum class LOCK_TYPE
+{
+	SHARED,
+	EXCLUSIVE,
+};
+
+template <LOCK_TYPE Type>
+class SRWLockGuard
+{
+public:
+	SRWLockGuard(SRWLOCK& lock) : _lock(lock)
+	{
+		if constexpr (Type == LOCK_TYPE::SHARED)
+		{
+			AcquireSRWLockShared(&lock);
+		}
+		else
+		{
+			AcquireSRWLockExclusive(&lock);
+		}
+	}
+
+	~SRWLockGuard()
+	{
+		if constexpr (Type == LOCK_TYPE::SHARED)
+		{
+			ReleaseSRWLockShared(&_lock);
+		}
+		else
+		{
+			ReleaseSRWLockExclusive(&_lock);
+		}
+	}
+
+
+private:
+	SRWLOCK& _lock;
+
+};
+
 #define USE_LOCKS(count) std::shared_mutex _sMutex[count];
 #define USE_LOCK	USE_LOCKS(1)
 #define	SHARED_LOCK_IDX(idx) std::shared_lock sharedLockGuard##idx(_sMutex[idx]);

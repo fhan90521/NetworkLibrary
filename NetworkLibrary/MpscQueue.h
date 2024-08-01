@@ -11,16 +11,20 @@ private:
 	std::atomic<int> _size = 0;
 	char _enqueueIndex = 0;
 	char _dequeueIndex = 1;
-	USE_LOCK;
+	SRWLOCK _srwLock;
 	void Flip()
 	{
-		EXCLUSIVE_LOCK
+		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 		std::swap(_enqueueIndex, _dequeueIndex);
 	}
 public:
+	MPSCQueue()
+	{
+		InitializeSRWLock(&_srwLock);
+	}
 	void Enqueue(const T& inPar)
 	{
-		EXCLUSIVE_LOCK;
+		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 		_queue[_enqueueIndex].push(inPar);
 		_size++;
 	}
