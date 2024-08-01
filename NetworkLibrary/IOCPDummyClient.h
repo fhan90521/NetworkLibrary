@@ -7,7 +7,7 @@
 #include "MyStlContainer.h"
 #include<process.h>
 #include <type_traits>
-#include "LockQueue.h"
+#include "MPSCQueue.h"
 class IOCPDummyClient
 {
 private:
@@ -112,7 +112,7 @@ private:
 	void ReserveDisconnectManage();
 	static unsigned __stdcall ReserveDisconnectManageThreadFunc(LPVOID arg);
 public:
-	LockQueue<ReserveInfo> _reserveDisconnectQ;
+	MPSCQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
 };
 
