@@ -1,5 +1,6 @@
 #include "JobQueue.h"
 #include "WorkType.h"
+#include "MyWindow.h"
 JobQueue::~JobQueue()
 {
 	Job* pJob;
@@ -10,7 +11,7 @@ JobQueue::~JobQueue()
 }
 void JobQueue::PostJob()
 {
-    _selfPtrQueue.push(shared_from_this());
+	_selfPtr = shared_from_this();
 	bool ret = PostQueuedCompletionStatus(_hCompletionPort, PROCESS_JOB, (ULONG_PTR)this, (LPOVERLAPPED)PROCESS_JOB);
 	if (ret == false)
 	{

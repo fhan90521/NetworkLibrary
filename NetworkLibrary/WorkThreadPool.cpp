@@ -22,10 +22,12 @@ void WorkThreadPool::WorkFunc()
 		}
 		else if(JobType == PROCESS_JOB)
 		{
-			//어셈블리 분석상 quque는 pop해서 원소의 소멸자 호출 후에도 멤버변수에 쓰기를 하기 때문에 레퍼런스로 받으면 안됨
-			SharedPtr<JobQueue> jobQueue = pJobQueue->_selfPtrQueue.front();
-			pJobQueue->ProcessJob();
-			pJobQueue->_selfPtrQueue.pop();
+			//아래 순서 지켜져야 한다 refCnt를 생각해서 정해놓은 순서
+			//process job하기 전에만 _selfPtr에 접근하는 스레드가 하나라는 걸 보장해서 실행전에 복사하고 nullptr로 바꾸어야 해야함
+			SharedPtr<JobQueue> jobQ = pJobQueue->_selfPtr;
+			jobQ->_selfPtr = nullptr;
+			jobQ->ProcessJob();
+	
 		}
 		else
 		{
