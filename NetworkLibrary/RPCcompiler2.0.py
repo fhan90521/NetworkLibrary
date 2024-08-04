@@ -189,7 +189,6 @@ def write_server_stub_cpp(file_name, class_name, functions):
         fout.writelines(f'#include "{class_name}ServerStub.h"\n')
         fout.writelines('#include "IOCPServer.h"\n')
         fout.writelines('#include "Log.h"\n')
-        fout.writelines('using namespace std;\n')
         
         for func_name, param_types, param_names in functions:
             packet_proc_declaration = f"bool {class_name}ServerStub::PacketProc{func_name}(SessionInfo sessionInfo, CRecvBuffer& buf)"
@@ -253,7 +252,6 @@ def write_client_stub_cpp(file_name, class_name, functions):
         fout.writelines(f'#include "{class_name}ClientStub.h"\n')
         fout.writelines('#include "IOCPServer.h"\n')
         fout.writelines('#include "Log.h"\n')
-        fout.writelines('using namespace std;\n')
         
         for func_name, param_types, param_names in functions:
             packet_proc_declaration = f"bool {class_name}ClientStub::PacketProc{func_name}(CRecvBuffer& buf)"

@@ -31,6 +31,8 @@ protected:
 	virtual int RequestEnter(SessionInfo sessionInfo) = 0;
 	virtual void OnLeave(SessionInfo sessionInfo) = 0;
 	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo) = 0;
+
+	//룸 내부에서만 호출되어야 한다
 	bool ChangeRoom(SessionInfo sessionInfo, int afterRoomID);
 	//virtual bool RequestLeave(SessionInfo sessionInfo) = 0;
 public:
