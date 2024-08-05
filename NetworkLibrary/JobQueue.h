@@ -60,7 +60,7 @@ public:
 		}
 	}
 	int GetProcessedJobCnt();
-	int GetJobQueueLen();
+	size_t GetJobQueueLen();
 	// Client¿ë
 	template<typename T, typename Ret, typename... Args>
 	void PushJob(Ret(T::* memFunc)(Args...), Args... args)
