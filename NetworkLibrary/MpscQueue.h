@@ -13,7 +13,7 @@ private:
 		size_t size=0;
 	};
 	AlignQueue _queues[2];
-	SRWLOCK _srwLock;
+	alignas(64) SRWLOCK _srwLock;
 	char _enqueueIndex = 0;
 	alignas(64) char _dequeueIndex = 1;
 	bool Flip()
