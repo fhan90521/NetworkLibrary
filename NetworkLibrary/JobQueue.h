@@ -34,7 +34,7 @@ public:
 		}
 	}
 	template<typename T, typename Ret, typename... Args>
-	void TryDoSync(Ret(T::* memFunc)(Args...), Args... args)
+	void TryDoSync(Ret(T::* memFunc)(Args...),const Args&... args)
 	{
 		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, args...));
 		if (GetPopAuthority() == true)
@@ -51,7 +51,7 @@ public:
 		}
 	}
 	template<typename T, typename Ret, typename... Args>
-	void DoAsync(Ret(T::* memFunc)(Args...), Args... args)
+	void DoAsync(Ret(T::* memFunc)(Args...),const Args&... args)
 	{
 		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, args...));
 		if (GetPopAuthority() == true)
@@ -63,7 +63,7 @@ public:
 	size_t GetJobQueueLen();
 	// Client¿ë
 	template<typename T, typename Ret, typename... Args>
-	void PushJob(Ret(T::* memFunc)(Args...), Args... args)
+	void PushJob(Ret(T::* memFunc)(Args...),const Args&... args)
 	{
 		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, args...));
 	}
