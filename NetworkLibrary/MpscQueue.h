@@ -7,15 +7,24 @@ template <typename T>
 class MPSCQueue
 {
 private:
-	Queue<T> _queue[2];
-	std::atomic<int> _size = 0;
+	struct alignas(64) AlignQueue
+	{
+		Queue<T> queue;
+		size_t size=0;
+	};
+	AlignQueue _queues[2];
+	alignas(64) SRWLOCK _srwLock;
 	char _enqueueIndex = 0;
-	char _dequeueIndex = 1;
-	SRWLOCK _srwLock;
-	void Flip()
+	alignas(64) char _dequeueIndex = 1;
+	bool Flip()
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
+		if (_queues[_enqueueIndex].size== 0)
+		{
+			return false;
+		}
 		std::swap(_enqueueIndex, _dequeueIndex);
+		return true;
 	}
 public:
 	MPSCQueue()
@@ -25,26 +34,25 @@ public:
 	void Enqueue(const T& inPar)
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
-		_queue[_enqueueIndex].push(inPar);
-		_size++;
+		_queues[_enqueueIndex].queue.push(inPar);
+		_queues[_enqueueIndex].size = _queues[_enqueueIndex].size + 1;
 	}
 	bool Dequeue(T* outPar)
 	{
-		if (_size == 0)
+		if (_queues[_dequeueIndex].size == 0)
 		{
-			return false;
+			if (Flip() == false)
+			{
+				return false;
+			}
 		}
-		_size--;
-		if (_queue[_dequeueIndex].size() == 0)
-		{
-			Flip();
-		}
-		*outPar = _queue[_dequeueIndex].front();
-		_queue[_dequeueIndex].pop();
+		*outPar = _queues[_dequeueIndex].queue.front();
+		_queues[_dequeueIndex].queue.pop();
+		_queues[_dequeueIndex].size = _queues[_dequeueIndex].size - 1;
 		return true;
 	}
-	int Size()
+	size_t Size()
 	{
-		return _size;
+		return _queues[0].size + _queues[1].size;
 	}
 };

@@ -25,8 +25,8 @@ private:
     {
         struct BitPartial
         {
-            LONG64 pNode : 48;
-            LONG64 cnt : 16;
+            LONG64 pNode : 47;
+            LONG64 cnt : 17;
         }bitPartial;
         LONG64 entire=0;
     };

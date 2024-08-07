@@ -10,7 +10,7 @@ public:
 	{
 	}
 	template<typename T, typename Ret, typename... Args>
-	Job(T* owner, Ret(T::* memFunc)(Args...), Args&&... args)
+	Job(T* owner, Ret(T::* memFunc)(Args...),const Args&... args)
 	{
 		_callback = [owner, memFunc, args...]()
 		{

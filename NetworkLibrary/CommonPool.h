@@ -83,17 +83,17 @@ public:
 		}
 	}
 public:
-	void* Alloc(int size)
+	void* Alloc(unsigned long long size)
 	{
 #ifdef CHECK_IMPOSSIBLE_INPUT
-		if (size <= 0)
+		if (size == 0)
 		{
 			Log::LogOnFile(Log::SYSTEM_LEVEL, "Alloc size lower than 0\n");
 			DebugBreak();
 			return nullptr;
 		}
 #endif
-		int essentialSize = sizeof(MemoryHeader) + size + sizeof(MemoryTail);
+		unsigned long long essentialSize = sizeof(MemoryHeader) + size + sizeof(MemoryTail);
 		if (essentialSize > MAX_CHUNK_SIZE)
 		{
 			MemoryHeader* pMemoryHeader = (MemoryHeader*)malloc(essentialSize);

@@ -25,7 +25,7 @@ int JobQueue::GetProcessedJobCnt()
 	return ret;
 }
 
-int JobQueue::GetJobQueueLen()
+size_t JobQueue::GetJobQueueLen()
 {
 	return _jobQueue.Size();
 }
@@ -33,7 +33,7 @@ int JobQueue::GetJobQueueLen()
 void JobQueue::ProcessJob()
 {
 	Job* pJob = nullptr;
-	int qSize = _jobQueue.Size();
+	size_t qSize = _jobQueue.Size();
 	_currentTime = GetTickCount64();
 	for (int i = 0; i < qSize; i++)
 	{

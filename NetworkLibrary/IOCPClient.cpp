@@ -199,7 +199,7 @@ void IOCPClient::RecvPost()
 		if (error != ERROR_IO_PENDING)
 		{
 			if (error != WSAECONNRESET && error != WSAECONNABORTED
-				&& error != WSAENOTSOCK && error != WSAESHUTDOWN)
+				&& error != WSAENOTSOCK)
 			{
 				Log::LogOnFile(Log::SYSTEM_LEVEL, "WSARecv() error: %d\n", error);
 			}
@@ -268,7 +268,7 @@ void IOCPClient::SendPost()
 		if (error != ERROR_IO_PENDING)
 		{
 			if (error != WSAECONNRESET && error != WSAECONNABORTED
-				&& error != WSAENOTSOCK && error != WSAESHUTDOWN)
+				&& error != WSAENOTSOCK )
 			{
 				Log::LogOnFile(Log::SYSTEM_LEVEL, "WSASend() error: %d\n", error);
 			}
