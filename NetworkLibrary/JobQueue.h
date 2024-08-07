@@ -33,10 +33,10 @@ public:
 			ProcessJob();
 		}
 	}
-	template<typename T, typename Ret, typename... Args>
-	void TryDoSync(Ret(T::* memFunc)(Args...),const Args&... args)
+	template<typename T, typename Ret, typename... Params, typename... Args>
+	void TryDoSync(Ret(T::* memFunc)(Params...), Args&&... args)
 	{
-		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, args...));
+		_jobQueue.Enqueue(New<Job>((T*)this, memFunc,std::forward<Args>(args)...));
 		if (GetPopAuthority() == true)
 		{
 			ProcessJob();
@@ -50,10 +50,10 @@ public:
 			PostJob();
 		}
 	}
-	template<typename T, typename Ret, typename... Args>
-	void DoAsync(Ret(T::* memFunc)(Args...),const Args&... args)
+	template<typename T, typename Ret, typename... Params, typename... Args>
+	void DoAsync(Ret(T::* memFunc)(Params...), Args&&... args)
 	{
-		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, args...));
+		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, std::forward<Args>(args)...));
 		if (GetPopAuthority() == true)
 		{
 			PostJob();
@@ -62,10 +62,10 @@ public:
 	int GetProcessedJobCnt();
 	size_t GetJobQueueLen();
 	// Client¿ë
-	template<typename T, typename Ret, typename... Args>
-	void PushJob(Ret(T::* memFunc)(Args...),const Args&... args)
+	template<typename T, typename Ret, typename... Params, typename... Args>
+	void PushJob(Ret(T::* memFunc)(Params...), Args&&... args)
 	{
-		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, args...));
+		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, std::forward<Args>(args)...));
 	}
 	bool PopJob(Job** pJob)
 	{
