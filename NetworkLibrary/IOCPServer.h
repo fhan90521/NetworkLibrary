@@ -69,10 +69,9 @@ public:
 		GetSeverSetValues(settingFileName);
 		ServerSetting();
 	}
-	virtual ~IOCPServer()
-	{
-	}
-	
+
+	virtual ~IOCPServer(){}
+
 	HANDLE GetCompletionPortHandle();
 	CHAR _bShutdown = false;
 	bool ServerControl();
