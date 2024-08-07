@@ -1,5 +1,5 @@
+#RPCcompiler2.0
 import sys
-
 def read_initial_info(file):
     name_and_typenum = []
     line = file.readline().strip()
