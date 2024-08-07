@@ -9,8 +9,8 @@ public:
 	Job(CallbackType&& callback) : _callback(std::move(callback))
 	{
 	}
-	template<typename T, typename Ret, typename... Args>
-	Job(T* owner, Ret(T::* memFunc)(Args...),const Args&... args)
+	template<typename T, typename Ret, typename... Params, typename... Args>
+	Job(T* owner, Ret(T::* memFunc)(Params...), Args&&... args)
 	{
 		_callback = [owner, memFunc, args...]()
 		{
