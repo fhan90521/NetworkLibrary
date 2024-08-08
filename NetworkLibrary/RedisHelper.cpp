@@ -16,13 +16,16 @@ cpp_redis::client* RedisHelper::GetRedisConnection()
 RedisHelper::RedisHelper(std::string RedisSetFile, int maxThreadCnt)
 {
 	GetRedisSetValue(RedisSetFile);
-	WSADATA wsa;
+
+	//IOCPServer와 독립적으로 쓸 때 필요
+	/*WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
 		int error = WSAGetLastError();
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "WSAStartup() error : %d\n", error);
 		DebugBreak();
-	}
+	}*/
+
 	_maxThreadCnt = maxThreadCnt;
 	_redisConnections = new RedisConnection[_maxThreadCnt];
 }
