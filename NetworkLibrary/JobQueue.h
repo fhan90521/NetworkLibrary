@@ -17,9 +17,13 @@ private:
 	MPSCQueue<Job*> _jobQueue;
 	char _bProcessing = false;
 	LONG _processedJobCnt = 0;
+	ULONG64 _currentTime = 0;
 	void ProcessJob();
 protected:
-	ULONG64 _currentTime = 0;
+	ULONG64 GetCurTime()
+	{
+		return _currentTime;
+	}
 	bool GetPopAuthority();
 	virtual ~JobQueue();
 	JobQueue(HANDLE hCompletionPort = NULL) :_hCompletionPort(hCompletionPort) {};

@@ -17,6 +17,7 @@ private:
 	HashSet<SessionInfo::ID>_sessionsInRoom;
 	CHAR _bUpdating = false;
 	int _roomID= INVALID_ROOM_ID;
+	ULONG64 _prevUpdateTime = 0;
 	//List<SessionInfo>_tryLeaveSessions;
 	void ProcessEnter();
 	//void ProcessLeave();
@@ -24,7 +25,6 @@ private:
 	void Leave(SessionInfo sessionInfo,int afterRoomID);
 	void LeaveRoomSystem(SessionInfo sessionInfo);
 protected:
-	ULONG64 _prevUpdateTime = 0;
 	void UpdateJob();
 	virtual void Update(float deltaTime) = 0;
 	virtual void OnEnter(SessionInfo sessionInfo) = 0;

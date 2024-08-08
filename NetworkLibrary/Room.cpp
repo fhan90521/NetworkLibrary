@@ -68,8 +68,8 @@ void Room::LeaveRoomSystem(SessionInfo sessionInfo)
 }
 void Room::UpdateJob()
 {
-	Update((_currentTime-_prevUpdateTime)/(1000.0));
-	_prevUpdateTime = _currentTime;
+	Update((GetCurTime() - _prevUpdateTime) / (1000.0));
+	_prevUpdateTime = GetCurTime();
 	_bUpdating = false;
 	InterlockedIncrement(&_updateCnt);
 }
