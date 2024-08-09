@@ -32,8 +32,7 @@ RedisHelper::RedisHelper(std::string RedisSetFile, int maxThreadCnt)
 
 RedisHelper::~RedisHelper()
 {
-	delete[] _redisConnections;
-	WSACleanup();
+	// 정적으로 사용해서 굳이 정리 안함
 }
 
 void RedisHelper::GetRedisSetValue(std::string RedisSetFile)

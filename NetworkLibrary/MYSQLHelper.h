@@ -5,6 +5,7 @@
 #include "include/mysql.h"
 #include "include/errmsg.h"
 #include "Log.h"
+#include "LockGuard.h"
 class MYSQLHelper
 {
 	//DB
@@ -21,8 +22,7 @@ private:
 	unsigned int DB_PORT = 3306;
 	int _maxThreadCnt;
 	MYSQLConnection* _MYSQLConnections;
-	inline static SRWLOCK _DBInitialLock;
-	inline static char _bInitialLock = false;
+	inline static USE_LOCK;
 public:
 	MYSQLHelper(std::string DBSetFile,int maxThreadCnt=64);
 	~MYSQLHelper();
