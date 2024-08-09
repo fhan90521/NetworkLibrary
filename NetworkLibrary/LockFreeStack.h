@@ -22,9 +22,9 @@ private:
 		T data;
 		Node* pNext = nullptr;
 	};
-	alignas(64) Top _top;
-	alignas(64) LONG _size;
 	static TlsObjectPool<Node,true> _objectPool;
+	alignas(64) Top _top;
+	LONG _size;
 public:
 	LockFreeStack()
 	{

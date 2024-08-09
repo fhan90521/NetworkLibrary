@@ -11,7 +11,7 @@ private:
 	SRWLOCK _srwLock;
 	friend class Room;
 	class IOCPServer* _pServer = nullptr;
-	std::jthread* _roomUpdateThread;
+	std::thread* _roomUpdateThread;
 	HashMap<Room::ID,SharedPtr<Room>> _rooms;
 	HashMap<SessionInfo::ID, Room::ID> _sessionToRoomID;
 	bool bShutDown = false;

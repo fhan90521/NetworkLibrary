@@ -41,7 +41,7 @@ WorkThreadPool::WorkThreadPool(int concurrentThreadCnt, int workThreadCnt)
 	CreateNewCompletionPort(concurrentThreadCnt);
 	for (int i = 0; i < workThreadCnt; i++)
 	{
-		_threadList.push_back( new std::jthread(&WorkThreadPool::WorkFunc, this ) );
+		_threadList.push_back( new std::thread(&WorkThreadPool::WorkFunc, this ) );
 	}
 }
 
@@ -51,7 +51,7 @@ WorkThreadPool::~WorkThreadPool()
 	{
 		PostQueuedCompletionStatus(_hCompletionPort, SHUT_DOWN, SHUT_DOWN, (LPOVERLAPPED)SHUT_DOWN);
 	}
-	for (std::jthread* pThread : _threadList)
+	for (std::thread* pThread : _threadList)
 	{
 		pThread->join();
 		delete pThread;
