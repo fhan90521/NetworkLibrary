@@ -7,7 +7,7 @@ class WorkThreadPool
 private:
 	HANDLE _hCompletionPort;
 	void CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
-	List<std::jthread*> _threadList;
+	List<std::thread*> _threadList;
 	void WorkFunc();
 public:
 	WorkThreadPool(int concurrentThreadCnt, int workThreadCnt);

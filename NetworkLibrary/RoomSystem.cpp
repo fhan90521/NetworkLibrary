@@ -46,7 +46,7 @@ void RoomSystem::UpdateRooms()
 RoomSystem::RoomSystem(IOCPServer* pServer)
 {
 	InitializeSRWLock(&_srwLock);
-	_roomUpdateThread = New<std::jthread>(&RoomSystem::UpdateRooms, this);
+	_roomUpdateThread = New<std::thread>(&RoomSystem::UpdateRooms, this);
 	_pServer = pServer;
 }
 
@@ -54,7 +54,7 @@ RoomSystem::~RoomSystem()
 {
 	bShutDown = true;
 	_roomUpdateThread->join();
-	Delete<std::jthread>(_roomUpdateThread);
+	Delete<std::thread>(_roomUpdateThread);
 }
 
 void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
