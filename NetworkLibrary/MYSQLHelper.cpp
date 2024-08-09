@@ -3,17 +3,13 @@
 #include "ParseJson.h"
 MYSQLHelper::MYSQLHelper(std::string DBSetFile, int maxThreadCnt)
 {
-	if (InterlockedExchange8(&_bInitialLock, true) == false)
-	{
-		InitializeSRWLock(&_DBInitialLock);
-	}
 	GetDBSetValue(DBSetFile);
 	_maxThreadCnt = maxThreadCnt;
 	_MYSQLConnections = new MYSQLConnection[_maxThreadCnt];
 }
 MYSQLHelper::~MYSQLHelper()
 {
-	delete[] _MYSQLConnections;
+	// 정적으로 사용해서 굳이 정리 안함
 }
 void MYSQLHelper::GetDBSetValue(std::string DBSetFile)
 {
@@ -27,7 +23,7 @@ void MYSQLHelper::GetDBSetValue(std::string DBSetFile)
 bool MYSQLHelper::Connect()
 {
 	bool ret = true;
-	AcquireSRWLockExclusive(&_DBInitialLock);
+	EXCLUSIVE_LOCK;
 	MYSQLConnection& dbConnection = _MYSQLConnections[GetMyThreadID()];
 	mysql_init(&dbConnection.connection);
 	dbConnection.isConnecting = mysql_real_connect(&dbConnection.connection, DB_IP.data(), DB_USER.data(), DB_PASSWORD.data(), DB_SCHEMA.data(), DB_PORT, (char*)NULL, 0);
@@ -36,7 +32,6 @@ bool MYSQLHelper::Connect()
 		ret = false;
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "Mysql connection error : % s", mysql_error(&dbConnection.connection));
 	}
-	ReleaseSRWLockExclusive(&_DBInitialLock);
 	return ret;
 }
 
