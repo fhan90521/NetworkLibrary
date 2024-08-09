@@ -12,6 +12,9 @@ enum class LOCK_TYPE
 template <LOCK_TYPE Type>
 class SRWLockGuard
 {
+	SRWLockGuard(SRWLockGuard& other) = delete;
+	SRWLockGuard& operator=(SRWLockGuard& other) = delete;
+
 public:
 	SRWLockGuard(SRWLOCK& lock) : _lock(lock)
 	{
