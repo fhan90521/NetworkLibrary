@@ -9,7 +9,7 @@
 class PerformanceProfiler
 {
 private:
-	enum
+	enum : int
 	{
 		MAX_SAMPLE_CNT = 32,
 		THREAD_CNT = 16

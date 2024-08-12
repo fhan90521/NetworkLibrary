@@ -20,7 +20,7 @@ private:
 private:
 	alignas(64) Top _top;
 	LockFreeStack<void*> _allocPtrStack;
-	int _chunkSize;
+	size_t _chunkSize;
 	int _chunkPerBlock;
 	LONG _id;
 private:

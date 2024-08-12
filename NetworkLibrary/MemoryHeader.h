@@ -2,7 +2,7 @@
 struct MemoryHeader
 {
 	MemoryHeader* pNext = nullptr;
-	unsigned int allocSize;
+	size_t allocSize;
 };
 struct MemoryTail
 {

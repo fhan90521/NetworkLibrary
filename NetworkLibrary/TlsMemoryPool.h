@@ -8,7 +8,7 @@
 class TlsMemoryPool
 {
 private:
-	enum
+	enum : int
 	{
 		THREADCNT =64
 	};

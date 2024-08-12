@@ -35,7 +35,7 @@ private:
 private:
 	const long long EXIT_TIMEOUT = 5000;
 	const long long SENDQ_MAX_LEN = 1024;
-	enum IOCP_KEY
+	enum IOCP_KEY: int
 	{
 		CLIENT_DOWN = 100,
 		REQUEST_SEND

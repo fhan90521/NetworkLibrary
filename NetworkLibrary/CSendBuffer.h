@@ -13,7 +13,7 @@ private:
 	friend class IOCPServer;
 	friend class IOCPClient;
 	friend class IOCPDummyClient;
-	enum enCSendBuffer
+	enum enCSendBuffer: int
 	{
 		eBUFFER_DEFAULT = 512, // 패킷의 기본 버퍼 사이즈.
 		eBUFFER_MAX_SIZE = 5000
