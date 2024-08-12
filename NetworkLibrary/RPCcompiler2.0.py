@@ -91,11 +91,11 @@ def write_server_proxy_header(file_name, class_name, functions, basic_type):
         fout.writelines(f'class {class_name}ServerProxy\n')
         fout.writelines('{\nprivate:\n\tIOCPServer* _pServer;\npublic:\n')
         for func_name, param_types, param_names in functions:
-            tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
+            tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail) > 0 :     
                 tail+=', '
             fout.writelines(f'\tvoid {func_name}(SessionInfo sessionInfo, {tail}bool bDisconnect = false);\n')
-            fout.writelines(f'\tvoid {func_name}(List<SessionInfo>& sessionInfoList, {tail}bool bDisconnect = false);\n\n')
+            fout.writelines(f'\tvoid {func_name}(const List<SessionInfo>& sessionInfoList, {tail}bool bDisconnect = false);\n\n')
         fout.writelines(f'\t{class_name}ServerProxy(IOCPServer* pServer)\n\t{{\n\t\t_pServer = pServer;\n\t}}\n}};\n')
 
 def write_server_proxy_cpp(file_name, class_name, functions, basic_type):
@@ -103,7 +103,7 @@ def write_server_proxy_cpp(file_name, class_name, functions, basic_type):
         fout.writelines(f'#include "{class_name}ServerProxy.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
         for func_name, param_types, param_names in functions:
-            tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
+            tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail) > 0 : 
                 tail += ', '
             fout.writelines(f'void {class_name}ServerProxy::{func_name}(SessionInfo sessionInfo, {tail}bool bDisconnect)\n{{\n')
@@ -115,7 +115,7 @@ def write_server_proxy_cpp(file_name, class_name, functions, basic_type):
             fout.writelines(';\n\t}\n\tcatch(int useSize)\n\t{\n\t}\n')
             fout.writelines('\t_pServer->Unicast(sessionInfo, pBuf, bDisconnect);\n')
             fout.writelines('\tpBuf->DecrementRefCnt();\n}\n')
-            fout.writelines(f'void {class_name}ServerProxy::{func_name}(List<SessionInfo>& sessionInfoList, {tail}bool bDisconnect)\n{{\n')
+            fout.writelines(f'void {class_name}ServerProxy::{func_name}(const List<SessionInfo>& sessionInfoList, {tail}bool bDisconnect)\n{{\n')
             fout.writelines('\tCSendBuffer* pBuf = CSendBuffer::Alloc();\n')
             fout.writelines('\tpBuf->IncrementRefCnt();\n\ttry\n\t{\n\t\t*pBuf')
             fout.writelines(f' << PKT_TYPE_{func_name}')
@@ -135,7 +135,7 @@ def write_client_proxy_header(file_name, class_name, functions, basic_type):
         fout.writelines(f'class {class_name}ClientProxy\n')
         fout.writelines('{\nprivate:\n\tIOCPClient* _pClient;\npublic:\n')
         for func_name, param_types, param_names in functions:
-            tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
+            tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail)>0:
                 tail+=', '
             fout.writelines(f'\tvoid {func_name}({tail}bool bDisconnect = false);\n')
@@ -146,7 +146,7 @@ def write_client_proxy_cpp(file_name, class_name, functions, basic_type):
         fout.writelines(f'#include "{class_name}ClientProxy.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
         for func_name, param_types, param_names in functions:
-            tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
+            tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail)>0:
                 tail+=', '
             fout.writelines(f'void {class_name}ClientProxy::{func_name}({tail}bool bDisconnect)\n{{\n')
@@ -294,11 +294,11 @@ def write_dummy_client_proxy_header(file_name, class_name, functions, basic_type
         fout.writelines(f'class {class_name}DummyProxy\n')
         fout.writelines('{\nprivate:\n\tIOCPDummyClient* _pDummyClient;\npublic:\n')
         for func_name, param_types, param_names in functions:
-            tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
+            tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail) > 0 :     
                 tail+=', '
             fout.writelines(f'\tvoid {func_name}(SessionInfo sessionInfo, {tail} bool bDisconnect = false);\n')
-            fout.writelines(f'\tvoid {func_name}(List<SessionInfo>& sessionInfoList, {tail} bool bDisconnect = false);\n\n')
+            fout.writelines(f'\tvoid {func_name}(const List<SessionInfo>& sessionInfoList, {tail} bool bDisconnect = false);\n\n')
         fout.writelines(f'\t{class_name}DummyProxy(IOCPDummyClient* pDummyClient)\n\t{{\n\t\t_pDummyClient = pDummyClient;\n\t}}\n}};\n')
 
 def write_dummy_client_proxy_cpp(file_name, class_name, functions, basic_type):
@@ -306,7 +306,7 @@ def write_dummy_client_proxy_cpp(file_name, class_name, functions, basic_type):
         fout.writelines(f'#include "{class_name}DummyProxy.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
         for func_name, param_types, param_names in functions:
-            tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
+            tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail) > 0 : 
                 tail += ', '
             fout.writelines(f'void {class_name}DummyProxy::{func_name}(SessionInfo sessionInfo, {tail}bool bDisconnect)\n{{\n')
@@ -318,7 +318,7 @@ def write_dummy_client_proxy_cpp(file_name, class_name, functions, basic_type):
             fout.writelines(';\n\t}\n\tcatch(int useSize)\n\t{\n\t}\n')
             fout.writelines('\t_pDummyClient->Unicast(sessionInfo, pBuf, bDisconnect);\n')
             fout.writelines('\tpBuf->DecrementRefCnt();\n}\n')
-            fout.writelines(f'void {class_name}DummyProxy::{func_name}(List<SessionInfo>& sessionInfoList, {tail}bool bDisconnect)\n{{\n')
+            fout.writelines(f'void {class_name}DummyProxy::{func_name}(const List<SessionInfo>& sessionInfoList, {tail}bool bDisconnect)\n{{\n')
             fout.writelines('\tCSendBuffer* pBuf = CSendBuffer::Alloc();\n')
             fout.writelines('\tpBuf->IncrementRefCnt();\n\ttry\n\t{\n\t\t*pBuf')
             fout.writelines(f' << PKT_TYPE_{func_name}')
