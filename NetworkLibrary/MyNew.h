@@ -2,7 +2,7 @@
 #include "Malloc.h"
 #include "MyWindow.h"
 #include <utility>
-//#define CHECK_ALLOCATINGCNT
+#define CHECK_ALLOCATINGCNT
 
 #ifdef CHECK_ALLOCATINGCNT
 template <typename T>
