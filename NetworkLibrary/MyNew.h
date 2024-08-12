@@ -3,6 +3,8 @@
 #include "MyWindow.h"
 #include <utility>
 //#define CHECK_ALLOCATINGCNT
+
+#ifdef CHECK_ALLOCATINGCNT
 template <typename T>
 class GlobalObjectPool
 {
@@ -16,9 +18,12 @@ public:
 	template<typename Type>
 	friend void Delete(Type* ptr);
 	
-	template<typename Type>
-	friend int GetAllocatingCnt();
+	static int GetAllocatingCnt()
+	{
+		return allocatingCnt;
+	}
 };
+#endif
 
 template<typename Type,typename ...Args>
 Type* New(Args &&... args)
@@ -41,8 +46,4 @@ void Delete(Type* ptr)
 	Free(ptr);
 }
 
-template<typename Type>
-inline int GetAllocatingCnt()
-{
-	return GlobalObjectPool<Type>::allocatingCnt;
-}
+

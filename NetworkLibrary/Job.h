@@ -12,7 +12,7 @@ public:
 	template<typename T, typename Ret, typename... Params, typename... Args>
 	Job(T* owner, Ret(T::* memFunc)(Params...), Args&&... args)
 	{
-		_callback = [owner, memFunc, args...]()
+		_callback = [owner, memFunc, args...]()mutable
 		{
 			(owner->*memFunc)(args...);
 		};
