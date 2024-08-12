@@ -18,7 +18,7 @@ private:
 		void* allocPtr = nullptr;
 	public:
 		MemoryHeader* pTop = nullptr;
-		MemoryBlock(int chunkSize, int chunkPerBlock)  
+		MemoryBlock(size_t chunkSize, int chunkPerBlock)  
 		{
 			void* pBlock = malloc(chunkPerBlock * chunkSize);
 			MemoryHeader* pMemoryHeader = nullptr;
@@ -55,7 +55,7 @@ private:
 	PoolState _poolStateArr[THREADCNT];
 	LockFreeObjectPool<MemoryBlock, false> _blockPool;
 	SLIST_HEADER _blockListHead;
-	int _chunkSize;
+	size_t _chunkSize;
 	int _chunkPerBlock;
 
 	void AllocBlock()
@@ -77,7 +77,7 @@ private:
 		_blockPool.Free(pOldTopBlock);
 	}
 public:
-	TlsMemoryPool(int chunkSize, int chunkPerBlock)
+	TlsMemoryPool(size_t chunkSize, int chunkPerBlock)
 	{
 		InitializeSListHead(&_blockListHead);
 		_chunkSize = chunkSize;
