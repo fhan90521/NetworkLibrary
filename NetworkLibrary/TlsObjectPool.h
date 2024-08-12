@@ -9,7 +9,7 @@ template <typename T, bool _bPlacementNew>
 class TlsObjectPool
 {
 private:
-	enum
+	enum : int
 	{
 		THREADCNT = 64
 	};

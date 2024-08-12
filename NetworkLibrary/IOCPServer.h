@@ -99,7 +99,7 @@ public:
 
 //Disconnect After Send//
 private:
-	enum
+	enum: int
 	{
 		RESERVE_DISCONNECT_MS=100
 	};

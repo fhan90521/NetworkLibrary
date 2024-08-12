@@ -16,7 +16,7 @@
 class CommonPool
 {
 	typedef TlsMemoryPool MemoryPool;
-	enum
+	enum: int
 	{
 		MAX_CHUNK_SIZE = 4096,
 		POOL_CNT = (512 / 16) + (512 / 32) + (1024 / 64) + (2048 / 128)
@@ -83,7 +83,7 @@ public:
 		}
 	}
 public:
-	void* Alloc(unsigned long long size)
+	void* Alloc(size_t size)
 	{
 #ifdef CHECK_IMPOSSIBLE_INPUT
 		if (size == 0)
@@ -93,14 +93,17 @@ public:
 			return nullptr;
 		}
 #endif
-		unsigned long long essentialSize = sizeof(MemoryHeader) + size + sizeof(MemoryTail);
+		size_t essentialSize = sizeof(MemoryHeader) + size + sizeof(MemoryTail);
 		if (essentialSize > MAX_CHUNK_SIZE)
 		{
 			MemoryHeader* pMemoryHeader = (MemoryHeader*)malloc(essentialSize);
 			pMemoryHeader->allocSize = essentialSize;
 			return (pMemoryHeader + 1);
 		}
-		return _pPoolTable[essentialSize]->Alloc();
+		else
+		{
+			return _pPoolTable[essentialSize]->Alloc();
+		}
 	}
 
 	void Free(void* pData)

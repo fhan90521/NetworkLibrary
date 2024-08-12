@@ -11,7 +11,7 @@
 class IOCPDummyClient
 {
 private:
-	enum IOCP_KEY
+	enum IOCP_KEY: int
 	{
 		DUMMY_DOWN = 100,
 		REQUEST_SEND,
@@ -98,7 +98,7 @@ public:
 	bool Connect();
 //Disconnect After Send//
 private:
-	enum
+	enum : int
 	{
 		RESERVE_DISCONNECT_MS=100
 	};
