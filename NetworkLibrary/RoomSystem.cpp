@@ -71,7 +71,7 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 				auto afterRoomsIter = _rooms.find(afterRoomID);
 				if (afterRoomsIter != _rooms.end())
 				{
-					_sessionToRoomID[sessionInfo.Id()] = afterRoomID;
+					sessionToRoomIDIter->second = afterRoomID;
 					afterRoomsIter->second->DoAsync(&Room::TryEnter, sessionInfo);
 					return;
 				}
@@ -80,6 +80,11 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 					beforeRoom->DoAsync(&Room::TryEnter, sessionInfo);
 					return;
 				}
+			}
+			else if (sessionToRoomIDIter->second == LEAVE_ROOM_SYSTEM)
+			{
+				OnLeaveByChangingRoomSession(sessionInfo);
+				_sessionToRoomID.erase(sessionToRoomIDIter);
 			}
 			else
 			{
@@ -119,10 +124,6 @@ bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterR
 			{
 				bDisconnect = true;
 			}
-		}
-		else
-		{
-			bDisconnect = true;
 		}
 	}
 
@@ -167,7 +168,11 @@ void RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 			{
 				roomIter->second->DoAsync(&Room::LeaveRoomSystem, sessionInfo);
 			}
+			_sessionToRoomID.erase(sessionToRoomIDIter);
 		}
-		_sessionToRoomID.erase(sessionToRoomIDIter);
+		else
+		{
+			sessionToRoomIDIter->second = LEAVE_ROOM_SYSTEM;
+		}
 	}
 }
