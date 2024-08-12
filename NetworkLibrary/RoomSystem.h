@@ -8,6 +8,12 @@
 class RoomSystem
 {
 private:
+	enum: int
+	{
+		INVALID_ROOM_ID = -1,
+		CHANGING_ROOM_ID = -2,
+		LEAVE_ROOM_SYSTEM = -3
+	};
 	SRWLOCK _srwLock;
 	friend class Room;
 	class IOCPServer* _pServer = nullptr;
@@ -32,4 +38,6 @@ public:
 
 	int RegisterRoom(const SharedPtr<Room>& pRoom);
 	void DeregisterRoom(int roomID);
+
+	virtual void OnLeaveByChangingRoomSession(SessionInfo sessionInfo)=0;
 };

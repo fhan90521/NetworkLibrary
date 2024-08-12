@@ -4,11 +4,16 @@
 #include "Session.h"
 #include "JobQueue.h"
 #include "MyStlContainer.h"
-#define INVALID_ROOM_ID -1
-#define CHANGING_ROOM_ID -2
+
 class Room: public JobQueue
 {
 private:
+	enum : int
+	{
+		INVALID_ROOM_ID = -1,
+		CHANGING_ROOM_ID = -2,
+		LEAVE_ROOM_SYSTEM = -3
+	};
 	friend class RoomSystem;
 	class RoomSystem* _pRoomSystem=nullptr;
 	LONG _updateCnt = 0;
@@ -39,7 +44,7 @@ public:
 	typedef int ID;
 	virtual ~Room();
 	Room(HANDLE hCompletionPort);
-	enum
+	enum: int
 	{
 		ENTER_DENIED,
 		ENTER_SUCCESS,
