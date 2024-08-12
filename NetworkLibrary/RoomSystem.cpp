@@ -1,5 +1,6 @@
 #include "RoomSystem.h"
 #include "MyNew.h"
+#include "Log.h"
 int RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
 {
 	pRoom->_roomID = _newRoomID;
@@ -88,8 +89,16 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 			}
 			else
 			{
+				//로직상 불가능한 경우
 				bDisconnect = true;
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 1");
 			}
+		}
+		else
+		{
+			//로직상 불가능한 경우
+			bDisconnect = true;
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 2");
 		}
 	}
 

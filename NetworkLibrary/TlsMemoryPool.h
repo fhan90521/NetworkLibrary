@@ -18,7 +18,7 @@ private:
 		void* allocPtr = nullptr;
 	public:
 		MemoryHeader* pTop = nullptr;
-		MemoryBlock(size_t chunkSize, int chunkPerBlock)  
+		MemoryBlock(size_t chunkSize, int chunkPerBlock)
 		{
 			void* pBlock = malloc(chunkPerBlock * chunkSize);
 			MemoryHeader* pMemoryHeader = nullptr;
