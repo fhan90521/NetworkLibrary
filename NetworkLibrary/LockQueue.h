@@ -9,7 +9,7 @@ public:
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 		_queue.push(inPar);
-		_size = _size + 1;
+		_size++;
 	}
 	bool Dequeue(T* outPar)
 	{
@@ -20,7 +20,7 @@ public:
 		}
 		*outPar = _queue.front();
 		_queue.pop();
-		_size = _size - 1;
+		_size--;
 		return true;
 	}
 	size_t Size()

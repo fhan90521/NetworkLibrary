@@ -131,7 +131,9 @@ bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterR
 			}
 			else
 			{
+				//로직상 불가능한 경우
 				bDisconnect = true;
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "ChangeRoom Impossible Error");
 			}
 		}
 	}
