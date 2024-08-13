@@ -29,16 +29,19 @@ private:
 	void TryEnter(SessionInfo sessionInfo);
 	void Leave(SessionInfo sessionInfo,int afterRoomID);
 	void LeaveRoomSystem(SessionInfo sessionInfo);
-protected:
 	void UpdateJob();
+
+private:
 	virtual void Update(float deltaTime) = 0;
 	virtual void OnEnter(SessionInfo sessionInfo) = 0;
 	virtual int RequestEnter(SessionInfo sessionInfo) = 0;
 	virtual void OnLeave(SessionInfo sessionInfo) = 0;
 	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo) = 0;
 
+protected:
 	//룸 내부에서만 호출되어야 한다
 	bool ChangeRoom(SessionInfo sessionInfo, int afterRoomID);
+	
 	//virtual bool RequestLeave(SessionInfo sessionInfo) = 0;
 public:
 	typedef int ID;

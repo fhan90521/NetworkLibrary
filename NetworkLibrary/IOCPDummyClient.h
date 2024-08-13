@@ -18,8 +18,6 @@ private:
 	};
 private:
 	void DropIoPending(SessionInfo sessionInfo);
-	void GetDummySetValues(std::string settingFileName);
-	void DummySetting();
 	HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
 	BOOL AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDLE hDevice, ULONG_PTR dwCompletionKey);
 
@@ -44,8 +42,8 @@ private:
 	void ReleaseSession(Session* pSession);
 private:
 	const long long EXIT_TIMEOUT = 5000;
-	const long long SENDQ_MAX_LEN = 1024;
-protected:
+private:
+	int SENDQ_MAX_LEN = 1024;
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
 	int SERVER_PORT = 0;
@@ -56,6 +54,8 @@ protected:
 	int PAYLOAD_MAX_LEN = 300;
 	bool _bWan;
 	std::string SERVER_IP;
+	void GetDummySetValues(std::string settingFileName);
+	void DummySetting();
 private:
 	ULONG64 _newSessionID = 0;
 	HANDLE _hcp=INVALID_HANDLE_VALUE;
@@ -72,9 +72,7 @@ public:
 		GetDummySetValues(settingFileName);
 		DummySetting();
 	}
-	virtual ~IOCPDummyClient()
-	{
-	}
+	virtual ~IOCPDummyClient(){}
 	
 	CHAR _bShutdown = false;
 	bool DummyControl();
@@ -83,11 +81,12 @@ public:
 	void CloseDummy();
 protected:
 	void IOCPRun();
+private:
 	virtual void OnConnect(SessionInfo sessionInfo) = 0;
 	virtual void OnDisconnect(SessionInfo sessionInfo)=0;
 	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf)=0;
-	virtual void Run() = 0;
 public:
+	virtual void Run() = 0;
 	int GetAcceptCnt();
 	int GetRecvCnt();
 	int GetSendCnt();
@@ -114,5 +113,6 @@ private:
 public:
 	MPSCQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
+
 };
 

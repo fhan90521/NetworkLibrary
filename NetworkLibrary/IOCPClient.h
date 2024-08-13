@@ -50,6 +50,8 @@ protected:
 	int PAYLOAD_MAX_LEN = 300;
 	std::string SERVER_IP;
 	int SERVER_PORT=0;
+	void GetClientSetValues(std::string settingFileName);
+	void ClientSetting();
 private:
 	bool _bWan;
 	HANDLE _hcp = INVALID_HANDLE_VALUE;
@@ -66,21 +68,19 @@ public:
 		ClientSetting();
 	}
 	IOCPClient(bool bWan=true) : _bWan(bWan){}
-	virtual ~IOCPClient()
-	{
-	}
+	virtual ~IOCPClient(){}
+
 	void Unicast(CSendBuffer* buf, bool bDisconnect = false);
 	void Disconnect();
 	void CloseClient();
 protected:
 	void IOCPRun();
+private:
 	virtual void OnConnect() = 0;
 	virtual void OnDisconnect() = 0;
 	virtual void OnRecv(CRecvBuffer& buf) = 0;
-	virtual void Run() = 0;
-	void GetClientSetValues(std::string settingFileName);
-	void ClientSetting();
 public:
+	virtual void Run() = 0;
 	bool Connect();
 	int GetRecvCnt();
 	int GetSendCnt();

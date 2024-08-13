@@ -38,6 +38,6 @@ public:
 
 	int RegisterRoom(const SharedPtr<Room>& pRoom);
 	void DeregisterRoom(int roomID);
-
+private:
 	virtual void OnLeaveByChangingRoomSession(SessionInfo sessionInfo)=0;
 };
