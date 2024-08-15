@@ -60,9 +60,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h">
       <Filter>Debug</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CList.h">
-      <Filter>Container</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h">
       <Filter>Buffer</Filter>
     </ClInclude>

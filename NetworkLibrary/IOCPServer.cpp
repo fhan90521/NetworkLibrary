@@ -141,6 +141,11 @@ void IOCPServer::ServerSetting()
 
 }
 
+std::string IOCPServer::GetBindIp()
+{
+	return BIND_IP;
+}
+
 Session* IOCPServer::FindSession(SessionInfo sessionInfo)
 {
 	Session* pSession = &_sessionArray[sessionInfo.index.val];
