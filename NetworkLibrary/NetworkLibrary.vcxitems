@@ -26,12 +26,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)GetPOOLID.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPClient.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)RedisHelper.cpp" />
@@ -57,7 +55,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h" />
@@ -70,7 +67,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Log.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Malloc.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MemoryHeader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h" />
