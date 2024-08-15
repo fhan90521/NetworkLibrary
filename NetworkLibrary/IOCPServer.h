@@ -51,6 +51,8 @@ private:
 	std::string BIND_IP;
 	void GetSeverSetValues(std::string settingFileName);
 	void ServerSetting();
+public:
+	std::string GetBindIp();
 private:
 	SOCKET _listenSock=INVALID_SOCKET;
 	ULONG64 _newSessionID = 0;
