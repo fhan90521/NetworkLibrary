@@ -2,7 +2,6 @@
 #include "MyWindow.h"
 #include "CRecvBuffer.h"
 #include "CSendBuffer.h"
-#include "LockFreeStack.h"
 #include "Session.h"
 #include "MyStlContainer.h"
 #include<process.h>

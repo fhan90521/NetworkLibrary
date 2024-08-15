@@ -1,10 +1,8 @@
 #pragma once
-#include "LockFreeObjectPool.h"
 #include "GetMyThreadID.h"
 #include "MyWindow.h"
 #include <utility>
 #include <new.h>
-#include <iostream>
 template <typename T, bool _bPlacementNew>
 class TlsObjectPool
 {
@@ -72,43 +70,53 @@ private:
 		int allocatingCnt = 0;
 	};
 
-
+	
 	PoolState _poolStateArr[THREADCNT];
-	LockFreeObjectPool<NodeBlock, false> _blockPool;
-	SLIST_HEADER _blockListHead;
-	int _nodePerBlock;
-
+	alignas(64) SLIST_HEADER _blockPoolTop;
+	SLIST_HEADER _emptyBlockTop;
+	alignas(64) int _nodePerBlock;
 	void AllocBlock()
 	{
 		PoolState& poolState = _poolStateArr[GetMyThreadID()];
-		NodeBlock* pBlock = _blockPool.Alloc(_nodePerBlock);
+		NodeBlock* pBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockPoolTop);
+		if (pBlock == nullptr)
+		{
+			pBlock = (NodeBlock*)_aligned_malloc(sizeof(NodeBlock), 16);
+			new (pBlock) NodeBlock(_nodePerBlock);
+		}
 		poolState.pTopNode = pBlock->pTopNode;
 		poolState.remainCnt = _nodePerBlock;
-		InterlockedPushEntrySList(&_blockListHead, pBlock);
+		InterlockedPushEntrySList(&_emptyBlockTop, pBlock);
 	}
 
 	void FreeBlock()
 	{
 		PoolState& poolState = _poolStateArr[GetMyThreadID()];
-		NodeBlock* pOldTopBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockListHead);
-		pOldTopBlock->pTopNode = poolState.pFreePrev->pNext;
+		NodeBlock* pEmptyBlock = (NodeBlock*)InterlockedPopEntrySList(&_emptyBlockTop);
+		pEmptyBlock->pTopNode = poolState.pFreePrev->pNext;
 		poolState.pFreePrev->pNext = nullptr;
 		poolState.remainCnt = _nodePerBlock;
-		_blockPool.Free(pOldTopBlock);
+		InterlockedPushEntrySList(&_blockPoolTop, pEmptyBlock);
 	}
 public:
 	TlsObjectPool(int nodePerBlock = 512)
 	{
-		InitializeSListHead(&_blockListHead);
+		InitializeSListHead(&_blockPoolTop);
+		InitializeSListHead(&_emptyBlockTop);
 		_nodePerBlock = nodePerBlock;
 	}
 	~TlsObjectPool()
 	{
-		NodeBlock* pBlock;
-		while (pBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockListHead))
+		NodeBlock* pBlock = nullptr;
+		while (pBlock = (NodeBlock*)InterlockedPopEntrySList(&_emptyBlockTop))
 		{
-			pBlock->pTopNode = nullptr;
-			_blockPool.Free(pBlock);
+			pBlock->~NodeBlock();
+			_aligned_free(pBlock);
+		}
+		while (pBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockPoolTop))
+		{
+			pBlock->~NodeBlock();
+			_aligned_free(pBlock);
 		}
 	}
 	template<typename... Args>

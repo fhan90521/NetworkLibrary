@@ -41,6 +41,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockStack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)WorkThreadPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MYSQLHelper.h">
@@ -56,18 +57,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeMemoryPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeObjectPool.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueue.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueueBasic.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeStack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h" />

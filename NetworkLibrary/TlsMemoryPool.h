@@ -1,10 +1,8 @@
 #pragma once
-#pragma once
-#include "LockFreeObjectPool.h"
 #include "GetMyThreadID.h"
-#include "GetPOOLID.h"
 #include "MemoryHeader.h"
 #include "MyWindow.h"
+#include <new.h>
 class TlsMemoryPool
 {
 private:
@@ -51,50 +49,58 @@ private:
 		int remainCnt = 0;
 	};
 
-
+	
 	PoolState _poolStateArr[THREADCNT];
-	LockFreeObjectPool<MemoryBlock, false> _blockPool;
-	SLIST_HEADER _blockListHead;
-	size_t _chunkSize;
+	alignas(64) SLIST_HEADER _blockPoolTop;
+	SLIST_HEADER _emptyBlockTop;
+	alignas(64) size_t _chunkSize;
 	int _chunkPerBlock;
-
 	void AllocBlock()
 	{
 		PoolState& poolState = _poolStateArr[GetMyThreadID()];
-		MemoryBlock* pBlock = _blockPool.Alloc(_chunkSize, _chunkPerBlock);
+		MemoryBlock* pBlock = (MemoryBlock*)InterlockedPopEntrySList(&_blockPoolTop);
+		if (pBlock == nullptr)
+		{
+			pBlock = (MemoryBlock*)_aligned_malloc(sizeof(MemoryBlock), 16);
+			new (pBlock) MemoryBlock(_chunkSize, _chunkPerBlock);
+		}
 		poolState.pTop = pBlock->pTop;
 		poolState.remainCnt = _chunkPerBlock;
-		InterlockedPushEntrySList(&_blockListHead, pBlock);
+		InterlockedPushEntrySList(&_emptyBlockTop, pBlock);
 	}
 
 	void FreeBlock()
 	{
 		PoolState& poolState = _poolStateArr[GetMyThreadID()];
-		MemoryBlock* pOldTopBlock = (MemoryBlock*)InterlockedPopEntrySList(&_blockListHead);
-		pOldTopBlock->pTop = poolState.pFreePrev->pNext;
+		MemoryBlock* pEmptyBlock = (MemoryBlock*)InterlockedPopEntrySList(&_emptyBlockTop);
+		pEmptyBlock->pTop = poolState.pFreePrev->pNext;
 		poolState.pFreePrev->pNext = nullptr;
 		poolState.remainCnt = _chunkPerBlock;
-		_blockPool.Free(pOldTopBlock);
+		InterlockedPushEntrySList(&_blockPoolTop, pEmptyBlock);
 	}
 public:
 	TlsMemoryPool(size_t chunkSize, int chunkPerBlock)
 	{
-		InitializeSListHead(&_blockListHead);
+		InitializeSListHead(&_blockPoolTop);
+		InitializeSListHead(&_emptyBlockTop);
 		_chunkSize = chunkSize;
 		_chunkPerBlock = max(chunkPerBlock, 2);
 	}
 
 	~TlsMemoryPool()
 	{
-		MemoryBlock* pBlock;
-		for (int i = 0; i < THREADCNT; i++)
+		MemoryBlock* pBlock=nullptr;
+		while (pBlock = (MemoryBlock*)InterlockedPopEntrySList(&_emptyBlockTop))
 		{
-			while (pBlock = (MemoryBlock*)InterlockedPopEntrySList(&_blockListHead))
-			{
-				pBlock->pTop = nullptr;
-				_blockPool.Free(pBlock);
-			}
+			pBlock->~MemoryBlock();
+			_aligned_free(pBlock);
 		}
+		while (pBlock = (MemoryBlock*)InterlockedPopEntrySList(&_blockPoolTop))
+		{
+			pBlock->~MemoryBlock();
+			_aligned_free(pBlock);
+		}
+		
 	}
 
 	void* Alloc(void)
