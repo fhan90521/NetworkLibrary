@@ -1,12 +1,9 @@
 #pragma once
 
-//Alloc 함수 내부 
-// int* pDataSize = (int*)malloc(sizeof(int) + unitSize);
-// * pDataSize = unitSize;
 // malloc이 사용가능한 메모리가 부족하여 nullptr를 반환하는 경우 무시
 #pragma warning(disable: 6011)
+
 #include "MyWindow.h"
-#include<iostream>
 #include<vector>
 #include "TlsMemoryPool.h"
 #include "MemoryHeader.h"

@@ -1,5 +1,4 @@
 #pragma once
-#include<type_traits>
 #define DEFAULT_RINGBUFFER_SIZE 0x2008
 #define MAX_RINGBUFFER_SIZE	0x3000
 class CRingBuffer

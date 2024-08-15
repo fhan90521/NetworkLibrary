@@ -4,8 +4,6 @@
 #include "MPSCQueue.h"
 #include <memory>
 #include "MyNew.h"
-#include "IOCPServer.h"
-#include "IOCPClient.h"
 #include "MyStlContainer.h"
 class JobQueue : public std::enable_shared_from_this<JobQueue>
 {

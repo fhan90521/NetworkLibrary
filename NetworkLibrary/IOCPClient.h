@@ -4,7 +4,7 @@
 #include "CSendBuffer.h"
 #include "Session.h"
 #include "MyStlContainer.h"
-#include<process.h>
+#include <process.h>
 #include <type_traits>
 #include <string>
 class IOCPClient

@@ -52,7 +52,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Job.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)CList.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h" />
