@@ -2,7 +2,7 @@
 #include "MyWindow.h"
 #include "CRecvBuffer.h"
 #include "CSendBuffer.h"
-#include "LockFreeStack.h"
+#include "LockStack.h"
 #include "Session.h"
 #include "MyStlContainer.h"
 #include<process.h>
@@ -12,8 +12,6 @@ class IOCPServer
 {
 private:
 	void DropIoPending(SessionInfo sessionInfo);
-	void GetSeverSetValues(std::string settingFileName);
-	void ServerSetting();
 	HANDLE CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads);
 	BOOL AssociateDeviceWithCompletionPort(HANDLE hCompletionPort, HANDLE hDevice, ULONG_PTR dwCompletionKey);
 
@@ -38,9 +36,9 @@ private:
 	Session* FindSession(SessionInfo sessionInfo);
 	Session* AllocSession(SOCKET clientSock);
 	void ReleaseSession(Session* pSession);
-private:
 	const long long EXIT_TIMEOUT = 5000;
-	const long long SENDQ_MAX_LEN = 1024;
+private:
+	int SENDQ_MAX_LEN = 1024;
 	int IOCP_THREAD_NUM = 0;
 	int CONCURRENT_THREAD_NUM = 0;
 	int BIND_PORT = 0;
@@ -50,15 +48,16 @@ private:
 	int LOG_LEVEL = 0;
 	int PAYLOAD_MAX_LEN = 300;
 	bool _bWan;
-protected:
 	std::string BIND_IP;
+	void GetSeverSetValues(std::string settingFileName);
+	void ServerSetting();
 private:
 	SOCKET _listenSock=INVALID_SOCKET;
 	ULONG64 _newSessionID = 0;
 	HANDLE _hcp=INVALID_HANDLE_VALUE;
 	List<HANDLE> _hThreadList;
 	Session* _sessionArray;
-	LockFreeStack<USHORT> _validIndexStack;
+	LockStack<USHORT> _validIndexStack;
 private:
 	LONG _acceptCnt = 0;
 	LONG _sendCnt = 0;
@@ -81,16 +80,16 @@ public:
 	void CloseServer();
 protected:
 	void IOCPRun();
+
+private:
+
 	virtual bool OnAcceptRequest(const char* ip,USHORT port)=0;
 	virtual void OnAccept(SessionInfo sessionInfo)=0;
 	virtual void OnDisconnect(SessionInfo sessionInfo)=0;
-	//virtual void OnSend(SessionInfo sessionInfo, int sendSize)=0;
 	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf)=0;
-	virtual void Run() = 0;
-	//virtual void OnWorkerThreadBegin() = 0; 
-	//virtual void OnWorkerThreadEnd() = 0;          
-	//virtual void OnError(int errorcode, char* log) = 0;
+
 public:
+	virtual void Run() = 0;
 	int GetAcceptCnt();
 	int GetRecvCnt();
 	int GetSendCnt();
@@ -101,7 +100,7 @@ public:
 private:
 	enum: int
 	{
-		RESERVE_DISCONNECT_MS=100
+		RESERVE_DISCONNECT_MS=3000
 	};
 	struct ReserveInfo
 	{
@@ -115,5 +114,6 @@ private:
 public:
 	MPSCQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
+
 };
 

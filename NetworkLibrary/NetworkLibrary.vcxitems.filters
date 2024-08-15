@@ -96,29 +96,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h">
       <Filter>Container</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)SPSCQueue.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueue.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeObjectPool.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)TlsObjectPool.h">
       <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h">
       <Filter>Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeQueueBasic.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeStack.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockFreeMemoryPool.h">
-      <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h">
       <Filter>Memory</Filter>
@@ -197,6 +179,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h">
       <Filter>RapidJson</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)LockStack.h">
+      <Filter>Container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2,24 +2,24 @@
 #include "LockGuard.h"
 #include "MyStlContainer.h"
 template<typename T>
-class LockQueue
+class LockStack
 {
 public:
-	void Enqueue(const T& inPar)
+	void Push(const T& inPar)
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
-		_queue.push(inPar);
+		_stack.push(inPar);
 		_size++;
 	}
-	bool Dequeue(T* outPar)
+	bool Pop(T* outPar)
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
-		if (_queue.empty())
+		if (_stack.empty())
 		{
 			return false;
 		}
-		*outPar = _queue.front();
-		_queue.pop();
+		*outPar = _stack.top();
+		_stack.pop();
 		_size--;
 		return true;
 	}
@@ -27,12 +27,12 @@ public:
 	{
 		return _size;
 	}
-	LockQueue()
+	LockStack()
 	{
 		InitializeSRWLock(&_srwLock);
 	}
 private:
 	SRWLOCK _srwLock;
-	Queue<T> _queue;
+	Stack<T> _stack;
 	size_t _size;
 };

@@ -21,6 +21,6 @@ public:
 	}
 	void Release()
 	{
-		_lock = false;
+		InterlockedExchange8(&_lock, false);
 	}
 };
