@@ -1,6 +1,7 @@
 #include "WorkThreadPool.h"
 #include "JobQueue.h"
 #include "WorkType.h"
+#include "Log.h"
 void WorkThreadPool::CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
 {
     _hCompletionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL,0, dwNumberOfConcurrentThreads);

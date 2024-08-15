@@ -1,5 +1,5 @@
 #include "CRingBuffer.h"
-#include "MemCopy.h"
+#include <memory.h>
 #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 bool CRingBuffer::ReSize(int iSize)
 {
@@ -31,12 +31,12 @@ int CRingBuffer::Enqueue(char* data, int iSize)
 	int directEnqueSize = DirectEnqueueSize();
 	if (iSize <= directEnqueSize)
 	{
-		MEMCOPY(GetBackBufferPtr(), data, iSize);
+		memcpy(GetBackBufferPtr(), data, iSize);
 	}
 	else
 	{
-		MEMCOPY(GetBackBufferPtr(), data, directEnqueSize);
-		MEMCOPY(&_buf[0], data + directEnqueSize, iSize - directEnqueSize);
+		memcpy(GetBackBufferPtr(), data, directEnqueSize);
+		memcpy(&_buf[0], data + directEnqueSize, iSize - directEnqueSize);
 	}
 
 	_back = (_back+iSize)%(_totalSize + 1);
@@ -52,12 +52,12 @@ int CRingBuffer::Dequeue(char* dest, int iSize)
 	int directDequeueSize = DirectDequeueSize();
 	if (iSize <= directDequeueSize)
 	{
-		MEMCOPY(dest, GetFrontBufferPtr(), iSize);
+		memcpy(dest, GetFrontBufferPtr(), iSize);
 	}
 	else
 	{
-		MEMCOPY(dest, GetFrontBufferPtr(), directDequeueSize);
-		MEMCOPY(dest + directDequeueSize, &_buf[0], iSize - directDequeueSize);
+		memcpy(dest, GetFrontBufferPtr(), directDequeueSize);
+		memcpy(dest + directDequeueSize, &_buf[0], iSize - directDequeueSize);
 
 	}
 
@@ -75,12 +75,12 @@ int CRingBuffer::Peek(char* dest, int iSize)
 	int directDequeueSize = DirectDequeueSize();
 	if (iSize <= directDequeueSize)
 	{
-		MEMCOPY(dest, GetFrontBufferPtr(), iSize);
+		memcpy(dest, GetFrontBufferPtr(), iSize);
 	}
 	else
 	{
-		MEMCOPY(dest, GetFrontBufferPtr(), directDequeueSize);
-		MEMCOPY(dest + directDequeueSize, &_buf[0], iSize - directDequeueSize);
+		memcpy(dest, GetFrontBufferPtr(), directDequeueSize);
+		memcpy(dest + directDequeueSize, &_buf[0], iSize - directDequeueSize);
 	}
 
 	return iSize;

@@ -7,9 +7,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp">
       <Filter>Buffer</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)MemCopy.cpp">
-      <Filter>Memory</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)CacheTracer.cpp">
       <Filter>Profiler</Filter>
     </ClCompile>
@@ -17,9 +14,6 @@
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp">
-      <Filter>Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)GetPOOLID.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp">
@@ -72,9 +66,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h">
       <Filter>Buffer</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MemCopy.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h">
       <Filter>Profiler</Filter>
     </ClInclude>
@@ -104,9 +95,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h">
       <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)GetPOOLID.h">
-      <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Malloc.h">
       <Filter>Memory</Filter>

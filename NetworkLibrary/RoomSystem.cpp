@@ -1,4 +1,5 @@
 #include "RoomSystem.h"
+#include "IOCPServer.h"
 #include "MyNew.h"
 #include "Log.h"
 int RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)

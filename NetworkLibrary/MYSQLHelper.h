@@ -4,7 +4,6 @@
 #include <string>
 #include "include/mysql.h"
 #include "include/errmsg.h"
-#include "Log.h"
 #include "LockGuard.h"
 class MYSQLHelper
 {

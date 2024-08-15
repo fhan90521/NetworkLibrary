@@ -1,6 +1,7 @@
 #include "JobQueue.h"
 #include "WorkType.h"
 #include "MyWindow.h"
+#include "Log.h"
 JobQueue::~JobQueue()
 {
 	Job* pJob;

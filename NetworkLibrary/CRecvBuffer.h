@@ -3,6 +3,7 @@
 #include "NetworkHeader.h"
 #include "MyStlContainer.h"
 #include "Log.h"
+#include <type_traits>
 #include <iostream>
 class CRecvBuffer
 {
