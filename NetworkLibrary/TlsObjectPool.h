@@ -18,6 +18,7 @@ private:
 		Node* pNext;
 	};
 
+	DECLSPEC_ALIGN(MEMORY_ALLOCATION_ALIGNMENT)
 	struct NodeBlock :SLIST_ENTRY
 	{
 	private:
@@ -81,7 +82,7 @@ private:
 		NodeBlock* pBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockPoolTop);
 		if (pBlock == nullptr)
 		{
-			pBlock = (NodeBlock*)_aligned_malloc(sizeof(NodeBlock), 16);
+			pBlock = (NodeBlock*)_aligned_malloc(sizeof(NodeBlock), MEMORY_ALLOCATION_ALIGNMENT);
 			new (pBlock) NodeBlock(_nodePerBlock);
 		}
 		poolState.pTopNode = pBlock->pTopNode;
