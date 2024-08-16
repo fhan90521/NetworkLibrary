@@ -14,7 +14,6 @@ private:
 	CRecvBuffer& operator = (CRecvBuffer& src) = delete;
 public:
 	CRecvBuffer(CRingBuffer* pBuf, int size): _pBuf(pBuf), _remainSize(size) {};
-	
 
 	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, wchar_t>>>
 	CRecvBuffer& operator >> (T& data) 

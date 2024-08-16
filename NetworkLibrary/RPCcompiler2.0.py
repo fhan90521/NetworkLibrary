@@ -32,8 +32,8 @@ def parse_functions(file, registered_classes):
         pkt_num = -1
         if ':' in line:
             line = line.replace('\t', '').split(':')
-            if line[0] == 'RegisterClass':
-                registered_classes.append(line[1])
+            if 'RegisterClass' in line[0]:
+                registered_classes.append(line[-1].replace(' ',""))
                 continue
             pkt_num = line[-1].strip()
             line = line[0]
@@ -82,12 +82,14 @@ def write_pkt_type_header(file_name, name_and_typenum, functions, designated_pkt
             pkt_type_def += ';\n\n'
             fout.writelines(pkt_type_def)
 
-def write_server_proxy_header(file_name, class_name, functions, basic_type):
+def write_server_proxy_header(file_name, class_name, functions, basic_type, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
         fout.writelines('#include "Session.h"\n')
         fout.writelines('#include "IOCPServer.h"\n')
         fout.writelines('#include "MyStlContainer.h"\n')
+        for registered_name in registered_classes:
+            fout.writelines(f'class {registered_name};\n')
         fout.writelines(f'class {class_name}ServerProxy\n')
         fout.writelines('{\nprivate:\n\tIOCPServer* _pServer;\npublic:\n')
         for func_name, param_types, param_names in functions:
@@ -98,10 +100,12 @@ def write_server_proxy_header(file_name, class_name, functions, basic_type):
             fout.writelines(f'\tvoid {func_name}(const List<SessionInfo>& sessionInfoList, {tail}bool bDisconnect = false);\n\n')
         fout.writelines(f'\t{class_name}ServerProxy(IOCPServer* pServer)\n\t{{\n\t\t_pServer = pServer;\n\t}}\n}};\n')
 
-def write_server_proxy_cpp(file_name, class_name, functions, basic_type):
+def write_server_proxy_cpp(file_name, class_name, functions, basic_type, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines(f'#include "{class_name}ServerProxy.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
+        for registered_name in registered_classes:
+            fout.writelines(f'#include "{registered_name}.h"\n')
         for func_name, param_types, param_names in functions:
             tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail) > 0 : 
@@ -126,12 +130,14 @@ def write_server_proxy_cpp(file_name, class_name, functions, basic_type):
             fout.writelines('\t\t_pServer->Unicast(sessionInfo, pBuf, bDisconnect);\n\t}\n')
             fout.writelines('\tpBuf->DecrementRefCnt();\n}\n')
 
-def write_client_proxy_header(file_name, class_name, functions, basic_type):
+def write_client_proxy_header(file_name, class_name, functions, basic_type,registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
         fout.writelines('#include "Session.h"\n')
         fout.writelines('#include "IOCPClient.h"\n')
         fout.writelines('#include "MyStlContainer.h"\n')
+        for registered_name in registered_classes:
+            fout.writelines(f'class {registered_name};\n')
         fout.writelines(f'class {class_name}ClientProxy\n')
         fout.writelines('{\nprivate:\n\tIOCPClient* _pClient;\npublic:\n')
         for func_name, param_types, param_names in functions:
@@ -141,10 +147,12 @@ def write_client_proxy_header(file_name, class_name, functions, basic_type):
             fout.writelines(f'\tvoid {func_name}({tail}bool bDisconnect = false);\n')
         fout.writelines(f'\t{class_name}ClientProxy(IOCPClient* pClient)\n\t{{\n\t\t_pClient = pClient;\n\t}}\n}};\n')
 
-def write_client_proxy_cpp(file_name, class_name, functions, basic_type):
+def write_client_proxy_cpp(file_name, class_name, functions, basic_type, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines(f'#include "{class_name}ClientProxy.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
+        for registered_name in registered_classes:
+            fout.writelines(f'#include "{registered_name}.h"\n')
         for func_name, param_types, param_names in functions:
             tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail)>0:
@@ -159,17 +167,17 @@ def write_client_proxy_cpp(file_name, class_name, functions, basic_type):
             fout.writelines('\t_pClient->Unicast(pBuf, bDisconnect);\n')
             fout.writelines('\tpBuf->DecrementRefCnt();\n}\n')
 
-def write_server_stub_header(file_name, class_name, functions, basic_type):
+def write_server_stub_header(file_name, class_name, functions, basic_type,registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
         fout.writelines('#include "Session.h"\n')
         fout.writelines('#include "CRecvBuffer.h"\n')
         fout.writelines('#include "MyStlContainer.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
-        
+        for registered_name in registered_classes:
+            fout.writelines(f'class {registered_name};\n')
         fout.writelines(f'class {class_name}ServerStub\n')
         fout.writelines('{\npublic:\n')
-        
         for func_name, param_types, param_names in functions:
             tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             packet_proc_declaration = f"bool PacketProc{func_name}(SessionInfo sessionInfo, CRecvBuffer& buf)"
@@ -184,12 +192,13 @@ def write_server_stub_header(file_name, class_name, functions, basic_type):
         fout.writelines('\tbool PacketProc(SessionInfo sessionInfo, CRecvBuffer& buf);\n')
         fout.writelines('};\n')
 
-def write_server_stub_cpp(file_name, class_name, functions):
+def write_server_stub_cpp(file_name, class_name, functions,registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines(f'#include "{class_name}ServerStub.h"\n')
         fout.writelines('#include "IOCPServer.h"\n')
         fout.writelines('#include "Log.h"\n')
-        
+        for registered_name in registered_classes:
+            fout.writelines(f'#include "{registered_name}.h"\n')
         for func_name, param_types, param_names in functions:
             packet_proc_declaration = f"bool {class_name}ServerStub::PacketProc{func_name}(SessionInfo sessionInfo, CRecvBuffer& buf)"
             packet_proc_def = '{\n'
@@ -224,17 +233,17 @@ def write_server_stub_cpp(file_name, class_name, functions):
             fout.writelines('\t\tbreak;\n\t}\n')
         fout.writelines('\tdefault:\n\t{\n\t\treturn false;\n\t}\n\t}\n}\n')        
 
-def write_client_stub_header(file_name, class_name, functions, basic_type):
+def write_client_stub_header(file_name, class_name, functions, basic_type, registered_classes):
      with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
         fout.writelines('#include "Session.h"\n')
         fout.writelines('#include "CRecvBuffer.h"\n')
         fout.writelines('#include "MyStlContainer.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
-        
+        for registered_name in registered_classes:
+            fout.writelines(f'class {registered_name};\n')
         fout.writelines(f'class {class_name}ClientStub\n')
         fout.writelines('{\npublic:\n')
-        
         for func_name, param_types, param_names in functions:
             tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             packet_proc_declaration = f"bool PacketProc{func_name}(CRecvBuffer& buf)"
@@ -247,12 +256,13 @@ def write_client_stub_header(file_name, class_name, functions, basic_type):
         fout.writelines('\tbool PacketProc(CRecvBuffer& buf);\n')
         fout.writelines('};\n')
 
-def write_client_stub_cpp(file_name, class_name, functions):
+def write_client_stub_cpp(file_name, class_name, functions, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines(f'#include "{class_name}ClientStub.h"\n')
         fout.writelines('#include "IOCPServer.h"\n')
         fout.writelines('#include "Log.h"\n')
-        
+        for registered_name in registered_classes:
+            fout.writelines(f'#include "{registered_name}.h"\n')
         for func_name, param_types, param_names in functions:
             packet_proc_declaration = f"bool {class_name}ClientStub::PacketProc{func_name}(CRecvBuffer& buf)"
             packet_proc_def = '{\n'
@@ -285,12 +295,14 @@ def write_client_stub_cpp(file_name, class_name, functions):
             fout.writelines('\t\tbreak;\n\t}\n')
         fout.writelines('\tdefault:\n\t{\n\t\treturn false;\n\t}\n\t}\n}\n')
 
-def write_dummy_client_proxy_header(file_name, class_name, functions, basic_type):
+def write_dummy_client_proxy_header(file_name, class_name, functions, basic_type, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
         fout.writelines('#include "Session.h"\n')
         fout.writelines('#include "IOCPDummyClient.h"\n')
         fout.writelines('#include "MyStlContainer.h"\n')
+        for registered_name in registered_classes:
+            fout.writelines(f'class {registered_name};\n')
         fout.writelines(f'class {class_name}DummyProxy\n')
         fout.writelines('{\nprivate:\n\tIOCPDummyClient* _pDummyClient;\npublic:\n')
         for func_name, param_types, param_names in functions:
@@ -301,10 +313,12 @@ def write_dummy_client_proxy_header(file_name, class_name, functions, basic_type
             fout.writelines(f'\tvoid {func_name}(const List<SessionInfo>& sessionInfoList, {tail} bool bDisconnect = false);\n\n')
         fout.writelines(f'\t{class_name}DummyProxy(IOCPDummyClient* pDummyClient)\n\t{{\n\t\t_pDummyClient = pDummyClient;\n\t}}\n}};\n')
 
-def write_dummy_client_proxy_cpp(file_name, class_name, functions, basic_type):
+def write_dummy_client_proxy_cpp(file_name, class_name, functions, basic_type, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines(f'#include "{class_name}DummyProxy.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
+        for registered_name in registered_classes:
+            fout.writelines(f'#include "{registered_name}.h"\n')
         for func_name, param_types, param_names in functions:
             tail = ', '.join(f'{"const " if ptype not in basic_type else ""}{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
             if len(tail) > 0 : 
@@ -335,31 +349,31 @@ def main():
         sys.exit()
     file_path = sys.argv[1]
     class_name = sys.argv[2]
-
+    registered_classes = []
     with open(file_path, "rt", encoding='utf-8') as fin:
         name_and_typenum = read_initial_info(fin)
         skip_to_brace(fin)
         basic_type = ["int", "unsigned int", "short", "unsigned short", "long", "unsigned long", "long long",
                       "unsigned long long", "bool", "char", "unsigned char", "float", "double", "ULONG64", "LONG64",
                       "BYTE", "INT64", "WORD", "USHORT"]
-        registered_classes = []
         functions, designated_pkt_type = parse_functions(fin, registered_classes)
+    print(registered_classes)
     write_pkt_type_header(f"{class_name}PKT_TYPE.h", name_and_typenum, functions, designated_pkt_type)
     
-    write_server_proxy_header(f"{class_name}ServerProxy.h", class_name, functions, basic_type)
-    write_server_proxy_cpp(f"{class_name}ServerProxy.cpp", class_name, functions, basic_type)
+    write_server_proxy_header(f"{class_name}ServerProxy.h", class_name, functions, basic_type,registered_classes)
+    write_server_proxy_cpp(f"{class_name}ServerProxy.cpp", class_name, functions, basic_type,registered_classes)
     
-    write_client_proxy_header(f"{class_name}ClientProxy.h", class_name, functions, basic_type)
-    write_client_proxy_cpp(f"{class_name}ClientProxy.cpp", class_name, functions, basic_type)
+    write_client_proxy_header(f"{class_name}ClientProxy.h", class_name, functions, basic_type,registered_classes)
+    write_client_proxy_cpp(f"{class_name}ClientProxy.cpp", class_name, functions, basic_type,registered_classes)
     
-    write_server_stub_header(f"{class_name}ServerStub.h", class_name, functions, basic_type)
-    write_server_stub_cpp(f"{class_name}ServerStub.cpp", class_name, functions)
+    write_server_stub_header(f"{class_name}ServerStub.h", class_name, functions, basic_type,registered_classes)
+    write_server_stub_cpp(f"{class_name}ServerStub.cpp", class_name, functions,registered_classes)
     
-    write_client_stub_header(f"{class_name}ClientStub.h", class_name, functions, basic_type)
-    write_client_stub_cpp(f"{class_name}ClientStub.cpp", class_name, functions)
+    write_client_stub_header(f"{class_name}ClientStub.h", class_name, functions, basic_type,registered_classes)
+    write_client_stub_cpp(f"{class_name}ClientStub.cpp", class_name, functions,registered_classes)
 
-    write_dummy_client_proxy_header(f"{class_name}DummyProxy.h", class_name, functions, basic_type)
-    write_dummy_client_proxy_cpp(f"{class_name}DummyProxy.cpp", class_name, functions, basic_type)
+    write_dummy_client_proxy_header(f"{class_name}DummyProxy.h", class_name, functions, basic_type,registered_classes)
+    write_dummy_client_proxy_cpp(f"{class_name}DummyProxy.cpp", class_name, functions, basic_type,registered_classes)
 
 
 if __name__ == '__main__':
