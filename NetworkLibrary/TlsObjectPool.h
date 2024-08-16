@@ -139,23 +139,6 @@ public:
 		}
 		return (T*)pOldTop;
 	}
-	T* Alloc(void)
-	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
-		if (poolState.pTopNode == nullptr)
-		{
-			AllocBlock();
-		}
-		Node* pOldTop = poolState.pTopNode;
-		poolState.pTopNode = pOldTop->pNext;
-		poolState.remainCnt--;
-		poolState.allocatingCnt++;
-		if constexpr (_bPlacementNew)
-		{
-			new ((T*)pOldTop)T;
-		}
-		return (T*)pOldTop;
-	}
 
 	void Free(T* pData)
 	{
