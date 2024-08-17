@@ -10,6 +10,8 @@ private:
 	{
 		THREADCNT =64
 	};
+
+	DECLSPEC_ALIGN(MEMORY_ALLOCATION_ALIGNMENT)
 	struct MemoryBlock :SLIST_ENTRY
 	{
 	private:
@@ -61,7 +63,7 @@ private:
 		MemoryBlock* pBlock = (MemoryBlock*)InterlockedPopEntrySList(&_blockPoolTop);
 		if (pBlock == nullptr)
 		{
-			pBlock = (MemoryBlock*)_aligned_malloc(sizeof(MemoryBlock), 16);
+			pBlock = (MemoryBlock*)_aligned_malloc(sizeof(MemoryBlock), MEMORY_ALLOCATION_ALIGNMENT);
 			new (pBlock) MemoryBlock(_chunkSize, _chunkPerBlock);
 		}
 		poolState.pTop = pBlock->pTop;

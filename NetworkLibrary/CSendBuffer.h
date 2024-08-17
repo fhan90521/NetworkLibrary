@@ -16,7 +16,7 @@ private:
 	enum enCSendBuffer: int
 	{
 		eBUFFER_DEFAULT = 512, // 패킷의 기본 버퍼 사이즈.
-		eBUFFER_MAX_SIZE = 5000
+		eBUFFER_MAX_SIZE = 4096
 	};
 	typedef TlsObjectPool<CSendBuffer, false> BufferPool;
 	friend class BufferPool;
