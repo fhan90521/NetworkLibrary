@@ -1,19 +1,12 @@
 #include "RedisHelper.h"
 #include "Log.h"
-#include "GetMyThreadID.h"
 #include "ParseJson.h"
 cpp_redis::client* RedisHelper::GetRedisConnection()
 {
-	RedisConnection& redisConnection=_redisConnections[GetMyThreadID()];
-	if (redisConnection.connection == nullptr)
-	{
-		redisConnection.connection = new cpp_redis::client;
-		redisConnection.connection->connect(REDIS_IP,REDIS_PORT);
-	}
-	return redisConnection.connection;
+	return &_connection;
 }
 
-RedisHelper::RedisHelper(std::string RedisSetFile, int maxThreadCnt)
+RedisHelper::RedisHelper(std::string RedisSetFile)
 {
 	GetRedisSetValue(RedisSetFile);
 
@@ -25,14 +18,11 @@ RedisHelper::RedisHelper(std::string RedisSetFile, int maxThreadCnt)
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "WSAStartup() error : %d\n", error);
 		DebugBreak();
 	}*/
-
-	_maxThreadCnt = maxThreadCnt;
-	_redisConnections = new RedisConnection[_maxThreadCnt];
+	_connection.connect(REDIS_IP, REDIS_PORT);
 }
 
 RedisHelper::~RedisHelper()
 {
-	// 정적으로 사용해서 굳이 정리 안함
 }
 
 void RedisHelper::GetRedisSetValue(std::string RedisSetFile)

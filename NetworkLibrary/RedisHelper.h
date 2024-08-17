@@ -6,17 +6,13 @@
 class RedisHelper
 {
 private:
-	struct RedisConnection
-	{
-		cpp_redis::client* connection = nullptr;
-	};
-	RedisConnection* _redisConnections;
+	cpp_redis::client _connection;
 	std::string REDIS_IP;
 	unsigned int REDIS_PORT = 6379;
 	int _maxThreadCnt;
 	void GetRedisSetValue(std::string RedisSetFile);
 public:
-	RedisHelper(std::string RedisSetFile, int maxThreadCnt = 64);
+	RedisHelper(std::string RedisSetFile);
 	~RedisHelper();
 	cpp_redis::client* GetRedisConnection();
 };
