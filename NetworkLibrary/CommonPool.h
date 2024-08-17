@@ -89,7 +89,7 @@ public:
 			return nullptr;
 		}
 #endif
-		size_t essentialSize = sizeof(MemoryHeader) + size + sizeof(MemoryTail);
+		size_t essentialSize = sizeof(MemoryHeader) + size;
 		if (essentialSize > MAX_CHUNK_SIZE)
 		{
 			MemoryHeader* pMemoryHeader = (MemoryHeader*)malloc(essentialSize);
