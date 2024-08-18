@@ -387,8 +387,8 @@ bool IOCPServer::GetSendAuthority(Session* pSession)
 {
 	while (1)
 	{
-		//Size체크는 필수적인것이고 bSending flag한번체크하는 것은 인터락함수 호출을 조금 줄일 수 있을까 해서 넣은 것
-		if (pSession->sendBufQ.Size() == 0 || pSession->bSending == true || InterlockedExchange8(&pSession->bSending, true) != false)
+		//Size체크가 인터락함수보다 먼저 일어나야함
+		if (pSession->sendBufQ.Size() == 0 || InterlockedExchange8(&pSession->bSending, true) != false)
 		{
 			return false;
 		}
