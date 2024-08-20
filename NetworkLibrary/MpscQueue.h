@@ -16,7 +16,7 @@ private:
 	alignas(64) SRWLOCK _srwLock;
 	char _enqueueIndex = 0;
 	alignas(64) char _dequeueIndex = 1;
-	bool Flip()
+	bool Swap()
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 		if (_queues[_enqueueIndex].size== 0)
@@ -41,7 +41,7 @@ public:
 	{
 		if (_queues[_dequeueIndex].size == 0)
 		{
-			if (Flip() == false)
+			if (Swap() == false)
 			{
 				return false;
 			}
