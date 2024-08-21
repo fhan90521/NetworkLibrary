@@ -13,6 +13,7 @@ JobQueue::~JobQueue()
 void JobQueue::PostJob()
 {
 	_selfPtr = shared_from_this();
+	MemoryBarrier();
 	bool ret = PostQueuedCompletionStatus(_hCompletionPort, PROCESS_JOB, (ULONG_PTR)this, (LPOVERLAPPED)PROCESS_JOB);
 	if (ret == false)
 	{
