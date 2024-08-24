@@ -3,14 +3,10 @@
 #include "MemoryHeader.h"
 #include "MyWindow.h"
 #include <new.h>
+#include "MyStlContainer.h"
 class TlsMemoryPool
 {
 private:
-	enum : int
-	{
-		THREADCNT =64
-	};
-
 	DECLSPEC_ALIGN(MEMORY_ALLOCATION_ALIGNMENT)
 	struct MemoryBlock :SLIST_ENTRY
 	{
@@ -52,11 +48,14 @@ private:
 	};
 
 	
-	PoolState _poolStateArr[THREADCNT];
+	Array<PoolState,MAX_THREAD_ID + 1> _poolStateArr;
 	alignas(64) SLIST_HEADER _blockPoolTop;
 	SLIST_HEADER _emptyBlockTop;
 	alignas(64) size_t _chunkSize;
 	int _chunkPerBlock;
+	
+	
+	
 	void AllocBlock()
 	{
 		PoolState& poolState = _poolStateArr[GetMyThreadID()];

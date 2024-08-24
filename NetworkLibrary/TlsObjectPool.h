@@ -1,5 +1,6 @@
 #pragma once
 #include "GetMyThreadID.h"
+#include "MyStlContainer.h"
 #include "MyWindow.h"
 #include <utility>
 #include <new.h>
@@ -7,11 +8,6 @@ template <typename T, bool _bPlacementNew>
 class TlsObjectPool
 {
 private:
-	enum : int
-	{
-		THREADCNT = 64
-	};
-
 	struct Node
 	{
 		T data;
@@ -72,7 +68,7 @@ private:
 	};
 
 	
-	PoolState _poolStateArr[THREADCNT];
+	Array<PoolState, MAX_THREAD_ID + 1> _poolStateArr;
 	alignas(64) SLIST_HEADER _blockPoolTop;
 	SLIST_HEADER _emptyBlockTop;
 	alignas(64) int _nodePerBlock;
@@ -167,7 +163,7 @@ public:
 	LONG GetAllocCnt()
 	{
 		LONG ret = 0;
-		for (int i = 0; i < THREADCNT; i++)
+		for (int i = 0; i < _poolStateArr.size(); i++)
 		{
 			ret += _poolStateArr[i].allocatingCnt;
 		}
