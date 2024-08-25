@@ -1,6 +1,8 @@
 #pragma once
 #pragma comment(lib,"mysqlclient.lib")
+#include <type_traits>
 #include "MyWindow.h"
+#include "MyStlContainer.h"
 #include <string>
 #include "include/mysql.h"
 #include "include/errmsg.h"
@@ -29,11 +31,74 @@ public:
 	bool Connect();
 	MYSQL* GetConnection();
 	void CloseConnection();
-	static void MakeQuery(char* dest, int destSize, const char* fmt, ...)
-	{
-		va_list ap;
-		va_start(ap, fmt);
-		vsprintf_s(dest, destSize, fmt, ap);
-		va_end(ap);
-	}
+	bool SendQuery(const char* query, MYSQL_BIND* parameters);
+    template<typename... Args>
+    static void InitBind(MYSQL_BIND* binds, bool* isNulls, Args&&... args) {
+        InitBindHelper(binds, isNulls, std::forward<Args>(args)...);
+    }
+private:
+    template<typename T>
+    class TypeTracer;
+    template<typename T>
+    static void InitBindHelper(MYSQL_BIND& bind, T& value, bool* isNull) {
+        memset(&bind, 0, sizeof(MYSQL_BIND));
+        if constexpr (std::is_same_v<T, int>) {
+            bind.buffer_type = MYSQL_TYPE_LONG;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, unsigned int>) {
+            bind.buffer_type = MYSQL_TYPE_LONG;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, long>) {
+            bind.buffer_type = MYSQL_TYPE_LONG;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, unsigned long>) {
+            bind.buffer_type = MYSQL_TYPE_LONG;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, long long>) {
+            bind.buffer_type = MYSQL_TYPE_LONGLONG;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, unsigned long long>) {
+            bind.buffer_type = MYSQL_TYPE_LONGLONG;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, float>) {
+            bind.buffer_type = MYSQL_TYPE_FLOAT;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, double>) {
+            bind.buffer_type = MYSQL_TYPE_DOUBLE;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, bool>) {
+            bind.buffer_type = MYSQL_TYPE_TINY;
+            bind.buffer = (char*)&value;
+        }
+        else if constexpr (std::is_same_v<T, std::string>) {
+            bind.buffer_type = MYSQL_TYPE_STRING;
+            bind.buffer = (char*)value.c_str();
+            bind.buffer_length = value.size();
+            bind.length = &bind.buffer_length;
+        }
+        else {
+            TypeTracer<decltype(value)> tt;
+        }
+
+        bind.is_null = isNull;
+    }
+
+    template<typename T>
+    static void InitBindHelper(MYSQL_BIND* binds, bool* isNulls, T&& firstArg) {
+        InitBindHelper(binds[0], firstArg, &isNulls[0]);
+    }
+
+    template<typename T, typename... Rest>
+    static void InitBindHelper(MYSQL_BIND* binds, bool* isNulls, T&& firstArg, Rest&&... restArgs) {
+        InitBindHelper(binds[0], firstArg, &isNulls[0]);
+        InitBindHelper(binds+1, isNulls+1, std::forward<Rest>(restArgs)...);
+    }
 };

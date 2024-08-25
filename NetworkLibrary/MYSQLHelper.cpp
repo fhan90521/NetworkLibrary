@@ -54,4 +54,37 @@ void MYSQLHelper::CloseConnection()
 	dbConnection.isConnecting = NULL;
 }
 
+bool MYSQLHelper::SendQuery(const char* query, MYSQL_BIND* binds)
+{
+	MYSQL_STMT* stmt = mysql_stmt_init(GetConnection());
+	if (stmt == nullptr)
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "stmt_init error\n");
+		return false;
+	}
+	if (mysql_stmt_prepare(stmt, query, strlen(query)) != 0)
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "stmt prepare error\n");
+		mysql_stmt_close(stmt);
+		return false;
+	}
+	
+	if (mysql_stmt_bind_param(stmt, binds) != 0 )
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "stmt bind error &s\n",mysql_stmt_error(stmt));
+		mysql_stmt_close(stmt);
+		return false;
+	}
+
+	if (mysql_stmt_execute(stmt) != 0)
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "stmt excute error %s\n", mysql_stmt_error(stmt));
+		mysql_stmt_close(stmt);
+		return false;
+	}
+
+	mysql_stmt_close(stmt);
+	return true;
+}
+
 
