@@ -75,7 +75,7 @@ private:
             bind.buffer = (char*)&value;
         }
         else if constexpr (std::is_same_v<T, bool>) {
-            bind.buffer_type = MYSQL_TYPE_TINY;
+            bind.buffer_type = MYSQL_TYPE_BOOL;
             bind.buffer = (char*)&value;
         }
         else if constexpr (std::is_same_v<T, std::string>) {

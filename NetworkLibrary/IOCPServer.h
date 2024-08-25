@@ -102,7 +102,7 @@ public:
 private:
 	enum: int
 	{
-		RESERVE_DISCONNECT_MS=3000
+		RESERVE_DISCONNECT_MS=300
 	};
 	struct ReserveInfo
 	{
