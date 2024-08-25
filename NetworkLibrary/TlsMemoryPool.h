@@ -3,6 +3,7 @@
 #include "MemoryHeader.h"
 #include "MyWindow.h"
 #include <new.h>
+#include "LockQueue.h"
 #include "MyStlContainer.h"
 class TlsMemoryPool
 {
@@ -40,7 +41,7 @@ private:
 		}
 	};
 
-	struct alignas(64) PoolState
+	struct PoolState: SLIST_ENTRY
 	{
 		MemoryHeader* pTop = nullptr;
 		MemoryHeader* pFreePrev = nullptr;
@@ -48,17 +49,28 @@ private:
 	};
 
 	
-	Array<PoolState,MAX_THREAD_ID + 1> _poolStateArr;
+	
 	alignas(64) SLIST_HEADER _blockPoolTop;
 	SLIST_HEADER _emptyBlockTop;
 	alignas(64) size_t _chunkSize;
 	int _chunkPerBlock;
-	
-	
-	
-	void AllocBlock()
+	DWORD _tlsIndex;
+	SLIST_HEADER _poolStates;
+
+	PoolState& GetPoolStateRef()
 	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
+		PoolState* pPoolState = (PoolState*)TlsGetValue(_tlsIndex);
+		if (pPoolState == nullptr)
+		{
+			pPoolState = (PoolState*)_aligned_malloc(sizeof(PoolState), 64);
+			new (pPoolState) PoolState;
+			TlsSetValue(_tlsIndex, pPoolState);
+			InterlockedPushEntrySList(&_poolStates, pPoolState);
+		}
+		return *pPoolState;
+	}
+	void AllocBlock(PoolState& poolState)
+	{
 		MemoryBlock* pBlock = (MemoryBlock*)InterlockedPopEntrySList(&_blockPoolTop);
 		if (pBlock == nullptr)
 		{
@@ -70,9 +82,8 @@ private:
 		InterlockedPushEntrySList(&_emptyBlockTop, pBlock);
 	}
 
-	void FreeBlock()
+	void FreeBlock(PoolState& poolState)
 	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
 		MemoryBlock* pEmptyBlock = (MemoryBlock*)InterlockedPopEntrySList(&_emptyBlockTop);
 		pEmptyBlock->pTop = poolState.pFreePrev->pNext;
 		poolState.pFreePrev->pNext = nullptr;
@@ -84,13 +95,16 @@ public:
 	{
 		InitializeSListHead(&_blockPoolTop);
 		InitializeSListHead(&_emptyBlockTop);
+		InitializeSListHead(&_poolStates);
 		_chunkSize = chunkSize;
 		_chunkPerBlock = max(chunkPerBlock, 2);
+		_tlsIndex = TlsAlloc();
 	}
 
 	~TlsMemoryPool()
 	{
 		MemoryBlock* pBlock=nullptr;
+		PoolState* pPoolState = nullptr;
 		while (pBlock = (MemoryBlock*)InterlockedPopEntrySList(&_emptyBlockTop))
 		{
 			pBlock->~MemoryBlock();
@@ -101,15 +115,19 @@ public:
 			pBlock->~MemoryBlock();
 			_aligned_free(pBlock);
 		}
-		
+		while (pPoolState = (PoolState*)InterlockedPopEntrySList(&_poolStates))
+		{
+			_aligned_free(pPoolState);
+		}
+		TlsFree(_tlsIndex);
 	}
 
 	void* Alloc(void)
 	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
+		PoolState& poolState = GetPoolStateRef();
 		if (poolState.pTop == nullptr)
 		{
-			AllocBlock();
+			AllocBlock(poolState);
 		}
 		MemoryHeader* pOldTop = poolState.pTop;
 		poolState.pTop = pOldTop->pNext;
@@ -119,7 +137,7 @@ public:
 
 	void Free(MemoryHeader* pMemoryHeader)
 	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
+		PoolState& poolState = GetPoolStateRef();
 
 		pMemoryHeader->pNext = poolState.pTop;
 		poolState.pTop = pMemoryHeader;
@@ -131,7 +149,7 @@ public:
 		}
 		if (poolState.remainCnt == _chunkPerBlock * 2)
 		{
-			FreeBlock();
+			FreeBlock(poolState);
 		}
 	}
 };

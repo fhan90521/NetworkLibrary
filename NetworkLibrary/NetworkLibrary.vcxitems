@@ -20,12 +20,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WorkThreadPool.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)MYSQLHelper.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPClient.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp" />
@@ -43,10 +42,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)WorkThreadPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)MYSQLHelper.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPClient.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h" />
@@ -57,7 +56,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h" />

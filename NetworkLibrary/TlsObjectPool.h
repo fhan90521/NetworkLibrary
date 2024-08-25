@@ -2,6 +2,7 @@
 #include "GetMyThreadID.h"
 #include "MyStlContainer.h"
 #include "MyWindow.h"
+#include "LockQueue.h"
 #include <utility>
 #include <new.h>
 template <typename T, bool _bPlacementNew>
@@ -59,7 +60,7 @@ private:
 		}
 	};
 
-	struct alignas(64) PoolState
+	struct alignas(64) PoolState :SLIST_ENTRY
 	{
 		Node* pTopNode = nullptr;
 		Node* pFreePrev = nullptr;
@@ -68,13 +69,28 @@ private:
 	};
 
 	
-	Array<PoolState, MAX_THREAD_ID + 1> _poolStateArr;
+	
 	alignas(64) SLIST_HEADER _blockPoolTop;
 	SLIST_HEADER _emptyBlockTop;
 	alignas(64) int _nodePerBlock;
-	void AllocBlock()
+	DWORD _tlsIndex;
+	SLIST_HEADER _poolStates;
+
+	PoolState& GetPoolStateRef()
 	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
+		PoolState* pPoolState = (PoolState*)TlsGetValue(_tlsIndex);
+		if (pPoolState == nullptr)
+		{
+			pPoolState = (PoolState*)_aligned_malloc(sizeof(PoolState), 64);
+			new (pPoolState) PoolState;
+			TlsSetValue(_tlsIndex, pPoolState);
+			InterlockedPushEntrySList(&_poolStates,pPoolState);
+		}
+		return *pPoolState;
+	}
+
+	void AllocBlock(PoolState& poolState)
+	{
 		NodeBlock* pBlock = (NodeBlock*)InterlockedPopEntrySList(&_blockPoolTop);
 		if (pBlock == nullptr)
 		{
@@ -86,9 +102,8 @@ private:
 		InterlockedPushEntrySList(&_emptyBlockTop, pBlock);
 	}
 
-	void FreeBlock()
+	void FreeBlock(PoolState& poolState)
 	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
 		NodeBlock* pEmptyBlock = (NodeBlock*)InterlockedPopEntrySList(&_emptyBlockTop);
 		pEmptyBlock->pTopNode = poolState.pFreePrev->pNext;
 		poolState.pFreePrev->pNext = nullptr;
@@ -100,11 +115,14 @@ public:
 	{
 		InitializeSListHead(&_blockPoolTop);
 		InitializeSListHead(&_emptyBlockTop);
+		InitializeSListHead(&_poolStates);
 		_nodePerBlock = nodePerBlock;
+		_tlsIndex = TlsAlloc();
 	}
 	~TlsObjectPool()
 	{
 		NodeBlock* pBlock = nullptr;
+		PoolState* pPoolState = nullptr;
 		while (pBlock = (NodeBlock*)InterlockedPopEntrySList(&_emptyBlockTop))
 		{
 			pBlock->~NodeBlock();
@@ -115,14 +133,19 @@ public:
 			pBlock->~NodeBlock();
 			_aligned_free(pBlock);
 		}
+		while (pPoolState =(PoolState*)InterlockedPopEntrySList(&_poolStates))
+		{
+			_aligned_free(pPoolState);
+		}
+		TlsFree(_tlsIndex);
 	}
 	template<typename... Args>
 	T* Alloc(Args&&... args)
 	{
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
+		PoolState& poolState = GetPoolStateRef();
 		if (poolState.pTopNode == nullptr)
 		{
-			AllocBlock();
+			AllocBlock(poolState);
 		}
 
 		Node* pOldTop = poolState.pTopNode;
@@ -143,7 +166,7 @@ public:
 			pData->~T();
 		}
 		Node* pNewTop = (Node*)pData;
-		PoolState& poolState = _poolStateArr[GetMyThreadID()];
+		PoolState& poolState = GetPoolStateRef();
 
 		pNewTop->pNext = poolState.pTopNode;
 		poolState.pTopNode = pNewTop;
@@ -157,16 +180,7 @@ public:
 
 		if (poolState.remainCnt == _nodePerBlock * 2)
 		{
-			FreeBlock();
+			FreeBlock(poolState);
 		}
-	}
-	LONG GetAllocCnt()
-	{
-		LONG ret = 0;
-		for (int i = 0; i < _poolStateArr.size(); i++)
-		{
-			ret += _poolStateArr[i].allocatingCnt;
-		}
-		return ret;
 	}
 };

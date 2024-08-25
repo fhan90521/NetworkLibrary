@@ -13,9 +13,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp">
-      <Filter>Utility</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
@@ -86,9 +83,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)TlsObjectPool.h">
       <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h">
-      <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h">
       <Filter>Memory</Filter>
@@ -184,9 +178,6 @@
     </Filter>
     <Filter Include="Network">
       <UniqueIdentifier>{98be2cd8-835f-4c16-b966-f223d15dd07e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utility">
-      <UniqueIdentifier>{7cfbc6c0-8b9f-4b29-97f9-1c1cab9e8e66}</UniqueIdentifier>
     </Filter>
     <Filter Include="Lock">
       <UniqueIdentifier>{7fc7e48e-446c-4d62-b1d9-df38f50a71ff}</UniqueIdentifier>
