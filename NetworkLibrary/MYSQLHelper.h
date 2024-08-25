@@ -13,9 +13,7 @@ class MYSQLHelper
 private:
 	struct MYSQLConnection
 	{
-        friend class MYSQLHelper;
 		MYSQL connection;
-    private:
 		MYSQL* isConnecting = NULL;
 	};
 	std::string DB_IP;
@@ -25,11 +23,13 @@ private:
 	unsigned int DB_PORT = 3306;
     int _tlsIndex;
 	inline static USE_LOCK;
-public:
     MYSQLConnection& GetConnectionRef();
-	MYSQLHelper(std::string DBSetFile);
+    bool Connect(MYSQLConnection& connection);
+public:
+    MYSQL* GetMYSQL();
+    bool Connect();
+    MYSQLHelper(std::string DBSetFile);
 	~MYSQLHelper();
-    bool Connect(MYSQLConnection&);
 	void GetDBSetValue(std::string DBSetFile);
 	void CloseConnection();
 	bool SendQuery(const char* query, MYSQL_BIND* parameters);

@@ -2,6 +2,14 @@
 #include "GetMyThreadID.h"
 #include "ParseJson.h"
 #include "Log.h"
+MYSQL* MYSQLHelper::GetMYSQL()
+{
+	return &GetConnectionRef().connection;
+}
+bool MYSQLHelper::Connect()
+{
+	return GetConnectionRef().isConnecting;
+}
 MYSQLHelper::MYSQLHelper(std::string DBSetFile)
 {
 	GetDBSetValue(DBSetFile);
