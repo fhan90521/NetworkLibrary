@@ -33,8 +33,8 @@ public:
 	void CloseConnection();
 	bool SendQuery(const char* query, MYSQL_BIND* parameters);
     template<typename... Args>
-    static void InitBind(MYSQL_BIND* binds, bool* isNulls, Args&&... args) {
-        InitBindHelper(binds, isNulls, std::forward<Args>(args)...);
+    static void InitBind(MYSQL_BIND* binds, bool* isNulls, Args&... args) {
+        InitBindHelper(binds, isNulls, args...);
     }
 private:
     template<typename T>
@@ -92,13 +92,13 @@ private:
     }
 
     template<typename T>
-    static void InitBindHelper(MYSQL_BIND* binds, bool* isNulls, T&& firstArg) {
+    static void InitBindHelper(MYSQL_BIND* binds, bool* isNulls, T& firstArg) {
         InitBindHelper(binds[0], firstArg, &isNulls[0]);
     }
 
     template<typename T, typename... Rest>
-    static void InitBindHelper(MYSQL_BIND* binds, bool* isNulls, T&& firstArg, Rest&&... restArgs) {
+    static void InitBindHelper(MYSQL_BIND* binds, bool* isNulls, T& firstArg, Rest&... restArgs) {
         InitBindHelper(binds[0], firstArg, &isNulls[0]);
-        InitBindHelper(binds+1, isNulls+1, std::forward<Rest>(restArgs)...);
+        InitBindHelper(binds+1, isNulls+1, restArgs...);
     }
 };
