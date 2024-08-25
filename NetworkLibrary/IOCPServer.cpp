@@ -682,8 +682,7 @@ void IOCPServer::IOCPWork()
 	{
 		DWORD cbTransferred = 0;
 		Session* pSession = nullptr;
-		int error;
-
+		int error=0;
 		OVERLAPPED* pOverlapped = nullptr;
 		int retval = GetQueuedCompletionStatus(_hcp, &cbTransferred, (PULONG_PTR)&pSession, &pOverlapped, INFINITE);
 		if (pOverlapped == nullptr)
@@ -747,7 +746,7 @@ void IOCPServer::IOCPWork()
 			else
 			{
 				error = WSAGetLastError();
-				Log::LogOnFile(Log::SYSTEM_LEVEL, "pOverlapped  error: %d\n", error);
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "pOverlapped  NOT EXIST VALUE error: %d\n", error);
 				DebugBreak();
 			}
 		}
