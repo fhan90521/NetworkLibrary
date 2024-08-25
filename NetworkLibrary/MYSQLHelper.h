@@ -13,7 +13,9 @@ class MYSQLHelper
 private:
 	struct MYSQLConnection
 	{
+        friend class MYSQLHelper;
 		MYSQL connection;
+    private:
 		MYSQL* isConnecting = NULL;
 	};
 	std::string DB_IP;
@@ -21,15 +23,14 @@ private:
 	std::string DB_PASSWORD;
 	std::string DB_SCHEMA;
 	unsigned int DB_PORT = 3306;
-	int _maxThreadCnt;
-	MYSQLConnection* _MYSQLConnections;
+    int _tlsIndex;
 	inline static USE_LOCK;
 public:
-	MYSQLHelper(std::string DBSetFile,int maxThreadCnt=64);
+    MYSQLConnection& GetConnectionRef();
+	MYSQLHelper(std::string DBSetFile);
 	~MYSQLHelper();
+    bool Connect(MYSQLConnection&);
 	void GetDBSetValue(std::string DBSetFile);
-	bool Connect();
-	MYSQL* GetConnection();
 	void CloseConnection();
 	bool SendQuery(const char* query, MYSQL_BIND* parameters);
     template<typename... Args>
