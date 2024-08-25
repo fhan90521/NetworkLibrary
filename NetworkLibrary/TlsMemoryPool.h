@@ -41,7 +41,7 @@ private:
 		}
 	};
 
-	struct PoolState: SLIST_ENTRY
+	struct alignas(64) PoolState: SLIST_ENTRY
 	{
 		MemoryHeader* pTop = nullptr;
 		MemoryHeader* pFreePrev = nullptr;
