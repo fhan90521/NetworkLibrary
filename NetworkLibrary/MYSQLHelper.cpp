@@ -2,11 +2,18 @@
 #include "GetMyThreadID.h"
 #include "ParseJson.h"
 #include "Log.h"
-MYSQLHelper::MYSQLHelper(std::string DBSetFile, int maxThreadCnt)
+MYSQL* MYSQLHelper::GetMYSQL()
+{
+	return &GetConnectionRef().connection;
+}
+bool MYSQLHelper::Connect()
+{
+	return GetConnectionRef().isConnecting;
+}
+MYSQLHelper::MYSQLHelper(std::string DBSetFile)
 {
 	GetDBSetValue(DBSetFile);
-	_maxThreadCnt = maxThreadCnt;
-	_MYSQLConnections = new MYSQLConnection[_maxThreadCnt];
+	_tlsIndex = TlsAlloc();
 }
 MYSQLHelper::~MYSQLHelper()
 {
@@ -21,11 +28,10 @@ void MYSQLHelper::GetDBSetValue(std::string DBSetFile)
 	DB_SCHEMA = DBSetValues["DB_SCHEMA"].GetString();
 }
 
-bool MYSQLHelper::Connect()
+bool MYSQLHelper::Connect(MYSQLConnection& dbConnection)
 {
 	bool ret = true;
 	EXCLUSIVE_LOCK;
-	MYSQLConnection& dbConnection = _MYSQLConnections[GetMyThreadID()];
 	mysql_init(&dbConnection.connection);
 	dbConnection.isConnecting = mysql_real_connect(&dbConnection.connection, DB_IP.data(), DB_USER.data(), DB_PASSWORD.data(), DB_SCHEMA.data(), DB_PORT, (char*)NULL, 0);
 	if (dbConnection.isConnecting == NULL)
@@ -36,27 +42,34 @@ bool MYSQLHelper::Connect()
 	return ret;
 }
 
-MYSQL* MYSQLHelper::GetConnection()
+MYSQLHelper::MYSQLConnection& MYSQLHelper::GetConnectionRef()
 {
-	MYSQLConnection& dbConnection = _MYSQLConnections[GetMyThreadID()];
-	
-	if (dbConnection.isConnecting == NULL)
+	// TODO: 여기에 return 문을 삽입합니다.
+	MYSQLConnection* pConnection = (MYSQLConnection*)TlsGetValue(_tlsIndex);
+	if (pConnection == nullptr)
 	{
-		Connect();
+		pConnection = (MYSQLConnection*)_aligned_malloc(sizeof(MYSQLConnection), 64);
+		new (pConnection) MYSQLConnection;
+		TlsSetValue(_tlsIndex, pConnection);
 	}
-	return &dbConnection.connection;
+	if (pConnection->isConnecting == NULL)
+	{
+		Connect(*pConnection);
+	}
+
+	return *pConnection;
 }
 
 void MYSQLHelper::CloseConnection()
 {
-	MYSQLConnection& dbConnection = _MYSQLConnections[GetMyThreadID()];
+	MYSQLConnection& dbConnection = GetConnectionRef();
 	mysql_close(&dbConnection.connection);
 	dbConnection.isConnecting = NULL;
 }
 
 bool MYSQLHelper::SendQuery(const char* query, MYSQL_BIND* binds)
 {
-	MYSQL_STMT* stmt = mysql_stmt_init(GetConnection());
+	MYSQL_STMT* stmt = mysql_stmt_init(&GetConnectionRef().connection);
 	if (stmt == nullptr)
 	{
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "stmt_init error\n");

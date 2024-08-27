@@ -21,15 +21,16 @@ private:
 	std::string DB_PASSWORD;
 	std::string DB_SCHEMA;
 	unsigned int DB_PORT = 3306;
-	int _maxThreadCnt;
-	MYSQLConnection* _MYSQLConnections;
+    int _tlsIndex;
 	inline static USE_LOCK;
+    MYSQLConnection& GetConnectionRef();
+    bool Connect(MYSQLConnection& connection);
 public:
-	MYSQLHelper(std::string DBSetFile,int maxThreadCnt=64);
+    MYSQL* GetMYSQL();
+    bool Connect();
+    MYSQLHelper(std::string DBSetFile);
 	~MYSQLHelper();
 	void GetDBSetValue(std::string DBSetFile);
-	bool Connect();
-	MYSQL* GetConnection();
 	void CloseConnection();
 	bool SendQuery(const char* query, MYSQL_BIND* parameters);
     template<typename... Args>
