@@ -1,5 +1,4 @@
 #pragma once
-#include "GetMyThreadID.h"
 #include "MemoryHeader.h"
 #include "MyWindow.h"
 #include <new.h>

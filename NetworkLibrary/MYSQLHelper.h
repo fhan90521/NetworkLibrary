@@ -39,6 +39,7 @@ public:
 private:
     template<typename T>
     class TypeTracer;
+
     template<typename T>
     static void InitBindHelper(MYSQL_BIND& bind, T& value, bool* isNull) {
         memset(&bind, 0, sizeof(MYSQL_BIND));

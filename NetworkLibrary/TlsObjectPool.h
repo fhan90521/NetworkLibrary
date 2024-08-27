@@ -1,5 +1,4 @@
 #pragma once
-#include "GetMyThreadID.h"
 #include "MyStlContainer.h"
 #include "MyWindow.h"
 #include "LockQueue.h"
