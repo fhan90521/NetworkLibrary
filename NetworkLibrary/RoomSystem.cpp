@@ -45,11 +45,10 @@ void RoomSystem::UpdateRooms()
 	}
 }
 
-RoomSystem::RoomSystem(IOCPServer* pServer)
+RoomSystem::RoomSystem()
 {
 	InitializeSRWLock(&_srwLock);
 	_roomUpdateThread = New<std::thread>(&RoomSystem::UpdateRooms, this);
-	_pServer = pServer;
 }
 
 RoomSystem::~RoomSystem()
@@ -61,7 +60,7 @@ RoomSystem::~RoomSystem()
 
 void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
 {
-	bool bDisconnect = false;
+	bool bError = false;
 
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
@@ -91,27 +90,27 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 			else
 			{
 				//로직상 불가능한 경우
-				bDisconnect = true;
+				bError = true;
 				Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 1");
 			}
 		}
 		else
 		{
 			//로직상 불가능한 경우
-			bDisconnect = true;
+			bError = true;
 			Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 2");
 		}
 	}
 
-	if (bDisconnect==true)
+	if (bError ==true)
 	{
-		_pServer->Disconnect(sessionInfo);
+		OnError(sessionInfo,RoomError::ENTER_ROOM_ERROR);
 	}
 }
 
 bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterRoomID)
 {
-	bool bDisconnect = false;
+	bool bError = false;
 	bool ret = false;
 
 	{
@@ -133,15 +132,15 @@ bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterR
 			else
 			{
 				//로직상 불가능한 경우
-				bDisconnect = true;
+				bError = true;
 				Log::LogOnFile(Log::SYSTEM_LEVEL, "ChangeRoom Impossible Error");
 			}
 		}
 	}
 
-	if (bDisconnect == true)
+	if (bError == true)
 	{
-		_pServer->Disconnect(sessionInfo);
+		OnError(sessionInfo,RoomError::CHANGE_ROOM_ERROR);
 	}
 	return ret;
 }

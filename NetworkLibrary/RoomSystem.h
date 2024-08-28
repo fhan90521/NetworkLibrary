@@ -16,7 +16,6 @@ private:
 	};
 	SRWLOCK _srwLock;
 	friend class Room;
-	class IOCPServer* _pServer = nullptr;
 	std::thread* _roomUpdateThread;
 	HashMap<Room::ID,SharedPtr<Room>> _rooms;
 	HashMap<SessionInfo::ID, Room::ID> _sessionToRoomID;
@@ -33,11 +32,18 @@ public:
 	}
 	void LeaveRoomSystem(SessionInfo sessionInfo);
 	bool EnterRoomSystem(SessionInfo sessionInfo, int roomID);
-	RoomSystem(class IOCPServer* pServer);
+	RoomSystem();
 	virtual ~RoomSystem();
 
 	int RegisterRoom(const SharedPtr<Room>& pRoom);
 	void DeregisterRoom(int roomID);
+public:
+	enum class RoomError
+	{
+		ENTER_ROOM_ERROR,
+		CHANGE_ROOM_ERROR,
+	};
 private:
 	virtual void OnLeaveByChangingRoomSession(SessionInfo sessionInfo)=0;
+	virtual void OnError(SessionInfo sessionInfo, RoomError error) = 0;
 };

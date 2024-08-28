@@ -1,5 +1,4 @@
 #include "MYSQLHelper.h"
-#include "GetMyThreadID.h"
 #include "ParseJson.h"
 #include "Log.h"
 MYSQL* MYSQLHelper::GetMYSQL()
