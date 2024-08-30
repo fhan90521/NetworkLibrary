@@ -33,15 +33,10 @@ private:
 				{
 					new ((T*)pNode)T;
 				}
-				if (i == nodePerBlock - 1)
-				{
-					pNode->pNext = nullptr;
-				}
-				else
-				{
-					pNode->pNext = (Node*)((char*)pNode + sizeof(Node));
-				}
+				pNode->pNext = (Node*)((char*)pNode + sizeof(Node));
 			}
+			pNode->pNext = nullptr;
+
 			allocPtr = pBlock;
 			pTopNode = (Node*)pBlock;
 		}

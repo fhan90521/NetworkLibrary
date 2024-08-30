@@ -22,15 +22,10 @@ private:
 			{
 				pMemoryHeader = (MemoryHeader*)((char*)pBlock + (i * chunkSize));
 				pMemoryHeader->allocSize = chunkSize;
-				if (i == chunkPerBlock - 1)
-				{
-					pMemoryHeader->pNext = nullptr;
-				}
-				else
-				{
-					pMemoryHeader->pNext = (MemoryHeader*)((char*)pMemoryHeader + chunkSize);
-				}
+				pMemoryHeader->pNext = (MemoryHeader*)((char*)pMemoryHeader + chunkSize);
 			}
+			pMemoryHeader->pNext = nullptr;
+
 			allocPtr = pBlock;
 			pTop = (MemoryHeader*)pBlock;
 		}
