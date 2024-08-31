@@ -58,6 +58,11 @@ RoomSystem::~RoomSystem()
 	Delete<std::thread>(_roomUpdateThread);
 }
 
+int RoomSystem::GetSessionCntInRoomSystem()
+{
+	return _sessionToRoomID.size();
+}
+
 void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
 {
 	bool bError = false;

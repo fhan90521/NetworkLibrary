@@ -34,7 +34,7 @@ public:
 	bool EnterRoomSystem(SessionInfo sessionInfo, int roomID);
 	RoomSystem();
 	virtual ~RoomSystem();
-
+	int GetSessionCntInRoomSystem();
 	int RegisterRoom(const SharedPtr<Room>& pRoom);
 	void DeregisterRoom(int roomID);
 public:
