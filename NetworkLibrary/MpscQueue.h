@@ -16,15 +16,10 @@ private:
 	alignas(64) SRWLOCK _srwLock;
 	char _enqueueIndex = 0;
 	alignas(64) char _dequeueIndex = 1;
-	bool Swap()
+	void Swap()
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
-		if (_queues[_enqueueIndex].size== 0)
-		{
-			return false;
-		}
 		std::swap(_enqueueIndex, _dequeueIndex);
-		return true;
 	}
 public:
 	MPSCQueue()
@@ -41,10 +36,11 @@ public:
 	{
 		if (_queues[_dequeueIndex].size == 0)
 		{
-			if (Swap() == false)
+			if (_queues[_enqueueIndex].size == 0)
 			{
 				return false;
 			}
+			Swap();
 		}
 		*outPar = _queues[_dequeueIndex].queue.front();
 		_queues[_dequeueIndex].queue.pop();
