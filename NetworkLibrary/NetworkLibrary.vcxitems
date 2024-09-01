@@ -17,6 +17,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CacheTracer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSendBuffer.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)WorkThreadPool.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)MYSQLHelper.cpp">
@@ -38,6 +39,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)LockStack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)WorkThreadPool.h" />

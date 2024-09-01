@@ -12,7 +12,7 @@ private:
 	enum : int
 	{
 		MAX_SAMPLE_CNT = 32,
-		THREAD_CNT = 16
+		THREAD_CNT = MAX_THREAD_ID+1
 	};
 	struct PROFILE_SAMPLE
 	{

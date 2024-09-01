@@ -46,6 +46,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp">
       <Filter>RapidJson</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h">
@@ -161,6 +164,9 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)TlsObjectPool.h">
       <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h">
+      <Filter>Profiler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
