@@ -13,7 +13,7 @@ IOCPDummyClient
 ## Buffer
 CSendBuffer 
 
-CRecvBuffer RingBuffer를 직렬화 버퍼처럼 사용하게 해주는 클래스
+CRecvBuffer: RingBuffer를 직렬화 버퍼처럼 사용하게 해주는 클래스
 
 CRingBuffer
 
@@ -50,7 +50,7 @@ TlsMemoryPool
 
 TlsObjectPool
 
-CommonPool TlsMemoryPool을 Bucket 단위로 미리 생성하여 사용하는 Pool
+CommonPool: TlsMemoryPool을 Bucket 단위로 미리 생성하여 사용하는 Pool
 
 ## RPC
 RPCcompiler2.0.py
