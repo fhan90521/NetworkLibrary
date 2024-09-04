@@ -43,7 +43,7 @@ RoomSytem
 WorkThreadPool
 
 각 Room의 로직 처리를 직렬화하여 싱글 스레드 방식으로 코드가 작성될 수 있도록 하는 시스템입니다. 
-세션은 하나의 RoomSystem 내에서 단 하나의 Room에만 존재하도록 보장합니다.
+각 세션이 하나의 RoomSystem 내에서 단 하나의 Room에만 존재하도록 보장합니다.
 
 ## Memory
 TlsMemoryPool
