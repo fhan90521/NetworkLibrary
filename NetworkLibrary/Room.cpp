@@ -85,6 +85,7 @@ Room::~Room()
 Room::Room(HANDLE hCompletionPort) : JobQueue(hCompletionPort)
 {
 	_prevUpdateTime = GetTickCount64();
+	_roomID = RoomSystem::INVALID_ROOM_ID;
 }
 
 int Room::GetUpdateCnt()

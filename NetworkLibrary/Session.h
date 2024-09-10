@@ -63,6 +63,7 @@ struct Session
 
 	OVERLAPPED recvOverLapped;
 	CRingBuffer recvBuffer;
+	int roomID;
 
 	char ip[INET_ADDRSTRLEN] = "\0";
 	USHORT port = 0;

@@ -8,12 +8,6 @@
 class Room: public JobQueue
 {
 private:
-	enum : int
-	{
-		INVALID_ROOM_ID = -1,
-		CHANGING_ROOM_ID = -2,
-		LEAVE_ROOM_SYSTEM = -3
-	};
 	friend class RoomSystem;
 	class RoomSystem* _pRoomSystem=nullptr;
 	LONG _updateCnt = 0;
@@ -21,7 +15,7 @@ private:
 	HashSet<SessionInfo::ID>_tryEnterSessions;
 	HashSet<SessionInfo::ID>_sessionsInRoom;
 	CHAR _bUpdating = false;
-	int _roomID= INVALID_ROOM_ID;
+	int _roomID;
 	ULONG64 _prevUpdateTime = 0;
 	//List<SessionInfo>_tryLeaveSessions;
 	void ProcessEnter();

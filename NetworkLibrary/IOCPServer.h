@@ -88,7 +88,7 @@ private:
 	virtual bool OnAcceptRequest(const char* ip,USHORT port)=0;
 	virtual void OnAccept(SessionInfo sessionInfo)=0;
 	virtual void OnDisconnect(SessionInfo sessionInfo)=0;
-	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf)=0;
+	virtual void OnRecv(SessionInfo sessionInfo,int roomID, CRecvBuffer& buf)=0;
 
 public:
 	virtual void Run() = 0;
@@ -116,6 +116,11 @@ private:
 public:
 	MPSCQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
+
+//Room
+private:
+	friend class RoomSystem;
+	void ChangeRoomID(SessionInfo sessionInfo, int roomID);
 
 };
 

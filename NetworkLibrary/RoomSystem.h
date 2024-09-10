@@ -3,25 +3,29 @@
 #include "MyStlContainer.h"
 #include "LockGuard.h"
 #include <thread>
+#include <atomic>
 #include "Session.h"
 //등록되어있는 Room보다 수명이 긴걸 보장해야함
 class RoomSystem
 {
-private:
-	enum: int
+public:
+	enum : int
 	{
 		INVALID_ROOM_ID = -1,
 		CHANGING_ROOM_ID = -2,
-		LEAVE_ROOM_SYSTEM = -3
+		LEAVE_ROOM_SYSTEM = -3,
+		MAX_ROOM_ID= 10000,
 	};
-	SRWLOCK _srwLock;
+private:
 	friend class Room;
+	class IOCPServer* _pServer;
 	std::thread* _roomUpdateThread;
-	HashMap<Room::ID,SharedPtr<Room>> _rooms;
-	HashMap<SessionInfo::ID, Room::ID> _sessionToRoomID;
 	bool bShutDown = false;
 	int _updatePeriod=15;
-	int _newRoomID = 0;
+	alignas(64) Stack<int> _validRoomIDs;
+	HashMap<Room::ID, SharedPtr<Room>> _rooms;
+	alignas(64) HashMap<SessionInfo::ID, Room::ID> _sessionToRoomID;
+	SRWLOCK _srwLock;
 	void UpdateRooms();
 	void EnterRoom(SessionInfo sessionInfo,Room* beforeRoom ,int afterRoomID);
 	bool ChangeRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID);
@@ -30,13 +34,14 @@ public:
 	{
 		_updatePeriod = updatePeriod;
 	}
-	void LeaveRoomSystem(SessionInfo sessionInfo);
+	bool LeaveRoomSystem(SessionInfo sessionInfo);
 	bool EnterRoomSystem(SessionInfo sessionInfo, int roomID);
-	RoomSystem();
+	RoomSystem(IOCPServer* pServer);
 	virtual ~RoomSystem();
 	int GetSessionCntInRoomSystem();
-	int RegisterRoom(const SharedPtr<Room>& pRoom);
-	void DeregisterRoom(int roomID);
+	bool RegisterRoom(const SharedPtr<Room>& pRoom);
+	void DeregisterRoom(const SharedPtr<Room>& pRoom);
+	void CloseRoomSystem();
 public:
 	enum class RoomError
 	{

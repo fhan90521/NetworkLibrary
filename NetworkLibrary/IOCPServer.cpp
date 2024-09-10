@@ -12,6 +12,7 @@
 #include "JobQueue.h"
 #include "ParseJson.h"
 #include "WorkType.h"
+#include "RoomSystem.h"
 //#include "Log.h"
 
 HANDLE IOCPServer::CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
@@ -187,7 +188,6 @@ Session* IOCPServer::AllocSession(SOCKET clientSock)
 	//여기서 문제 a 발생 하는가 bDeallocated == true인상태->상관없다
 
 	InterlockedIncrement16(&pSession->sessionManageInfo.refCnt);
-
 	//문제 b에 의해 먼저 id를 할당하고 bDeallocated 변수를 바꾼다.
 	pSession->sessionInfo.id = _newSessionID++;
 	pSession->sessionInfo.index.val = index;
@@ -201,6 +201,7 @@ Session* IOCPServer::AllocSession(SOCKET clientSock)
 		DebugBreak();
 	}
 	pSession->socket = clientSock;
+	pSession->roomID = RoomSystem::INVALID_ROOM_ID;
 	InterlockedExchange8(&pSession->onConnecting, true);
 	return pSession;
 }
@@ -618,7 +619,7 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 				break;
 			}
 		}
-		OnRecv(pSession->sessionInfo, buf);
+		OnRecv(pSession->sessionInfo,pSession->roomID,buf);
 		recvCnt++;
 	}
 	InterlockedAdd(&_recvCnt, recvCnt);
@@ -886,6 +887,20 @@ unsigned __stdcall IOCPServer::ReserveDisconnectManageThreadFunc(LPVOID arg)
 	IOCPServer* pServer = (IOCPServer*)arg;
 	pServer->ReserveDisconnectManage();
 	return 0;
+}
+
+void IOCPServer::ChangeRoomID(SessionInfo sessionInfo, int roomID)
+{
+	Session* pSession = FindSession(sessionInfo);
+	if (pSession==nullptr)
+	{
+		return;
+	}
+	pSession->roomID = roomID;
+	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+	{
+		ReleaseSession(pSession);
+	}
 }
 
 

@@ -180,8 +180,8 @@ def write_server_stub_header(file_name, class_name, functions, basic_type,regist
         fout.writelines('{\npublic:\n')
         for func_name, param_types, param_names in functions:
             tail = ', '.join(f'{ptype}{"&" if ptype not in basic_type else ""} {pname}' for ptype, pname in zip(param_types, param_names))
-            packet_proc_declaration = f"bool PacketProc{func_name}(SessionInfo sessionInfo, CRecvBuffer& buf)"
-            proc_declaration = f"virtual void Proc{func_name}(SessionInfo sessionInfo"
+            packet_proc_declaration = f"bool PacketProc{func_name}(SessionInfo sessionInfo, int roomID, CRecvBuffer& buf)"
+            proc_declaration = f"virtual void Proc{func_name}(SessionInfo sessionInfo, int roomID"
             if len(tail)>0:
                 proc_declaration+=', '
             proc_declaration += tail
@@ -189,7 +189,7 @@ def write_server_stub_header(file_name, class_name, functions, basic_type,regist
             fout.writelines(f'\t{packet_proc_declaration};\n')
             fout.writelines(f'\t{proc_declaration} {{}}\n\n')
         
-        fout.writelines('\tbool PacketProc(SessionInfo sessionInfo, CRecvBuffer& buf);\n')
+        fout.writelines('\tbool PacketProc(SessionInfo sessionInfo, int roomID, CRecvBuffer& buf);\n')
         fout.writelines('};\n')
 
 def write_server_stub_cpp(file_name, class_name, functions,registered_classes):
@@ -200,7 +200,7 @@ def write_server_stub_cpp(file_name, class_name, functions,registered_classes):
         for registered_name in registered_classes:
             fout.writelines(f'#include "{registered_name}.h"\n')
         for func_name, param_types, param_names in functions:
-            packet_proc_declaration = f"bool {class_name}ServerStub::PacketProc{func_name}(SessionInfo sessionInfo, CRecvBuffer& buf)"
+            packet_proc_declaration = f"bool {class_name}ServerStub::PacketProc{func_name}(SessionInfo sessionInfo, int roomID, CRecvBuffer& buf)"
             packet_proc_def = '{\n'
             for ptype, pname in zip(param_types, param_names):
                 packet_proc_def +='\t'+ptype
@@ -213,7 +213,7 @@ def write_server_stub_cpp(file_name, class_name, functions,registered_classes):
             packet_proc_def += ';\n\t}\n\tcatch(int useSize)\n\t{\n'
             packet_proc_def += f'\t\tLog::LogOnFile(Log::DEBUG_LEVEL, "PacketProc{func_name} error\\n");\n'
             packet_proc_def += '\t\treturn false;\n\t}\n'
-            packet_proc_def += f'\tProc{func_name}(sessionInfo'
+            packet_proc_def += f'\tProc{func_name}(sessionInfo, roomID'
             
             for pname in param_names:
                 packet_proc_def += f', {pname}'
@@ -221,7 +221,7 @@ def write_server_stub_cpp(file_name, class_name, functions,registered_classes):
             packet_proc_def += ');\n\treturn true;\n}\n'
             fout.writelines(f'{packet_proc_declaration}\n{packet_proc_def}\n')
         
-        fout.writelines(f'bool {class_name}ServerStub::PacketProc(SessionInfo sessionInfo, CRecvBuffer& buf)\n')
+        fout.writelines(f'bool {class_name}ServerStub::PacketProc(SessionInfo sessionInfo,int roomID, CRecvBuffer& buf)\n')
         fout.writelines('{\n\tshort packetType;\n')
         fout.writelines('\ttry\n\t{\n\t\tbuf >> packetType;\n\t}\n')
         fout.writelines('\tcatch(int remainSize)\n\t{\n\t\treturn false;\n\t}\n')
@@ -229,7 +229,7 @@ def write_server_stub_cpp(file_name, class_name, functions,registered_classes):
         
         for func_name, _, _ in functions:
             fout.writelines(f'\tcase PKT_TYPE_{func_name}:\n\t{{\n')
-            fout.writelines(f'\t\treturn PacketProc{func_name}(sessionInfo, buf);\n')
+            fout.writelines(f'\t\treturn PacketProc{func_name}(sessionInfo,roomID, buf);\n')
             fout.writelines('\t\tbreak;\n\t}\n')
         fout.writelines('\tdefault:\n\t{\n\t\treturn false;\n\t}\n\t}\n}\n')        
 

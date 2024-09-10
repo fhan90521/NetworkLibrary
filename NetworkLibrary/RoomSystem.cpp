@@ -2,24 +2,37 @@
 #include "IOCPServer.h"
 #include "MyNew.h"
 #include "Log.h"
-int RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
+bool RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
 {
-	pRoom->_roomID = _newRoomID;
+	if (pRoom->_roomID != RoomSystem::INVALID_ROOM_ID)
+	{
+		return false;
+	}
 	pRoom->_pRoomSystem = this;
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
-		_rooms[_newRoomID] = pRoom;
+		int newRoomID = _validRoomIDs.top();
+		_validRoomIDs.pop();
+		pRoom->_roomID = newRoomID;
+		_rooms[newRoomID] = pRoom;
 	}
-	int ret = _newRoomID++;
-	return ret;
+	return true;
 }
-
-void RoomSystem::DeregisterRoom(int roomID)
+void RoomSystem::CloseRoomSystem()
+{
+	bShutDown = true;
+	_roomUpdateThread->join();
+	Delete<std::thread>(_roomUpdateThread);
+}
+void RoomSystem::DeregisterRoom(const SharedPtr<Room>& pRoom)
 {
 	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
-	_rooms.erase(roomID);
+	size_t eraseCnt = _rooms.erase(pRoom->_roomID);
+	if (eraseCnt == 1)
+	{
+		_validRoomIDs.push(pRoom->_roomID);
+	}
 }
-
 void RoomSystem::UpdateRooms()
 {
 	while (bShutDown==false)
@@ -44,29 +57,26 @@ void RoomSystem::UpdateRooms()
 		Sleep(_updatePeriod / 3);
 	}
 }
-
-RoomSystem::RoomSystem()
+RoomSystem::RoomSystem(IOCPServer* pServer)
 {
 	InitializeSRWLock(&_srwLock);
 	_roomUpdateThread = New<std::thread>(&RoomSystem::UpdateRooms, this);
+	for (int i = MAX_ROOM_ID; i >= 0; i--)
+	{
+		_validRoomIDs.push(i);
+	}
+	_pServer = pServer;
 }
-
 RoomSystem::~RoomSystem()
 {
-	bShutDown = true;
-	_roomUpdateThread->join();
-	Delete<std::thread>(_roomUpdateThread);
 }
-
 int RoomSystem::GetSessionCntInRoomSystem()
 {
 	return _sessionToRoomID.size();
 }
-
 void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
 {
 	bool bError = false;
-
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 		auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.Id());
@@ -79,6 +89,7 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 				{
 					sessionToRoomIDIter->second = afterRoomID;
 					afterRoomsIter->second->DoAsync(&Room::TryEnter, sessionInfo);
+					_pServer->ChangeRoomID(sessionInfo, afterRoomID);
 					return;
 				}
 				else
@@ -112,7 +123,6 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 		OnError(sessionInfo,RoomError::ENTER_ROOM_ERROR);
 	}
 }
-
 bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterRoomID)
 {
 	bool bError = false;
@@ -130,6 +140,7 @@ bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterR
 				{
 
 					sessionToRoomIDIter->second = CHANGING_ROOM_ID;
+					_pServer->ChangeRoomID(sessionInfo, CHANGING_ROOM_ID);
 					beforeRoom->DoAsync(&Room::Leave, sessionInfo, afterRoomID);
 					ret = true;
 				}
@@ -149,7 +160,6 @@ bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterR
 	}
 	return ret;
 }
-
 bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 {
 	
@@ -165,12 +175,12 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 			ret = true;
 			_sessionToRoomID[sessionInfo.Id()] = roomID;
 			roomsIter->second->DoAsync(&Room::TryEnter, sessionInfo);
+			_pServer->ChangeRoomID(sessionInfo, roomID);
 		}
 	}
 	return ret;
 }
-
-void RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
+bool RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 {
 	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_srwLock);
 	auto sessionToRoomIDIter = _sessionToRoomID.find(sessionInfo.Id());
@@ -189,6 +199,12 @@ void RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 		else
 		{
 			sessionToRoomIDIter->second = LEAVE_ROOM_SYSTEM;
+			_pServer->ChangeRoomID(sessionInfo, LEAVE_ROOM_SYSTEM);
 		}
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
