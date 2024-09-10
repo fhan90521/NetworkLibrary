@@ -202,6 +202,7 @@ Session* IOCPServer::AllocSession(SOCKET clientSock)
 	}
 	pSession->socket = clientSock;
 	pSession->roomID = RoomSystem::INVALID_ROOM_ID;
+	pSession->lastRecvTime = GetTickCount64();
 	InterlockedExchange8(&pSession->onConnecting, true);
 	return pSession;
 }
@@ -621,6 +622,7 @@ void IOCPServer::RecvCompletionRoutine(Session* pSession)
 		}
 		OnRecv(pSession->sessionInfo,pSession->roomID,buf);
 		recvCnt++;
+		pSession->lastRecvTime = GetTickCount64();
 	}
 	InterlockedAdd(&_recvCnt, recvCnt);
 	RecvPost(pSession);
@@ -901,6 +903,22 @@ void IOCPServer::ChangeRoomID(SessionInfo sessionInfo, int roomID)
 	{
 		ReleaseSession(pSession);
 	}
+}
+
+ULONG64 IOCPServer::GetLastRecvTime(SessionInfo sessionInfo)
+{
+	ULONG64 ret=0;
+	Session* pSession = FindSession(sessionInfo);
+	if (pSession == nullptr)
+	{
+		return ret;
+	}
+	ret = pSession->lastRecvTime;
+	if (InterlockedDecrement16(&pSession->sessionManageInfo.refCnt) == 0)
+	{
+		ReleaseSession(pSession);
+	}
+	return ret;
 }
 
 

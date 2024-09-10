@@ -63,6 +63,7 @@ struct Session
 
 	OVERLAPPED recvOverLapped;
 	CRingBuffer recvBuffer;
+	ULONG64 lastRecvTime;
 	int roomID;
 
 	char ip[INET_ADDRSTRLEN] = "\0";

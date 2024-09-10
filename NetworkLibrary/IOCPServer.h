@@ -97,6 +97,7 @@ public:
 	int GetSendCnt();
 	int GetConnectingSessionCnt();
 	void	 SetMaxPayloadLen(int len);
+	ULONG64 GetLastRecvTime(SessionInfo sessionInfo);
 
 //Disconnect After Send//
 private:
@@ -121,6 +122,5 @@ public:
 private:
 	friend class RoomSystem;
 	void ChangeRoomID(SessionInfo sessionInfo, int roomID);
-
 };
 
