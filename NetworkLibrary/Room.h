@@ -30,7 +30,7 @@ private:
 	virtual void OnEnter(SessionInfo sessionInfo) = 0;
 	virtual int RequestEnter(SessionInfo sessionInfo) = 0;
 	virtual void OnLeave(SessionInfo sessionInfo) = 0;
-	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo) = 0;
+	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo,bool bEnterCompleted) = 0;
 
 protected:
 	//룸 내부에서만 호출되어야 한다

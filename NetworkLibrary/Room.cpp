@@ -44,27 +44,34 @@ void Room::TryEnter(SessionInfo sessionInfo)
 
 void Room::Leave(SessionInfo sessionInfo,int afterRoomID)
 {
-	_tryEnterSessions.erase(sessionInfo.Id());
 	auto iterSession = _sessionsInRoom.find(sessionInfo.Id());
 	if (iterSession != _sessionsInRoom.end())
 	{
 		OnLeave(sessionInfo);
 		_sessionsInRoom.erase(iterSession);
-		_sessionCnt--;
-		_pRoomSystem->EnterRoom(sessionInfo,this,afterRoomID);
 	}
-	//_tryLeaveSessions.push_back(sessionInfo);
+	else
+	{
+		_tryEnterSessions.erase(sessionInfo.Id());
+	}
+	_sessionCnt--;
+	_pRoomSystem->EnterRoom(sessionInfo, this, afterRoomID);
 }
 void Room::LeaveRoomSystem(SessionInfo sessionInfo)
 {
-	_tryEnterSessions.erase(sessionInfo.Id());
 	auto iterSession = _sessionsInRoom.find(sessionInfo.Id());
 	if (iterSession != _sessionsInRoom.end())
 	{
-		OnLeaveRoomSystem(sessionInfo);
+		OnLeaveRoomSystem(sessionInfo,true);
 		_sessionsInRoom.erase(iterSession);
-		_sessionCnt--;
+		
 	}
+	else
+	{
+		OnLeaveRoomSystem(sessionInfo, false);
+		_tryEnterSessions.erase(sessionInfo.Id());
+	}
+	_sessionCnt--;
 }
 void Room::UpdateJob()
 {
