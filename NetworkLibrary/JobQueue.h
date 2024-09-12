@@ -11,9 +11,9 @@ private:
 	friend class IOCPServer;
 	friend class WorkThreadPool;
 	HANDLE _hCompletionPort;
-	SharedPtr<JobQueue> _selfPtr;
 	MPSCQueue<Job*> _jobQueue;
 	char _bProcessing = false;
+	SharedPtr<JobQueue> _selfPtr;
 	LONG _processedJobCnt = 0;
 	ULONG64 _currentTime = 0;
 	void ProcessJob();

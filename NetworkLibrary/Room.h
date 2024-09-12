@@ -7,6 +7,19 @@
 
 class Room: public JobQueue
 {
+public:
+	typedef int ID;
+	Room(HANDLE hCompletionPort);
+	virtual ~Room();
+private:
+	virtual void Update(float deltaTime) = 0;
+	virtual void OnEnter(SessionInfo sessionInfo) = 0;
+	virtual int RequestEnter(SessionInfo sessionInfo) = 0;
+	virtual void OnLeave(SessionInfo sessionInfo) = 0;
+	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo, bool bEnterCompleted) = 0;
+protected:
+	//룸 내부에서만 호출되어야 한다
+	bool ChangeRoom(SessionInfo sessionInfo, int afterRoomID);
 private:
 	friend class RoomSystem;
 	class RoomSystem* _pRoomSystem=nullptr;
@@ -24,23 +37,9 @@ private:
 	void Leave(SessionInfo sessionInfo,int afterRoomID);
 	void LeaveRoomSystem(SessionInfo sessionInfo);
 	void UpdateJob();
-
-private:
-	virtual void Update(float deltaTime) = 0;
-	virtual void OnEnter(SessionInfo sessionInfo) = 0;
-	virtual int RequestEnter(SessionInfo sessionInfo) = 0;
-	virtual void OnLeave(SessionInfo sessionInfo) = 0;
-	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo,bool bEnterCompleted) = 0;
-
-protected:
-	//룸 내부에서만 호출되어야 한다
-	bool ChangeRoom(SessionInfo sessionInfo, int afterRoomID);
 	
 	//virtual bool RequestLeave(SessionInfo sessionInfo) = 0;
 public:
-	typedef int ID;
-	virtual ~Room();
-	Room(HANDLE hCompletionPort);
 	enum: int
 	{
 		ENTER_DENIED,

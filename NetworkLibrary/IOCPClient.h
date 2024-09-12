@@ -23,6 +23,7 @@ private:
 	void RecvCompletionRoutine();
 	void SendCompletionRoutine();
 	void RequestSendCompletionRoutine();
+	void ConnectWork();
 
 	void IOCPWork();
 	static unsigned __stdcall IOCPWorkThreadFunc(LPVOID arg);
@@ -34,11 +35,6 @@ private:
 private:
 	const long long EXIT_TIMEOUT = 5000;
 	const long long SENDQ_MAX_LEN = 1024;
-	enum IOCP_KEY: int
-	{
-		CLIENT_DOWN = 100,
-		REQUEST_SEND
-	};
 protected:
 	std::string _settingFileName;
 	int IOCP_THREAD_NUM = 0;
@@ -56,6 +52,7 @@ private:
 	HANDLE _hcp = INVALID_HANDLE_VALUE;
 	List<HANDLE> _hThreadList;
 	Session _session;
+	char _bConnecting = false;
 private:
 	LONG _acceptCnt = 0;
 	LONG _sendCnt = 0;
@@ -76,10 +73,12 @@ protected:
 	void IOCPRun();
 private:
 	virtual void OnConnect() = 0;
+	virtual void OnConnectFail() = 0;
 	virtual void OnDisconnect() = 0;
 	virtual void OnRecv(CRecvBuffer& buf) = 0;
 public:
 	virtual void Run() = 0;
+	bool RequestConnect();
 	bool Connect();
 	int GetRecvCnt();
 	int GetSendCnt();

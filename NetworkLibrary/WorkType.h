@@ -1,7 +1,9 @@
 #pragma once
-enum WORK_TYPE : int
+#include "MyWindow.h"
+enum WORK_TYPE : DWORD
 {
 	REQUEST_SEND = 1,
-	PROCESS_JOB = 2,
-	SHUT_DOWN = 4
+	PROCESS_JOB,
+	REQUEST_CONNECT,
+	SHUT_DOWN
 };

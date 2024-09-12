@@ -10,6 +10,7 @@
 #include "Log.h"
 #include "MyNew.h"
 #include "ParseJson.h"
+#include "WorkType.h"
 //#include "Log.h"
 
 HANDLE IOCPClient::CreateNewCompletionPort(DWORD dwNumberOfConcurrentThreads)
@@ -97,7 +98,7 @@ bool IOCPClient::IsSessionAvailable()
 	}
 	return true;
 }
-void  IOCPClient::InitializeSession(SOCKET clientSock)
+void IOCPClient::InitializeSession(SOCKET clientSock)
 {
 	InterlockedIncrement16(&_session.sessionManageInfo.refCnt);
 	//여기까지 bDeallocated == true이다
@@ -134,6 +135,7 @@ void IOCPClient::ReleaseSession()
 		//OnSend(pSession->sessionInfo, pSession->pSendedBufArr[i]->GetPayLoadSize());
 		(_session.pSendedBufArr[i])->DecrementRefCnt();
 	}
+	InterlockedExchange8(&_bConnecting, false);
 	OnDisconnect();
 }
 void IOCPClient::CloseClient()
@@ -141,7 +143,7 @@ void IOCPClient::CloseClient()
 	closesocket(_session.socket);
 	for (int i = 0; i < IOCP_THREAD_NUM; i++)
 	{
-		PostQueuedCompletionStatus(_hcp, CLIENT_DOWN, CLIENT_DOWN, (LPOVERLAPPED)CLIENT_DOWN);
+		PostQueuedCompletionStatus(_hcp, SHUT_DOWN, SHUT_DOWN, (LPOVERLAPPED)SHUT_DOWN);
 	}
 	int i = 0;
 	for (HANDLE hThread : _hThreadList)
@@ -345,8 +347,28 @@ void IOCPClient::Unicast(CSendBuffer* pBuf, bool bDisconnectAfterSend)
 	}
 	return;
 }
+bool IOCPClient::RequestConnect()
+{
+	if (InterlockedExchange8(&_bConnecting, true)==true)
+	{
+		return false;
+	}
+	bool retPQCS = PostQueuedCompletionStatus(_hcp, REQUEST_CONNECT, (ULONG_PTR)REQUEST_CONNECT, (LPOVERLAPPED)REQUEST_CONNECT);
+	if (retPQCS == false)
+	{
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "RequestSend error: %d\n", WSAGetLastError());
+		DebugBreak();
+	}
+	return true;
+}
+
 bool IOCPClient::Connect()
 {
+	if (InterlockedExchange8(&_bConnecting, true) == true)
+	{
+		return false;
+	}
+
 	SOCKET serverSock = socket(AF_INET, SOCK_STREAM, 0);
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
@@ -358,6 +380,7 @@ bool IOCPClient::Connect()
 	{
 		int error = WSAGetLastError();
 		Log::LogOnFile(Log::SYSTEM_LEVEL, "connect fail: %d", error);
+		InterlockedExchange8(&_bConnecting, false);
 		return false;
 	}
 
@@ -498,6 +521,41 @@ void IOCPClient::RequestSendCompletionRoutine()
 		ReleaseSession();
 	}
 }
+void IOCPClient::ConnectWork()
+{
+	SOCKET serverSock = socket(AF_INET, SOCK_STREAM, 0);
+	sockaddr_in serverAddr;
+	memset(&serverAddr, 0, sizeof(serverAddr));
+	serverAddr.sin_family = AF_INET;
+	inet_pton(AF_INET, SERVER_IP.data(), &serverAddr.sin_addr);
+	serverAddr.sin_port = htons(SERVER_PORT);
+	int retConnect = connect(serverSock, (sockaddr*)&serverAddr, sizeof(serverAddr));
+	if (retConnect == SOCKET_ERROR)
+	{
+		int error = WSAGetLastError();
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "connect fail: %d", error);
+		InterlockedExchange8(&_bConnecting, false);
+		OnConnectFail();
+		return;
+	}
+
+	struct linger _linger;
+	_linger.l_onoff = 1;
+	_linger.l_linger = 0;
+
+	int ret_linger = setsockopt(serverSock, SOL_SOCKET, SO_LINGER, (char*)&_linger, sizeof(_linger));
+	if (ret_linger == SOCKET_ERROR)
+	{
+		int error = WSAGetLastError();
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "linger error : %d", error);
+		DebugBreak();
+	}
+
+	InitializeSession(serverSock);
+	OnConnect();
+	RecvPost();
+
+}
 void IOCPClient::IOCPWork()
 {
 	while (1)
@@ -554,11 +612,14 @@ void IOCPClient::IOCPWork()
 			{
 				RequestSendCompletionRoutine();
 			}
-			else if (pOverlapped == (LPOVERLAPPED)CLIENT_DOWN)
+			else if (pOverlapped == (LPOVERLAPPED)REQUEST_CONNECT)
+			{
+				ConnectWork();
+			}
+			else if (pOverlapped == (LPOVERLAPPED)SHUT_DOWN)
 			{
 				break;
 			}
-
 			else
 			{
 				error = WSAGetLastError();

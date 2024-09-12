@@ -89,16 +89,17 @@ private:
 	virtual void OnAccept(SessionInfo sessionInfo)=0;
 	virtual void OnDisconnect(SessionInfo sessionInfo)=0;
 	virtual void OnRecv(SessionInfo sessionInfo,int roomID, CRecvBuffer& buf)=0;
-
 public:
 	virtual void Run() = 0;
+
+public:
 	int GetAcceptCnt();
 	int GetRecvCnt();
 	int GetSendCnt();
 	int GetConnectingSessionCnt();
-	void	 SetMaxPayloadLen(int len);
 	ULONG64 GetLastRecvTime(SessionInfo sessionInfo);
 
+	void	 SetMaxPayloadLen(int len);
 //Disconnect After Send//
 private:
 	enum: int
@@ -114,7 +115,6 @@ private:
 	HANDLE _hReserveDisconnectEvent;
 	void ReserveDisconnectManage();
 	static unsigned __stdcall ReserveDisconnectManageThreadFunc(LPVOID arg);
-public:
 	MPSCQueue<ReserveInfo> _reserveDisconnectQ;
 	List< ReserveInfo> _reserveDisconnectList;
 

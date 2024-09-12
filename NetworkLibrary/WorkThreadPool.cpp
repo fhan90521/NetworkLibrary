@@ -18,7 +18,7 @@ void WorkThreadPool::WorkFunc()
 		int retval = GetQueuedCompletionStatus(_hCompletionPort, &JobType, (PULONG_PTR)&pJobQueue, &pOverlapped, INFINITE);
 		if (pOverlapped == nullptr|| retval == false)
 		{
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "GQCS pOverlapped null error: %d\n", WSAGetLastError());
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "WorkThreadPool GQCS error: %d\n", WSAGetLastError());
 			DebugBreak();
 		}
 		else if(JobType == PROCESS_JOB)
