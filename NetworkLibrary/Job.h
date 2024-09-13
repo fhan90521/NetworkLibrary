@@ -12,9 +12,9 @@ public:
 	template<typename T, typename Ret, typename... Params, typename... Args>
 	Job(T* owner, Ret(T::* memFunc)(Params...), Args&&... args)
 	{
-		_callback = [owner, memFunc, args...]()mutable
+		_callback = [owner, memFunc, ...args = std::forward<Args>(args)]()mutable
 		{
-			(owner->*memFunc)(args...);
+			(owner->*memFunc)(std::forward<Args>(args)...);
 		};
 	}
 	void Execute()
