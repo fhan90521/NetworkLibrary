@@ -27,23 +27,6 @@ protected:
 	JobQueue(HANDLE hCompletionPort = NULL) :_hCompletionPort(hCompletionPort) {};
 	void PostJob();
 public:
-	void TryDoSync(CallbackType&& callback)
-	{
-		_jobQueue.Enqueue(New<Job>(std::move(callback)));
-		if (GetPopAuthority() == true)
-		{
-			ProcessJob();
-		}
-	}
-	template<typename T, typename Ret, typename... Params, typename... Args>
-	void TryDoSync(Ret(T::* memFunc)(Params...), Args&&... args)
-	{
-		_jobQueue.Enqueue(New<Job>((T*)this, memFunc,std::forward<Args>(args)...));
-		if (GetPopAuthority() == true)
-		{
-			ProcessJob();
-		}
-	}
 	void DoAsync(CallbackType&& callback)
 	{
 		_jobQueue.Enqueue(New<Job>(std::move(callback)));
