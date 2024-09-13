@@ -24,8 +24,9 @@ private:
 	int _updatePeriod=15;
 	alignas(64) Stack<int> _validRoomIDs;
 	HashMap<Room::ID, SharedPtr<Room>> _rooms;
-	alignas(64) HashMap<SessionInfo::ID, Room::ID> _sessionToRoomID;
-	SRWLOCK _srwLock;
+	alignas(64) HashMap<SessionInfo::ID, Room::ID> _sessions;
+	SRWLOCK _roomsLock;
+	SRWLOCK _sessionsLock;
 	void UpdateRooms();
 	void EnterRoom(SessionInfo sessionInfo,Room* beforeRoom ,int afterRoomID);
 	bool ChangeRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID);
