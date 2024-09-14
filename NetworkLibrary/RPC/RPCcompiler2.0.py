@@ -133,9 +133,9 @@ def write_server_proxy_cpp(file_name, class_name, functions, basic_type, registe
 def write_client_proxy_header(file_name, class_name, functions, basic_type,registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
-        fout.writelines('#include "Session.h"\n')
-        fout.writelines('#include "IOCPClient.h"\n')
-        fout.writelines('#include "MyStlContainer.h"\n')
+        fout.writelines('#include "Network/Session.h"\n')
+        fout.writelines('#include "Network/IOCPClient.h"\n')
+        fout.writelines('#include "Container/MyStlContainer.h"\n')
         for registered_name in registered_classes:
             fout.writelines(f'class {registered_name};\n')
         fout.writelines(f'class {class_name}ClientProxy\n')
@@ -236,9 +236,9 @@ def write_server_stub_cpp(file_name, class_name, functions,registered_classes):
 def write_client_stub_header(file_name, class_name, functions, basic_type, registered_classes):
      with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
-        fout.writelines('#include "Session.h"\n')
-        fout.writelines('#include "CRecvBuffer.h"\n')
-        fout.writelines('#include "MyStlContainer.h"\n')
+        fout.writelines('#include "Network/Session.h"\n')
+        fout.writelines('#include "Buffer/CRecvBuffer.h"\n')
+        fout.writelines('#include "Container/MyStlContainer.h"\n')
         fout.writelines(f'#include "{class_name}PKT_TYPE.h"\n')
         for registered_name in registered_classes:
             fout.writelines(f'class {registered_name};\n')
@@ -259,8 +259,8 @@ def write_client_stub_header(file_name, class_name, functions, basic_type, regis
 def write_client_stub_cpp(file_name, class_name, functions, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines(f'#include "{class_name}ClientStub.h"\n')
-        fout.writelines('#include "IOCPServer.h"\n')
-        fout.writelines('#include "Log.h"\n')
+        fout.writelines('#include "Network/IOCPServer.h"\n')
+        fout.writelines('#include "DebugTool/Log.h"\n')
         for registered_name in registered_classes:
             fout.writelines(f'#include "{registered_name}.h"\n')
         for func_name, param_types, param_names in functions:
@@ -298,9 +298,9 @@ def write_client_stub_cpp(file_name, class_name, functions, registered_classes):
 def write_dummy_client_proxy_header(file_name, class_name, functions, basic_type, registered_classes):
     with open(file_name, 'wt') as fout:
         fout.writelines('#pragma once\n')
-        fout.writelines('#include "Session.h"\n')
-        fout.writelines('#include "IOCPDummyClient.h"\n')
-        fout.writelines('#include "MyStlContainer.h"\n')
+        fout.writelines('#include "Network/Session.h"\n')
+        fout.writelines('#include "Network/IOCPDummyClient.h"\n')
+        fout.writelines('#include "Container/MyStlContainer.h"\n')
         for registered_name in registered_classes:
             fout.writelines(f'class {registered_name};\n')
         fout.writelines(f'class {class_name}DummyProxy\n')
