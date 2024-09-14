@@ -7,10 +7,6 @@
 
 class Room: public JobQueue
 {
-public:
-	typedef int ID;
-	Room(HANDLE hCompletionPort);
-	virtual ~Room();
 private:
 	virtual void Update(float deltaTime) = 0;
 	virtual void OnEnter(SessionInfo sessionInfo) = 0;
@@ -20,6 +16,10 @@ private:
 protected:
 	//룸 내부에서만 호출되어야 한다
 	bool ChangeRoom(SessionInfo sessionInfo, int afterRoomID);
+public:
+	typedef int ID;
+	Room(HANDLE hCompletionPort);
+	virtual ~Room();
 private:
 	friend class RoomSystem;
 	class RoomSystem* _pRoomSystem=nullptr;

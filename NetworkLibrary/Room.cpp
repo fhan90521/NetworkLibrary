@@ -88,7 +88,6 @@ Room::~Room()
 {
 	
 }
-
 Room::Room(HANDLE hCompletionPort) : JobQueue(hCompletionPort)
 {
 	_prevUpdateTime = GetTickCount64();
@@ -101,12 +100,10 @@ int Room::GetUpdateCnt()
 	InterlockedExchange(&_updateCnt, 0);
 	return ret;
 }
-
 int Room::GetSessionCnt()
 {
 	return _sessionCnt;
 }
-
 int Room::GetRoomID()
 {
 	return _roomID;
