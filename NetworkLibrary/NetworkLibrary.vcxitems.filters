@@ -1,172 +1,172 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)CSendBuffer.cpp">
-      <Filter>Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)CRingBuffer.cpp">
-      <Filter>Buffer</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)CacheTracer.cpp">
-      <Filter>Profiler</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPServer.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Malloc.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)Memory\Malloc.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)PerformanceMonitor.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)Job\JobQueue.cpp">
+      <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Job\WorkThreadPool.cpp">
+      <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DBHelper\MYSQLHelper.cpp">
+      <Filter>DBHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)DBHelper\RedisHelper.cpp">
+      <Filter>DBHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Buffer\CRingBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Buffer\CSendBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\IOCPClient.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\IOCPDummyClient.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Network\IOCPServer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Profiler\CacheTracer.cpp">
       <Filter>Profiler</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)Room.cpp">
-      <Filter>Room</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Profiler\GetMyThreadID.cpp">
+      <Filter>Profiler</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPClient.cpp">
-      <Filter>Network</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Profiler\PerformanceMonitor.cpp">
+      <Filter>Profiler</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)JobQueue.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)MYSQLHelper.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem.cpp">
-      <Filter>Room</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)IOCPDummyClient.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)WorkThreadPool.cpp">
-      <Filter>Job</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)RedisHelper.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)ParseJson.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)rapidjson\ParseJson.cpp">
       <Filter>RapidJson</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)GetMyThreadID.cpp">
-      <Filter>Profiler</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem\Room.cpp">
+      <Filter>RoomSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)RoomSystem\RoomSystem.cpp">
+      <Filter>RoomSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CSendBuffer.h">
-      <Filter>Buffer</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CRingBuffer.h">
-      <Filter>Buffer</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Log.h">
-      <Filter>Debug</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CRecvBuffer.h">
-      <Filter>Buffer</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CacheTracer.h">
-      <Filter>Profiler</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Session.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)NetworkHeader.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MyWindow.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPServer.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceProfiler.h">
-      <Filter>Profiler</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MyStlContainer.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CommonPool.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\MakeShared.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Malloc.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\MakeUnique.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MemoryHeader.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\Malloc.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)TlsMemoryPool.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\MemoryHeader.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)PoolAllocatorForSTL.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MyNew.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\MyNew.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MakeShared.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\PoolAllocatorForSTL.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)PerformanceMonitor.h">
-      <Filter>Profiler</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\TlsMemoryPool.h">
+      <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)CCrashDump.h">
-      <Filter>Debug</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\TlsObjectPool.h">
+      <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MPSCQueue.h">
-      <Filter>Container</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)SpinLock.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Lock\LockGuard.h">
       <Filter>Lock</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockGuard.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Lock\SpinLock.h">
       <Filter>Lock</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Room.h">
-      <Filter>Room</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Job\Job.h">
+      <Filter>Job</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockQueue.h">
-      <Filter>Container</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Job\JobQueue.h">
+      <Filter>Job</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MakeUnique.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Job\WorkThreadPool.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Job\WorkType.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DebugTool\CCrashDump.h">
+      <Filter>DebugTool</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DebugTool\Log.h">
+      <Filter>DebugTool</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Memory\CommonPool.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPClient.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBHelper\MYSQLHelper.h">
+      <Filter>DBHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DBHelper\RedisHelper.h">
+      <Filter>DBHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Container\LockQueue.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Container\LockStack.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Container\MPSCQueue.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Container\MyStlContainer.h">
+      <Filter>Container</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Buffer\CRecvBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Buffer\CRingBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Buffer\CSendBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\IOCPClient.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)Job.h">
-      <Filter>Job</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)JobQueue.h">
-      <Filter>Job</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)MYSQLHelper.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem.h">
-      <Filter>Room</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)IOCPDummyClient.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\IOCPDummyClient.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)WorkThreadPool.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\IOCPServer.h">
+      <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)WorkType.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\NetworkHeader.h">
+      <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)RedisHelper.h">
-      <Filter>DB</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Network\Session.h">
+      <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)ParseJson.h">
+    <ClInclude Include="$(MSBuildThisFileDirectory)Profiler\CacheTracer.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Profiler\GetMyThreadID.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Profiler\PerformanceMonitor.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Profiler\PerformanceProfiler.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)rapidjson\ParseJson.h">
       <Filter>RapidJson</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)LockStack.h">
-      <Filter>Container</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem\Room.h">
+      <Filter>RoomSystem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)TlsObjectPool.h">
-      <Filter>Memory</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)RoomSystem\RoomSystem.h">
+      <Filter>RoomSystem</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)GetMyThreadID.h">
-      <Filter>Profiler</Filter>
+    <ClInclude Include="$(MSBuildThisFileDirectory)OS\MyWindow.h">
+      <Filter>OS</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -188,17 +188,8 @@
     <Filter Include="Lock">
       <UniqueIdentifier>{7fc7e48e-446c-4d62-b1d9-df38f50a71ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Room">
-      <UniqueIdentifier>{ac670b13-2fd6-4292-aaa1-ef7f32885ba0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DB">
-      <UniqueIdentifier>{b0087bd7-3dd6-4105-b9a5-de8db0a292ed}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Job">
       <UniqueIdentifier>{92214199-5032-4c34-a04f-6d7e31df9cc1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Debug">
-      <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Container">
       <UniqueIdentifier>{1f2edac6-c633-4d06-9e16-c509c107c608}</UniqueIdentifier>
@@ -206,9 +197,21 @@
     <Filter Include="RapidJson">
       <UniqueIdentifier>{cfeb790b-010a-4176-9a23-9f4ff45e7195}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DebugTool">
+      <UniqueIdentifier>{0deca990-c28c-475b-8937-505cc657d67d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DBHelper">
+      <UniqueIdentifier>{b0087bd7-3dd6-4105-b9a5-de8db0a292ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RoomSystem">
+      <UniqueIdentifier>{ac670b13-2fd6-4292-aaa1-ef7f32885ba0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OS">
+      <UniqueIdentifier>{be051b42-5496-4612-b043-01b6f72678b4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)RPCcompiler2.0.py">
+    <None Include="$(MSBuildThisFileDirectory)RPC\RPCcompiler2.0.py">
       <Filter>RPC</Filter>
     </None>
   </ItemGroup>
