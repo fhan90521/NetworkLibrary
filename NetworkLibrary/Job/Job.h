@@ -14,7 +14,7 @@ public:
 	{
 		_callback = [owner, memFunc, ...args = std::forward<Args>(args)]()mutable
 		{
-			(owner->*memFunc)(std::forward<Args>(args)...);
+			(owner->*memFunc)(args...);
 		};
 	}
 	void Execute()
