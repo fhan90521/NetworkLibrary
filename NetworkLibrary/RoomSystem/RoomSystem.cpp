@@ -36,6 +36,7 @@ void RoomSystem::UpdateRooms()
 {
 	while (bShutDown==false)
 	{
+		ProcessLeaveSystem();
 		{
 			SRWLockGuard<LOCK_TYPE::SHARED> srwLockGuard(_roomsLock);
 			ULONG64 currentTime = GetTickCount64();
@@ -60,6 +61,7 @@ RoomSystem::RoomSystem(IOCPServer* pServer)
 {
 	InitializeSRWLock(&_roomsLock);
 	InitializeSRWLock(&_sessionsLock);
+	InitializeSRWLock(&_leaveLock);
 	_roomUpdateThread = New<std::thread>(&RoomSystem::UpdateRooms, this);
 	for (int i = MAX_ROOM_ID; i >= 0; i--)
 	{
@@ -75,91 +77,9 @@ int RoomSystem::GetSessionCntInRoomSystem()
 	return _sessions.size();
 }
 
-void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
-{
-	bool bError = false;
-	{
-		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_sessionsLock);
-		auto sessionToRoomIDIter = _sessions.find(sessionInfo.Id());
-		if (sessionToRoomIDIter != _sessions.end())
-		{
-			if (sessionToRoomIDIter->second == CHANGING_ROOM_ID)
-			{
-				SRWLockGuard<LOCK_TYPE::SHARED> srwLockGuard(_roomsLock);
-				auto afterRoomIter = _rooms.find(afterRoomID);
-				if (afterRoomIter != _rooms.end())
-				{
-					sessionToRoomIDIter->second = afterRoomID;
-					afterRoomIter->second->DoAsync(&Room::TryEnter, sessionInfo);
-					_pServer->ChangeRoomID(sessionInfo, afterRoomID);
-					return;
-				}
-				else
-				{
-					beforeRoom->DoAsync(&Room::TryEnter, sessionInfo);
-					return;
-				}
-			}
-			else if (sessionToRoomIDIter->second == LEAVE_ROOM_SYSTEM)
-			{
-				OnLeaveByChangingRoomSession(sessionInfo);
-				_sessions.erase(sessionToRoomIDIter);
-			}
-			else
-			{
-				//로직상 불가능한 경우
-				bError = true;
-				Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 1");
-			}
-		}
-		else
-		{
-			//로직상 불가능한 경우
-			bError = true;
-			Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 2");
-		}
-	}
-
-	if (bError ==true)
-	{
-		OnError(sessionInfo,RoomError::ENTER_ROOM_ERROR);
-	}
-}
-bool RoomSystem::ChangeRoom(SessionInfo sessionInfo,Room* beforeRoom, int afterRoomID)
-{
-	bool bError = false;
-	bool ret = false;
-
-	{
-		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_sessionsLock);
-		auto sessionToRoomIDIter = _sessions.find(sessionInfo.Id());
-		if (sessionToRoomIDIter != _sessions.end())
-		{
-			if (sessionToRoomIDIter->second == beforeRoom->GetRoomID())
-			{
-				sessionToRoomIDIter->second = CHANGING_ROOM_ID;
-				_pServer->ChangeRoomID(sessionInfo, CHANGING_ROOM_ID);
-				beforeRoom->DoAsync(&Room::Leave, sessionInfo, afterRoomID);
-				ret = true;	
-			}
-			else
-			{
-				//로직상 불가능한 경우
-				bError = true;
-				Log::LogOnFile(Log::SYSTEM_LEVEL, "ChangeRoom Impossible Error");
-			}
-		}
-	}
-
-	if (bError == true)
-	{
-		OnError(sessionInfo,RoomError::CHANGE_ROOM_ERROR);
-	}
-	return ret;
-}
 bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 {
-	
+
 	//어느 룸에도 속해있지 않고 처음 룸에 입장
 	bool ret = false;
 	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_sessionsLock);
@@ -172,11 +92,94 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 		{
 			ret = true;
 			_sessions[sessionInfo.Id()] = roomID;
-			roomIter->second->DoAsync(&Room::TryEnter, sessionInfo);
+			roomIter->second->DoAsync(&Room::Enter, sessionInfo);
 			_pServer->ChangeRoomID(sessionInfo, roomID);
 		}
 	}
 	return ret;
+}
+bool RoomSystem::ChangeRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
+{
+	bool ret = false;
+	{
+		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_sessionsLock);
+		auto sessionToRoomIDIter = _sessions.find(sessionInfo.Id());
+		if (sessionToRoomIDIter != _sessions.end())
+		{
+			if (sessionToRoomIDIter->second == beforeRoom->GetRoomID())
+			{
+				sessionToRoomIDIter->second = CHANGING_ROOM_ID;
+				_pServer->ChangeRoomID(sessionInfo, CHANGING_ROOM_ID);
+				beforeRoom->DoAsync(&Room::TryLeave, sessionInfo, afterRoomID);
+				ret = true;
+			}
+		}
+	}
+	return ret;
+}
+void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID)
+{
+	{
+		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_sessionsLock);
+		auto sessionToRoomIDIter = _sessions.find(sessionInfo.Id());
+		if (sessionToRoomIDIter != _sessions.end())
+		{
+			if (sessionToRoomIDIter->second == LEAVE_ROOM_SYSTEM)
+			{
+				RegisterLeaveSession(sessionInfo);
+				_sessions.erase(sessionToRoomIDIter);
+			}
+			else if (sessionToRoomIDIter->second == CHANGING_ROOM_ID)
+			{
+				SRWLockGuard<LOCK_TYPE::SHARED> srwLockGuard(_roomsLock);
+				auto afterRoomIter = _rooms.find(afterRoomID);
+				if (afterRoomIter != _rooms.end())
+				{
+					sessionToRoomIDIter->second = afterRoomID;
+					afterRoomIter->second->DoAsync(&Room::Enter, sessionInfo);
+					_pServer->ChangeRoomID(sessionInfo, afterRoomID);
+					return;
+				}
+				else
+				{
+					beforeRoom->DoAsync(&Room::Enter, sessionInfo);
+					return;
+				}
+			}
+			else
+			{
+				//로직상 불가능한 경우
+				Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 1");
+			}
+		}
+		else
+		{
+			//로직상 불가능한 경우
+			Log::LogOnFile(Log::SYSTEM_LEVEL, "EnterRoom Impossible Error 2");
+		}
+	}
+}
+void RoomSystem::RegisterLeaveSession(SessionInfo sessionInfo)
+{
+	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_leaveLock);
+	_tryLeaveSessions.insert(sessionInfo.Id());
+}
+void RoomSystem::ProcessLeaveSystem()
+{
+	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_leaveLock);
+	for (auto iter = _tryLeaveSessions.begin(); iter != _tryLeaveSessions.end();)
+	{
+		SessionInfo::ID sessionID = *iter;
+		if (CheckCanLeaveSystem(sessionID) == false)
+		{
+			iter++;
+		}
+		else
+		{
+			OnLeaveRoomSystem(sessionID);
+			iter = _tryLeaveSessions.erase(iter);
+		}
+	}
 }
 bool RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 {
@@ -185,6 +188,8 @@ bool RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 	if (sessionToRoomIDIter != _sessions.end())
 	{
 		int sessionRoomID = sessionToRoomIDIter->second;
+		sessionToRoomIDIter->second = LEAVE_ROOM_SYSTEM;
+		_pServer->ChangeRoomID(sessionInfo, LEAVE_ROOM_SYSTEM);
 		if (sessionRoomID != CHANGING_ROOM_ID)
 		{
 			{
@@ -192,15 +197,9 @@ bool RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 				auto roomIter = _rooms.find(sessionRoomID);
 				if (roomIter != _rooms.end())
 				{
-					roomIter->second->DoAsync(&Room::LeaveRoomSystem, sessionInfo);
+					roomIter->second->DoAsync(&Room::TryLeave, sessionInfo, LEAVE_ROOM_SYSTEM);
 				}
 			}
-			_sessions.erase(sessionToRoomIDIter);
-		}
-		else
-		{
-			sessionToRoomIDIter->second = LEAVE_ROOM_SYSTEM;
-			_pServer->ChangeRoomID(sessionInfo, LEAVE_ROOM_SYSTEM);
 		}
 		return true;
 	}

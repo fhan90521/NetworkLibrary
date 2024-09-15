@@ -22,14 +22,18 @@ private:
 	std::thread* _roomUpdateThread;
 	bool bShutDown = false;
 	int _updatePeriod=15;
-	alignas(64) Stack<int> _validRoomIDs;
+	Stack<int> _validRoomIDs;
 	HashMap<Room::ID, SharedPtr<Room>> _rooms;
-	alignas(64) HashMap<SessionInfo::ID, Room::ID> _sessions;
+	HashMap<SessionInfo::ID, Room::ID> _sessions;
+	HashSet < SessionInfo::ID> _tryLeaveSessions;
 	SRWLOCK _roomsLock;
 	SRWLOCK _sessionsLock;
+	SRWLOCK _leaveLock;
 	void UpdateRooms();
 	void EnterRoom(SessionInfo sessionInfo,Room* beforeRoom ,int afterRoomID);
 	bool ChangeRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID);
+	void RegisterLeaveSession(SessionInfo sessionInfo);
+	void ProcessLeaveSystem();
 public:
 	void SetUpdatePeriod(int updatePeriod)
 	{
@@ -50,6 +54,6 @@ public:
 		CHANGE_ROOM_ERROR,
 	};
 private:
-	virtual void OnLeaveByChangingRoomSession(SessionInfo sessionInfo)=0;
-	virtual void OnError(SessionInfo sessionInfo, RoomError error) = 0;
+	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo)=0;
+	virtual bool CheckCanLeaveSystem(SessionInfo sessionInfo) = 0;
 };

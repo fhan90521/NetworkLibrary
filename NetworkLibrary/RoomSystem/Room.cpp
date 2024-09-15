@@ -1,79 +1,65 @@
 #include "Room.h"
 #include "RoomSystem.h"
-void Room::ProcessEnter()
+#include "DebugTool/Log.h"
+void Room::ProcessLeave()
 {
-	for (auto itSessionInfo = _tryEnterSessions.begin(); itSessionInfo != _tryEnterSessions.end();)
+	for (auto iter = _tryLeaveSessions.begin(); iter != _tryLeaveSessions.end();)
 	{
-		int ret = RequestEnter(*itSessionInfo);
-		if (ret == ENTER_HOLD)
+		SessionInfo::ID sessionID = iter->first;
+		int afterRoomID = iter->second;
+		if (CheckCanLeave(sessionID)==false)
 		{
-			itSessionInfo++;
+			iter++;
 		}
-		else if (ret == ENTER_SUCCESS)
+		else 
 		{
-			if (_sessionsInRoom.find(*itSessionInfo) == _sessionsInRoom.end())
-			{
-				_sessionsInRoom.insert(*itSessionInfo);
-				OnEnter(*itSessionInfo);
-			}
+			LeaveAndEnter(sessionID, afterRoomID);
+			iter = _tryLeaveSessions.erase(iter);
+		}
+	}
+}
+void Room::Enter(SessionInfo sessionInfo)
+{
+	if (_sessionsInRoom.find(sessionInfo.Id()) == _sessionsInRoom.end())
+	{
+		_sessionsInRoom.insert(sessionInfo.Id());
+		OnEnter(sessionInfo);
+		_sessionCnt++;
+	}
+}
+void Room::TryLeave(SessionInfo sessionInfo, int afterRoomID)
+{
+	auto iterSession = _sessionsInRoom.find(sessionInfo.Id());
+	if (iterSession != _sessionsInRoom.end())
+	{
+		if (CheckCanLeave(sessionInfo) == true)
+		{
+			LeaveAndEnter(sessionInfo, afterRoomID);
 		}
 		else
 		{
-			itSessionInfo = _tryEnterSessions.erase(itSessionInfo);
+			_tryLeaveSessions[sessionInfo.Id()] = afterRoomID;
 		}
 	}
-}
-void Room::TryEnter(SessionInfo sessionInfo)
-{
-	int retRequestEnter =RequestEnter(sessionInfo);
-	if (retRequestEnter == ENTER_SUCCESS)
+	else
 	{
-		if (_sessionsInRoom.find(sessionInfo.Id()) == _sessionsInRoom.end())
-		{
-			_sessionsInRoom.insert(sessionInfo.Id());
-			OnEnter(sessionInfo);
-			_sessionCnt++;
-		}
-	}
-	else if(retRequestEnter == ENTER_HOLD)
-	{
-		_tryEnterSessions.insert(sessionInfo.Id());
+		Log::LogOnFile(Log::SYSTEM_LEVEL, "Room::TryLeave Error");
 	}
 }
-
-void Room::Leave(SessionInfo sessionInfo,int afterRoomID)
+void Room::LeaveAndEnter(SessionInfo sessionInfo,int afterRoomID)
 {
 	auto iterSession = _sessionsInRoom.find(sessionInfo.Id());
 	if (iterSession != _sessionsInRoom.end())
 	{
 		OnLeave(sessionInfo);
 		_sessionsInRoom.erase(iterSession);
+		_sessionCnt--;
+		_pRoomSystem->EnterRoom(sessionInfo, this, afterRoomID);
 	}
-	else
-	{
-		_tryEnterSessions.erase(sessionInfo.Id());
-	}
-	_sessionCnt--;
-	_pRoomSystem->EnterRoom(sessionInfo, this, afterRoomID);
-}
-void Room::LeaveRoomSystem(SessionInfo sessionInfo)
-{
-	auto iterSession = _sessionsInRoom.find(sessionInfo.Id());
-	if (iterSession != _sessionsInRoom.end())
-	{
-		OnLeaveRoomSystem(sessionInfo,true);
-		_sessionsInRoom.erase(iterSession);
-		
-	}
-	else
-	{
-		OnLeaveRoomSystem(sessionInfo, false);
-		_tryEnterSessions.erase(sessionInfo.Id());
-	}
-	_sessionCnt--;
 }
 void Room::UpdateJob()
 {
+	ProcessLeave();
 	Update((GetCurTime() - _prevUpdateTime) / (1000.0));
 	_prevUpdateTime = GetCurTime();
 	_bUpdating = false;
