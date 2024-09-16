@@ -75,19 +75,19 @@ public:
 
             oldHead = _head;
             curTail = _tail;
-            Node* pOldHeadpNext = ((Node*)oldHead.bitPartial.pNode)->pNext;
-            if (pOldHeadpNext== nullptr)
+            Node* pOldHeadNext = ((Node*)oldHead.bitPartial.pNode)->pNext;
+            if (pOldHeadNext== nullptr)
             {
                 //case 1 oldHead가 다른 스레드에 의해 dequeue 되고 alloc되어 pNext가 초기화된 상황
                 //case 2 tail은 옮겨졌지만 pNext에 값이 아직 대입안되어 nullptr로 보이는 상황
                 continue;
             }
-            newHead.entire = (LONG64)pOldHeadpNext;
+            newHead.entire = (LONG64)pOldHeadNext;
             newHead.bitPartial.cnt = oldHead.bitPartial.cnt+1;
-            *outPar = pOldHeadpNext->data;
+            *outPar = pOldHeadNext->data;
             if (InterlockedCompareExchange64(&_head.entire, newHead.entire, oldHead.entire) == oldHead.entire)
             {
-                //이사이에서 newHead(pOldHeadpNext)가 dequeu enqueue되면서 pOldHeadpNext data가 사라진다.
+                //이사이에서 newHead(pOldHeadpNext)가 dequeu enqueue되면서 pOldHeadNext data가 사라진다.
                 //outPar = pOldHeadpNext->data;
                 _objectPool.Free((Node*)oldHead.bitPartial.pNode);
                 break;
