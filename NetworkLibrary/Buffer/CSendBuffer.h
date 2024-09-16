@@ -16,7 +16,7 @@ private:
 	friend class IOCPDummyClient;
 	enum enCSendBuffer: int
 	{
-		eBUFFER_DEFAULT = 512, // 패킷의 기본 버퍼 사이즈.
+		eBUFFER_DEFAULT = 1024, // 패킷의 기본 버퍼 사이즈.
 		eBUFFER_MAX_SIZE = 4096
 	};
 	typedef TlsObjectPool<CSendBuffer, false> BufferPool;
@@ -26,15 +26,15 @@ private:
 
 	friend class BufferPool;
 	char* _buf;
-	int	_bufferSize;
+	int	_bufferSize = eBUFFER_DEFAULT;
 	int _front = sizeof(WanHeader);
 	int _back = sizeof(WanHeader);
 	LONG _refCnt = 0;
 	bool _bSetHeader = false;
 	static BufferPool _bufferPool;
-	CSendBuffer(int iBufferSize = eBUFFER_DEFAULT) :_bufferSize(iBufferSize)
+	CSendBuffer()
 	{
-		_buf = new char[iBufferSize];
+		_buf = new char[eBUFFER_DEFAULT];
 	}
 	virtual	~CSendBuffer()
 	{

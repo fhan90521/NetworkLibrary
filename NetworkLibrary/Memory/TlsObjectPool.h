@@ -133,8 +133,8 @@ public:
 		}
 		TlsFree(_tlsIndex);
 	}
-	template<typename... Args>
-	T* Alloc(Args&&... args)
+
+	T* Alloc()
 	{
 		PoolState& poolState = GetPoolStateRef();
 		if (poolState.pTopNode == nullptr)
@@ -148,7 +148,7 @@ public:
 		poolState.allocatingCnt++;
 		if constexpr (_bPlacementNew)
 		{
-			new ((T*)pOldTop)T(std::forward<Args>(args)...);
+			new ((T*)pOldTop)T();
 		}
 		return (T*)pOldTop;
 	}

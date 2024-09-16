@@ -40,6 +40,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Buffer\CRecvBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Buffer\CRingBuffer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Buffer\CSendBuffer.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Container\LockFreeQueue.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Container\LockFreeQueueBasic.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Container\LockFreeStack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Container\LockQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Container\LockStack.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Container\MPSCQueue.h" />
