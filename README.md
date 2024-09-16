@@ -29,9 +29,9 @@ MPSCQueue
 
 LockFreeStack
 
-LockFreeQueue(Basic의 성능 개선 및 문제점 보완 버전)
+LockFreeQueue
 
-LockFreeQueueBasic(멀티스레드 환경에서 한 스레드가 enqueue하는 순서대로 enqueue가 되지 않을 수 있는 문제가 발생 가능) 
+LockFreeQueueBasic
 
 ## DB
 MYSQLHelper
