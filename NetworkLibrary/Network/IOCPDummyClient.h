@@ -2,7 +2,7 @@
 #include "OS/MyWindow.h"
 #include "Buffer/CRecvBuffer.h"
 #include "Buffer/CSendBuffer.h"
-#include "Container/LockFreeStack.h"
+#include "Container/LockStack.h"
 #include "Container/MyStlContainer.h"
 #include "Container/MPSCQueue.h"
 #include "Network/Session.h"
@@ -62,7 +62,7 @@ private:
 	HANDLE _hcp=INVALID_HANDLE_VALUE;
 	List<HANDLE> _hThreadList;
 	Session* _sessionArray;
-	LockFreeStack<USHORT> _validIndexStack;
+	LockStack<USHORT> _validIndexStack;
 private:
 	LONG _acceptCnt = 0;
 	LONG _sendCnt = 0;
