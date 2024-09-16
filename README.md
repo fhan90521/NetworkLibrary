@@ -29,9 +29,7 @@ MPSCQueue
 
 LockFreeStack
 
-LockFreeQueue(Basic의 개선 버전)
-
-LockFreeQueueBasic
+LockFreeQueue
 
 ## DB
 MYSQLHelper
