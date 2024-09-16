@@ -1,6 +1,7 @@
 #pragma once
 #include "OS/MyWindow.h"
 #include "Memory/TlsObjectPool.h"
+//멀티스레드 환경에서 하나의 스레드가 Enqueue한 것의 순서가 지켜지지 않을 수 있는 문제가 있음.
 template <typename T>
 class LockFreeQueueBasic
 {

@@ -1,6 +1,7 @@
 #pragma once
 #include "OS/MyWindow.h"
 #include "Memory/TlsObjectPool.h"
+//LockFreeQueueBasic 문제점 보완 및 성능 개선 버전
 template <typename T>
 class LockFreeQueue
 {
@@ -78,8 +79,7 @@ public:
             Node* pOldHeadNext = ((Node*)oldHead.bitPartial.pNode)->pNext;
             if (pOldHeadNext== nullptr)
             {
-                //case 1 oldHead가 다른 스레드에 의해 dequeue 되고 alloc되어 pNext가 초기화된 상황
-                //case 2 tail은 옮겨졌지만 pNext에 값이 아직 대입안되어 nullptr로 보이는 상황
+                //oldHead가 다른 스레드에 의해 dequeue(node free)->enqueue(node alloc) pNext가 초기화된 상황
                 continue;
             }
             newHead.entire = (LONG64)pOldHeadNext;
