@@ -5,7 +5,6 @@ template<typename T>
 class LockFreeStack
 {
 private:
-	//최적화 컴파일을 켜지 않았을 때 정상작동
 	union Top
 	{
 		struct BitPartial
