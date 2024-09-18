@@ -129,9 +129,12 @@ public:
 		}
 		return true;
 	}
-	
-	CRecvBuffer& operator >> (String& str)
+
+	template <typename T, typename = std::enable_if_t<std::is_same_v<T, std::string> || std::is_same_v<T, String>
+									     ||std::is_same_v<T, std::wstring> || std::is_same_v<T, WString>>, int uniquifier = 1>
+	CRecvBuffer& operator >> (T& str)
 	{
+		using namespace std;
 		USHORT strLen;
 		int dequeueSize;
 
@@ -150,7 +153,7 @@ public:
 		}
 		_remainSize -= dequeueSize;
 
-		if (_remainSize < strLen)
+		if (_remainSize < strLen*sizeof(T::value_type))
 		{
 			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
 			throw(_remainSize);
@@ -162,8 +165,8 @@ public:
 		}
 
 
-		dequeueSize = _pBuf->Dequeue((char*)str.data(), strLen);
-		if (dequeueSize != strLen)
+		dequeueSize = _pBuf->Dequeue((char*)str.data(), strLen * sizeof(T::value_type));
+		if (dequeueSize != strLen * sizeof(T::value_type))
 		{
 			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
 			throw(dequeueSize);
@@ -173,46 +176,4 @@ public:
 		return *this;
 	}
 
-	CRecvBuffer& operator >> (WString& wStr)
-	{
-		USHORT strLen;
-		int dequeueSize;
-
-
-		if (_remainSize < sizeof(strLen))
-		{
-			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
-			throw(_remainSize);
-		}
-
-		dequeueSize = _pBuf->Dequeue((char*)&strLen, sizeof(strLen));
-		if (dequeueSize != sizeof(strLen))
-		{
-			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
-			throw(dequeueSize);
-		}
-		_remainSize -= dequeueSize;
-
-		if (_remainSize < strLen*2)
-		{
-			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer remainSize Error\n");
-			throw(_remainSize);
-		}
-
-		if (strLen > wStr.size())
-		{
-			wStr.resize(strLen);
-		}
-
-
-		dequeueSize = _pBuf->Dequeue((char*)wStr.data(), strLen*2);
-		if (dequeueSize != strLen*2)
-		{
-			Log::LogOnFile(Log::DEBUG_LEVEL, "CRecvBuffer dequeue Error\n");
-			throw(dequeueSize);
-		}
-		_remainSize -= dequeueSize;
-
-		return *this;
-	}
 };

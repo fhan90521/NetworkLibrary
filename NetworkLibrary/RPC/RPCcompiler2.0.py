@@ -30,6 +30,8 @@ def parse_functions(file, registered_classes):
         if not line:
             continue
         pkt_num = -1
+        if '::' in line:
+            line = line.replace('::', '^^')
         if ':' in line:
             line = line.replace('\t', '').split(':')
             if 'RegisterClass' in line[0]:
@@ -51,11 +53,10 @@ def parse_functions(file, registered_classes):
             parts = [p for p in parameter.split(' ') if p]
             if len(parts) == 0:
                 break
-            if '*' in parts[-1]:
-                parts[-1] = parts[-1].replace('*', '')
-                parts[-2] += '*'
             one_func_parameters_name.append(parts[-1])
             type_ = ' '.join(parts[:-1])
+            if '^^' in type_:
+                type_ = type_.replace('^^','::')
             if "Array" in type_:
                 array_size = type_.split('[')[1]
                 type_ = type_.split('[')[0]

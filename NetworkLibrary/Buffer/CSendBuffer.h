@@ -198,12 +198,15 @@ public:
 		return *this;
 	}
 
-	CSendBuffer& operator << (const String& str)
+	template <typename T, typename = std::enable_if_t<std::is_same_v<T, std::string> || std::is_same_v<T, String>
+													  ||std::is_same_v<T, std::wstring> || std::is_same_v<T, WString>>>
+	CSendBuffer& operator << (const T& str)
 	{
+		using namespace std;
 		USHORT strLen = str.size();
-		if (GetFreeSize() < sizeof(strLen) + strLen)
+		if (GetFreeSize() < sizeof(strLen) + strLen*sizeof(T::value_type))
 		{
-			if (Resize(sizeof(strLen) + strLen) == false)
+			if (Resize(sizeof(strLen) + strLen * sizeof(T::value_type)) == false)
 			{
 				throw(GetPayLoadSize());
 			}
@@ -211,26 +214,8 @@ public:
 		*((USHORT*)&_buf[_back]) = strLen;
 		_back += sizeof(strLen);
 
-		memcpy(&_buf[_back], str.data(), strLen);
-		_back += strLen;
-		return *this;
-	}
-
-	CSendBuffer& operator << (const WString& wStr)
-	{
-		USHORT strLen = wStr.size();
-		if (GetFreeSize() < sizeof(strLen) + strLen*2)
-		{
-			if (Resize(sizeof(strLen) + strLen*2) == false)
-			{
-				throw(GetPayLoadSize());
-			}
-		}
-		*((USHORT*)&_buf[_back]) = strLen;
-		_back += sizeof(strLen);
-
-		memcpy(&_buf[_back], wStr.data(), strLen*2);
-		_back += strLen*2;
+		memcpy(&_buf[_back], str.data(), strLen * sizeof(T::value_type));
+		_back += strLen * sizeof(T::value_type);
 		return *this;
 	}
 };
