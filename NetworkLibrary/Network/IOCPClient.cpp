@@ -367,7 +367,7 @@ bool IOCPClient::Connect()
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
-	inet_pton(AF_INET, SERVER_IP.data(), &serverAddr.sin_addr);
+	inet_pton(AF_INET, SERVER_IP.c_str(), &serverAddr.sin_addr);
 	serverAddr.sin_port = htons(SERVER_PORT);
 	int retConnect = connect(serverSock, (sockaddr*)&serverAddr, sizeof(serverAddr));
 	if (retConnect == SOCKET_ERROR)
@@ -521,7 +521,7 @@ void IOCPClient::ConnectWork()
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
-	inet_pton(AF_INET, SERVER_IP.data(), &serverAddr.sin_addr);
+	inet_pton(AF_INET, SERVER_IP.c_str(), &serverAddr.sin_addr);
 	serverAddr.sin_port = htons(SERVER_PORT);
 	int retConnect = connect(serverSock, (sockaddr*)&serverAddr, sizeof(serverAddr));
 	if (retConnect == SOCKET_ERROR)

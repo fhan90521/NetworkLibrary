@@ -81,7 +81,7 @@ void IOCPServer::ServerSetting()
 	struct sockaddr_in serveraddr;
 	memset(&serveraddr, 0, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	inet_pton(AF_INET, BIND_IP.c_str(), &serveraddr.sin_addr);
 	serveraddr.sin_port = htons(BIND_PORT);
 	ret_bind = bind(_listenSock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
 	if (ret_bind == SOCKET_ERROR)
