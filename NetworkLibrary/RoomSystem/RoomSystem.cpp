@@ -64,7 +64,7 @@ void RoomSystem::UpdateRooms()
 		Sleep(_updatePeriod / 3);
 	}
 }
-RoomSystem::RoomSystem(IOCPServer* pServer): JobQueue(pServer->GetCompletionPortHandle())
+RoomSystem::RoomSystem(IOCPServer* pServer, HANDLE hCompletionPort): JobQueue(hCompletionPort)
 {
 	InitializeSRWLock(&_roomsLock);
 	InitializeSRWLock(&_sessionsLock);

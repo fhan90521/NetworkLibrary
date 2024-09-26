@@ -44,7 +44,7 @@ public:
 	void Run();
 	bool LeaveRoomSystem(SessionInfo sessionInfo);
 	bool EnterRoomSystem(SessionInfo sessionInfo, int roomID);
-	RoomSystem(IOCPServer* pServer);
+	RoomSystem(IOCPServer* pServer, HANDLE hCompletionPort);
 	virtual ~RoomSystem();
 	int GetSessionCntInRoomSystem();
 	bool RegisterRoom(const SharedPtr<Room>& pRoom);

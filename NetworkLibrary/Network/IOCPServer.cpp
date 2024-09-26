@@ -258,11 +258,7 @@ void IOCPServer::AcceptWork()
 			}
 			continue;
 		}
-		else
-		{
-			//Log¿ë
-			_acceptCnt++;
-		}
+		
 		if (_validIndexStack.Size()<=0)
 		{
 			closesocket(clientSock);
@@ -281,6 +277,7 @@ void IOCPServer::AcceptWork()
 		strcpy_s(pSession->ip, INET_ADDRSTRLEN, ip);
 		pSession->port = port;
 		OnAccept(pSession->sessionInfo);
+		InterlockedIncrement(&_acceptCnt);
 		RecvPost(pSession);
 	}
 	return;
@@ -804,7 +801,7 @@ bool IOCPServer::ServerControl()
 int IOCPServer::GetAcceptCnt()
 {
 	int ret = _acceptCnt;
-	_acceptCnt = 0;
+	InterlockedExchange(&_acceptCnt,0);
 	return ret;
 }
 int IOCPServer::GetRecvCnt()

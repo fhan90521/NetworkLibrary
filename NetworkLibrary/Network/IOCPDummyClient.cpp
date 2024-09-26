@@ -693,12 +693,6 @@ bool IOCPDummyClient::DummyControl()
 	}
 	return bControlMode;
 }
-int IOCPDummyClient::GetAcceptCnt()
-{
-	int ret = _acceptCnt;
-	_acceptCnt = 0;
-	return ret;
-}
 int IOCPDummyClient::GetRecvCnt()
 {
 	int ret = _recvCnt;

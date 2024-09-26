@@ -64,7 +64,6 @@ private:
 	Session* _sessionArray;
 	LockStack<USHORT> _validIndexStack;
 private:
-	LONG _acceptCnt = 0;
 	LONG _sendCnt = 0;
 	LONG _recvCnt = 0;
 public:
@@ -88,7 +87,6 @@ private:
 	virtual void OnRecv(SessionInfo sessionInfo, CRecvBuffer& buf)=0;
 public:
 	virtual void Run() = 0;
-	int GetAcceptCnt();
 	int GetRecvCnt();
 	int GetSendCnt();
 	int GetConnectingSessionCnt();
