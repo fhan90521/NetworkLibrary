@@ -23,7 +23,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)DBHelper\RedisHelper.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)Encrypt\Encrptor.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Encrypt\Encrptor.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)Job\JobQueue.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Job\WorkThreadPool.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Memory\Malloc.cpp" />
@@ -57,7 +62,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)DBHelper\RedisHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugTool\CCrashDump.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugTool\Log.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)Encrypt\Encrptor.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Encrypt\Encrptor.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)Job\Job.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Job\JobQueue.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Job\WorkThreadPool.h" />

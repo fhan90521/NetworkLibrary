@@ -23,6 +23,10 @@ void RoomSystem::CloseRoomSystem()
 	_roomUpdateThread->join();
 	Delete<std::thread>(_roomUpdateThread);
 }
+void RoomSystem::Run()
+{
+	_roomUpdateThread = New<std::thread>(&RoomSystem::UpdateRooms, this);
+}
 void RoomSystem::DeregisterRoom(const SharedPtr<Room>& pRoom)
 {
 	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_roomsLock);
@@ -36,7 +40,10 @@ void RoomSystem::UpdateRooms()
 {
 	while (bShutDown==false)
 	{
-		ProcessLeaveSystem();
+		if (_tryLeaveSessionsCnt > 0)
+		{
+			DoAsync(&RoomSystem::ProcessLeaveSystem);
+		}
 		{
 			SRWLockGuard<LOCK_TYPE::SHARED> srwLockGuard(_roomsLock);
 			ULONG64 currentTime = GetTickCount64();
@@ -57,12 +64,10 @@ void RoomSystem::UpdateRooms()
 		Sleep(_updatePeriod / 3);
 	}
 }
-RoomSystem::RoomSystem(IOCPServer* pServer)
+RoomSystem::RoomSystem(IOCPServer* pServer): JobQueue(pServer->GetCompletionPortHandle())
 {
 	InitializeSRWLock(&_roomsLock);
 	InitializeSRWLock(&_sessionsLock);
-	InitializeSRWLock(&_leaveLock);
-	_roomUpdateThread = New<std::thread>(&RoomSystem::UpdateRooms, this);
 	for (int i = MAX_ROOM_ID; i >= 0; i--)
 	{
 		_validRoomIDs.push(i);
@@ -126,7 +131,7 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 		{
 			if (sessionToRoomIDIter->second == LEAVE_ROOM_SYSTEM)
 			{
-				RegisterLeaveSession(sessionInfo);
+				DoAsync(&RoomSystem::RegisterLeaveSession,sessionInfo);
 				_sessions.erase(sessionToRoomIDIter);
 			}
 			else if (sessionToRoomIDIter->second == CHANGING_ROOM_ID)
@@ -161,12 +166,12 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 }
 void RoomSystem::RegisterLeaveSession(SessionInfo sessionInfo)
 {
-	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_leaveLock);
-	_tryLeaveSessions.insert(sessionInfo.Id());
+	_tryLeaveSessions.push_back(sessionInfo.Id());
+	OnRegisterToLeave(sessionInfo);
+	_tryLeaveSessionsCnt++;
 }
 void RoomSystem::ProcessLeaveSystem()
 {
-	SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_leaveLock);
 	for (auto iter = _tryLeaveSessions.begin(); iter != _tryLeaveSessions.end();)
 	{
 		SessionInfo::ID sessionID = *iter;
@@ -178,6 +183,7 @@ void RoomSystem::ProcessLeaveSystem()
 		{
 			OnLeaveRoomSystem(sessionID);
 			iter = _tryLeaveSessions.erase(iter);
+			_tryLeaveSessionsCnt--;
 		}
 	}
 }

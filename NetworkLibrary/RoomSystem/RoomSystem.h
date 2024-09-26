@@ -1,12 +1,13 @@
 #pragma once
 #include "Room.h"
+#include "Network/Session.h"
 #include "Container/MyStlContainer.h"
+#include "Container/MPSCQueue.h"
 #include "Lock/LockGuard.h"
 #include <thread>
 #include <atomic>
-#include "Network/Session.h"
 //등록되어있는 Room보다 수명이 긴걸 보장해야함
-class RoomSystem
+class RoomSystem: public JobQueue
 {
 public:
 	enum : int
@@ -25,10 +26,11 @@ private:
 	Stack<int> _validRoomIDs;
 	HashMap<Room::ID, SharedPtr<Room>> _rooms;
 	HashMap<SessionInfo::ID, Room::ID> _sessions;
-	HashSet < SessionInfo::ID> _tryLeaveSessions;
 	SRWLOCK _roomsLock;
 	SRWLOCK _sessionsLock;
-	SRWLOCK _leaveLock;
+	MPSCQueue<SessionInfo::ID> registerQueue;
+	List <SessionInfo::ID> _tryLeaveSessions;
+	size_t _tryLeaveSessionsCnt = 0;
 	void UpdateRooms();
 	void EnterRoom(SessionInfo sessionInfo,Room* beforeRoom ,int afterRoomID);
 	bool ChangeRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterRoomID);
@@ -39,6 +41,7 @@ public:
 	{
 		_updatePeriod = updatePeriod;
 	}
+	void Run();
 	bool LeaveRoomSystem(SessionInfo sessionInfo);
 	bool EnterRoomSystem(SessionInfo sessionInfo, int roomID);
 	RoomSystem(IOCPServer* pServer);
@@ -54,6 +57,7 @@ public:
 		CHANGE_ROOM_ERROR,
 	};
 private:
+	virtual void OnRegisterToLeave(SessionInfo sessionInfo) = 0;
 	virtual void OnLeaveRoomSystem(SessionInfo sessionInfo)=0;
 	virtual bool CheckCanLeaveSystem(SessionInfo sessionInfo) = 0;
 };
