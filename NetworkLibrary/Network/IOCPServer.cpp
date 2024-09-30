@@ -357,7 +357,7 @@ void IOCPServer::RecvPost(Session* pSession)
 		if (error != ERROR_IO_PENDING)
 		{
 			if (error != WSAECONNRESET && error != WSAECONNABORTED
-				&& error != WSAENOTSOCK)
+				&& error != WSAEINTR)
 			{
 				Log::LogOnFile(Log::SYSTEM_LEVEL, "WSARecv() error: %d\n", error);
 			}
@@ -428,7 +428,7 @@ void IOCPServer::SendPost(Session* pSession)
 		if (error != ERROR_IO_PENDING)
 		{
 			if (error != WSAECONNRESET && error != WSAECONNABORTED
-				&& error != WSAENOTSOCK)
+				&& error != WSAEINTR)
 			{
 				Log::LogOnFile(Log::SYSTEM_LEVEL, "WSASend() error: %d\n", error);
 			}
@@ -693,7 +693,7 @@ void IOCPServer::IOCPWork()
 				{
 					error = WSAGetLastError();
 					if (error != ERROR_CONNECTION_ABORTED && error != ERROR_NETNAME_DELETED
-						&& error != WSA_OPERATION_ABORTED)
+						&& error != WSA_OPERATION_ABORTED && error != ERROR_SEM_TIMEOUT)
 					{
 						Log::LogOnFile(Log::SYSTEM_LEVEL, "gqcs ret falseerror: %d\n", error);
 					}

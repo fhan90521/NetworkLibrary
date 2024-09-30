@@ -1,3 +1,5 @@
+#pragma comment(lib,"libsodium.lib")
+#define SODIUM_STATIC
 #include "Encrptor.h"
 #include "OS/MyWindow.h"
 #include "DebugTool/Log.h"

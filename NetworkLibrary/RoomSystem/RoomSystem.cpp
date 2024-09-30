@@ -97,8 +97,8 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 		{
 			ret = true;
 			_sessions[sessionInfo.Id()] = roomID;
-			roomIter->second->DoAsync(&Room::Enter, sessionInfo);
 			_pServer->ChangeRoomID(sessionInfo, roomID);
+			roomIter->second->DoAsync(&Room::Enter, sessionInfo);
 		}
 	}
 	return ret;
