@@ -21,7 +21,8 @@ public:
 	virtual ~Room();
 private:
 	friend class RoomSystem;
-	class RoomSystem* _pRoomSystem=nullptr;
+	class RoomSystem* _pRoomSystem = nullptr;
+	class IOCPServer* _pServer = nullptr;
 	LONG _updateCnt = 0;
 	int _sessionCnt = 0;
 	HashSet<SessionInfo::ID>_sessionsInRoom;

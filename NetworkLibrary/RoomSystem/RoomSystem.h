@@ -19,8 +19,8 @@ public:
 	};
 private:
 	friend class Room;
-	class IOCPServer* _pServer;
-	std::thread* _roomUpdateThread;
+	class IOCPServer* _pServer = nullptr;
+	std::thread* _roomUpdateThread = nullptr;
 	bool bShutDown = false;
 	int _updatePeriod=15;
 	Stack<int> _validRoomIDs;

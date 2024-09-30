@@ -1,5 +1,6 @@
 #include "Room.h"
 #include "RoomSystem.h"
+#include "Network/IOCPServer.h"
 #include "DebugTool/Log.h"
 void Room::ProcessLeave()
 {
@@ -23,6 +24,7 @@ void Room::Enter(SessionInfo sessionInfo)
 	if (_sessionsInRoom.find(sessionInfo.Id()) == _sessionsInRoom.end())
 	{
 		_sessionsInRoom.insert(sessionInfo.Id());
+		_pServer->ChangeRoomID(sessionInfo, _roomID);
 		OnEnter(sessionInfo);
 		_sessionCnt++;
 	}

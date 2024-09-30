@@ -123,6 +123,7 @@ private:
 //Room
 private:
 	friend class RoomSystem;
+	friend class Room;
 	void ChangeRoomID(SessionInfo sessionInfo, int roomID);
 };
 

@@ -8,6 +8,7 @@ bool RoomSystem::RegisterRoom(const SharedPtr<Room>& pRoom)
 		return false;
 	}
 	pRoom->_pRoomSystem = this;
+	pRoom->_pServer = _pServer;
 	{
 		SRWLockGuard<LOCK_TYPE::EXCLUSIVE> srwLockGuard(_roomsLock);
 		int newRoomID = _validRoomIDs.top();
@@ -97,7 +98,6 @@ bool RoomSystem::EnterRoomSystem(SessionInfo sessionInfo, int roomID)
 		{
 			ret = true;
 			_sessions[sessionInfo.Id()] = roomID;
-			_pServer->ChangeRoomID(sessionInfo, roomID);
 			roomIter->second->DoAsync(&Room::Enter, sessionInfo);
 		}
 	}
@@ -141,14 +141,12 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 				if (afterRoomIter != _rooms.end())
 				{
 					sessionToRoomIDIter->second = afterRoomID;
-					_pServer->ChangeRoomID(sessionInfo, afterRoomID);
 					afterRoomIter->second->DoAsync(&Room::Enter, sessionInfo);
 					return;
 				}
 				else
 				{
 					sessionToRoomIDIter->second = beforeRoom->GetRoomID();
-					_pServer->ChangeRoomID(sessionInfo, beforeRoom->GetRoomID());
 					beforeRoom->DoAsync(&Room::Enter, sessionInfo);
 					return;
 				}
