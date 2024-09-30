@@ -141,12 +141,14 @@ void RoomSystem::EnterRoom(SessionInfo sessionInfo, Room* beforeRoom, int afterR
 				if (afterRoomIter != _rooms.end())
 				{
 					sessionToRoomIDIter->second = afterRoomID;
-					afterRoomIter->second->DoAsync(&Room::Enter, sessionInfo);
 					_pServer->ChangeRoomID(sessionInfo, afterRoomID);
+					afterRoomIter->second->DoAsync(&Room::Enter, sessionInfo);
 					return;
 				}
 				else
 				{
+					sessionToRoomIDIter->second = beforeRoom->GetRoomID();
+					_pServer->ChangeRoomID(sessionInfo, beforeRoom->GetRoomID());
 					beforeRoom->DoAsync(&Room::Enter, sessionInfo);
 					return;
 				}
@@ -196,7 +198,7 @@ bool RoomSystem::LeaveRoomSystem(SessionInfo sessionInfo)
 		int sessionRoomID = sessionToRoomIDIter->second;
 		sessionToRoomIDIter->second = LEAVE_ROOM_SYSTEM;
 		_pServer->ChangeRoomID(sessionInfo, LEAVE_ROOM_SYSTEM);
-		if (sessionRoomID != CHANGING_ROOM_ID)
+		if (sessionRoomID > INVALID_ROOM_ID)
 		{
 			{
 				SRWLockGuard<LOCK_TYPE::SHARED> srwLockGuard(_roomsLock);
