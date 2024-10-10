@@ -16,6 +16,8 @@ private:
 	LONG _processedJobCnt = 0;
 	ULONG64 _currentTime = 0;
 	void ProcessJob();
+	JobQueue(const JobQueue& src) = delete;
+	JobQueue& operator = (JobQueue& src) = delete;
 protected:
 	ULONG64 GetCurTime()
 	{
