@@ -39,7 +39,7 @@ public:
 	template<typename T, typename Ret, typename... Params, typename... Args>
 	void DoAsync(Ret(T::* memFunc)(Params...), Args&&... args)
 	{
-		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, std::forward<Args>(args)...));
+		_jobQueue.Enqueue(New<Job>(static_cast<T*>(this), memFunc, std::forward<Args>(args)...));
 		if (GetPopAuthority() == true)
 		{
 			PostJob();
@@ -51,7 +51,7 @@ public:
 	template<typename T, typename Ret, typename... Params, typename... Args>
 	void PushJob(Ret(T::* memFunc)(Params...), Args&&... args)
 	{
-		_jobQueue.Enqueue(New<Job>((T*)this, memFunc, std::forward<Args>(args)...));
+		_jobQueue.Enqueue(New<Job>(static_cast<T*>(this), memFunc, std::forward<Args>(args)...));
 	}
 	bool PopJob(Job** pJob)
 	{
