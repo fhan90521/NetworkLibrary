@@ -163,24 +163,7 @@ public:
 		return *this;
 	}
 
-	template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, wchar_t>>>
-	CSendBuffer& operator << (const Vector<T>& vec) 
-	{
-		USHORT vecSize = vec.size();
-		if (GetFreeSize() < sizeof(vecSize) + vecSize*sizeof(T))
-		{
-			if (Resize(sizeof(vecSize) + vecSize * sizeof(T)) == false)
-			{
-				throw(GetPayLoadSize());
-			}
-		}
-		*((USHORT*)&_buf[_back]) = vecSize;
-		_back += sizeof(vecSize);
-
-		memcpy(&_buf[_back], vec.data(), vecSize * sizeof(T));
-		_back += vecSize * sizeof(T);
-		return *this;
-	}
+	
 
 	template <typename T, typename size_t Size, typename = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T,wchar_t>>>
 	CSendBuffer& operator << (const Array<T, Size>& arr) 
@@ -199,23 +182,25 @@ public:
 	}
 
 	template <typename T, typename = std::enable_if_t<std::is_same_v<T, std::string> || std::is_same_v<T, String>
-													  ||std::is_same_v<T, std::wstring> || std::is_same_v<T, WString>>>
-	CSendBuffer& operator << (const T& str)
+													  ||std::is_same_v<T, std::wstring> || std::is_same_v<T, WString>
+	||(std::is_same_v<T, Vector<typename T::value_type>> 
+		&&(std::is_arithmetic_v<typename T::value_type> || std::is_same_v<typename T::value_type, wchar_t>))>>
+	CSendBuffer& operator << (const T& container)
 	{
 		using namespace std;
-		USHORT strLen = str.size();
-		if (GetFreeSize() < sizeof(strLen) + strLen*sizeof(T::value_type))
+		USHORT containerSize = container.size();
+		if (GetFreeSize() < sizeof(containerSize) + containerSize *sizeof(T::value_type))
 		{
-			if (Resize(sizeof(strLen) + strLen * sizeof(T::value_type)) == false)
+			if (Resize(sizeof(containerSize) + containerSize * sizeof(T::value_type)) == false)
 			{
 				throw(GetPayLoadSize());
 			}
 		}
-		*((USHORT*)&_buf[_back]) = strLen;
-		_back += sizeof(strLen);
+		*((USHORT*)&_buf[_back]) = containerSize;
+		_back += sizeof(containerSize);
 
-		memcpy(&_buf[_back], str.data(), strLen * sizeof(T::value_type));
-		_back += strLen * sizeof(T::value_type);
+		memcpy(&_buf[_back], container.data(), containerSize * sizeof(T::value_type));
+		_back += containerSize * sizeof(T::value_type);
 		return *this;
 	}
 };
